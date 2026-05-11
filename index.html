@@ -736,7 +736,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     </div>
     <div class="card">
       <div class="card-hd"><h3>📋 Missões Recentes</h3></div>
-      <div class="tscroll" id="tUltimos"></div>
+      <div class="tscroll" id="tUltimos" style="max-height:320px;overflow-x:auto;overflow-y:auto"></div>
     </div>
   </div>
 
@@ -1032,11 +1032,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="card"><div class="card-hd"><h3>🗓️ Actividade por Dia da Semana / Hora</h3></div><div id="tHeatmap" style="padding:10px 12px;overflow-x:auto"></div></div>
     <div class="card"><div class="card-hd"><h3>🏅 Ranking Block Time (tripulantes)</h3></div><div id="tRankBT" style="padding:10px 12px"></div></div>
   </div>
-  <!-- Block Time por Tripulante: gráfico + tabela -->
-  <div class="card">
-    <div class="card-hd"><h3>⏱️ Block Time por Tripulante</h3><span style="font-size:.75em;color:var(--ink3);margin-left:6px;font-weight:400">período seleccionado</span></div>
-    <div class="card-bd"><div class="chart-box" style="height:260px"><canvas id="cBTTrip"></canvas></div></div>
-  </div>
   <div class="card">
     <div class="card-hd"><h3>👥 Horas por Tripulante</h3><span style="font-size:.75em;color:var(--ink3);margin-left:6px;font-weight:400">BT + limite mensal</span></div>
     <div class="tscroll" id="tHT"></div>
@@ -1174,8 +1169,11 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 // ══════════════════════════════════════════════════════════════
 //  CONFIGURAÇÃO — URL lido de localStorage (configurável na app)
 // ══════════════════════════════════════════════════════════════
+// ── Cole aqui o URL do Google Apps Script para ligar automaticamente ──
+const DEFAULT_GAS_URL = '';  // ex: 'https://script.google.com/macros/s/XXXX/exec'
+
 function getApiUrl(){
-  try{ return localStorage.getItem('fx9_api_url')||''; }catch{ return ''; }
+  try{ return localStorage.getItem('fx9_api_url') || DEFAULT_GAS_URL || ''; }catch{ return DEFAULT_GAS_URL || ''; }
 }
 function setApiUrl(url){
   try{ localStorage.setItem('fx9_api_url', url.trim()); }catch{}
@@ -1624,13 +1622,13 @@ async _loadUsersTab(){
   if(!keys.length){list.innerHTML='<div style="color:var(--ink3);font-size:.85em;padding:10px">Nenhum utilizador encontrado.</div>';return;}
   list.innerHTML=keys.map(u=>{
     const role=users[u].role||'guest';
-    return `<div class="cfg-user-row" data-old="${this.esc(u)}" style="display:grid;grid-template-columns:1fr 160px 80px 34px;gap:6px;align-items:center">
+    return `<div class="cfg-user-row" data-old="${this.esc(u)}" style="display:grid;grid-template-columns:1fr 150px 80px 34px;gap:6px;align-items:center;margin-bottom:2px">
       <input class="cfg-user-name" value="${this.esc(u)}" placeholder="nome de utilizador" style="padding:8px 10px;border:1.5px solid var(--border2);border-radius:8px;font-size:.88rem;font-family:inherit;outline:none;background:var(--white);color:var(--ink)">
       <select class="cfg-user-role" style="padding:8px 10px;border:1.5px solid var(--border2);border-radius:8px;font-size:.85rem;font-family:inherit;background:var(--white);color:var(--ink);outline:none;height:36px">
         <option value="gestor"${role==='gestor'?' selected':''}>✏️ Gestor</option>
         <option value="guest"${role!=='gestor'?' selected':''}>👁 Consulta</option>
       </select>
-      <button onclick="A._resetUserPwd('${this.esc(u)}')" title="Repor senha para cgc2024" style="padding:0 6px;height:36px;border:1.5px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--ink1);font-size:.78rem;cursor:pointer;white-space:nowrap">🔑 Repor</button>
+      <button onclick="A._adminPwdDialog('${this.esc(u)}')" title="Alterar ou repor palavra-passe" style="padding:0 6px;height:36px;border:1.5px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--ink1);font-size:.78rem;cursor:pointer;white-space:nowrap">🔑 Senha</button>
       <button onclick="this.closest('.cfg-user-row').remove()" title="Apagar utilizador" style="width:34px;height:36px;border:1.5px solid #fca5a5;border-radius:8px;background:#fee2e2;color:#991b1b;font-size:1.1rem;cursor:pointer">×</button>
     </div>`;
   }).join('');
@@ -1725,13 +1723,14 @@ saveCfgColocacoes(){
 _addUserRow(){
   const list=document.getElementById('cfgUserList');if(!list)return;
   const row=document.createElement('div');row.className='cfg-user-row';
-  row.style.cssText='display:grid;grid-template-columns:1fr 160px 80px 34px;gap:6px;align-items:center';
+  row.style.cssText='display:grid;grid-template-columns:1fr 150px 80px 34px;gap:6px;align-items:center;margin-bottom:2px';
+  row.dataset.old='';
   row.innerHTML=`<input class="cfg-user-name" placeholder="nome de utilizador" style="padding:8px 10px;border:1.5px solid var(--border2);border-radius:8px;font-size:.88rem;font-family:inherit;outline:none;background:var(--white);color:var(--ink)">
     <select class="cfg-user-role" style="padding:8px 10px;border:1.5px solid var(--border2);border-radius:8px;font-size:.85rem;font-family:inherit;background:var(--white);color:var(--ink);outline:none;height:36px">
       <option value="guest" selected>👁 Consulta</option>
       <option value="gestor">✏️ Gestor</option>
     </select>
-    <span style="padding:0 6px;height:36px;display:flex;align-items:center;font-size:.75rem;color:var(--ink3);white-space:nowrap">cgc2024</span>
+    <span style="padding:0 6px;height:36px;display:flex;align-items:center;justify-content:center;font-size:.72rem;color:var(--ink3);white-space:nowrap;border:1.5px solid var(--border2);border-radius:8px">cgc2024</span>
     <button onclick="this.closest('.cfg-user-row').remove()" title="Apagar" style="width:34px;height:36px;border:1.5px solid #fca5a5;border-radius:8px;background:#fee2e2;color:#991b1b;font-size:1.1rem;cursor:pointer">×</button>`;
   list.appendChild(row);row.querySelector('input').focus();
 },
@@ -1740,6 +1739,7 @@ async saveCfgUsers(){
   const rows=[...document.querySelectorAll('#cfgUserList .cfg-user-row')];
   const entries=rows.map(r=>({
     username:(r.querySelector('.cfg-user-name')?.value||'').trim().toLowerCase(),
+    oldUsername:(r.dataset.old||'').trim().toLowerCase(),
     role:r.querySelector('.cfg-user-role')?.value||'guest',
   })).filter(e=>e.username);
   const names=entries.map(e=>e.username);
@@ -1753,7 +1753,10 @@ async saveCfgUsers(){
     else{this.showNotif('❌ '+(res?.error||'Erro ao guardar utilizadores'),'err');return;}
   }catch(_){
     const CREDS=this._loadCreds();const newCREDS={admin:CREDS.admin};
-    for(const e of entries){const ex=CREDS[e.username];newCREDS[e.username]={h:ex?.h||DH,role:e.role};}
+    for(const e of entries){
+      const ex=CREDS[e.oldUsername]||CREDS[e.username];
+      newCREDS[e.username]={h:ex?.h||DH,role:e.role};
+    }
     localStorage.setItem(this._CREDS_KEY,JSON.stringify(newCREDS));done=true;
   }
   if(done){
@@ -1774,6 +1777,56 @@ async _resetUserPwd(user){
     if(!CREDS[user]){this.showNotif('❌ Utilizador não encontrado','err');return;}
     CREDS[user].h=DH;localStorage.setItem(this._CREDS_KEY,JSON.stringify(CREDS));
     this.showNotif('Senha de "'+user+'" reposta para cgc2024','ok');
+  }
+},
+// ─── ALTERAR SENHA (admin define directamente) ─────────────────
+_adminPwdDialog(user){
+  const h=`
+  <div class="modal-hd"><h3>🔑 Senha — ${this.esc(user)}</h3><span class="modal-x" onclick="A.closeInfoModal()" aria-label="Fechar">×</span></div>
+  <div style="display:flex;flex-direction:column;gap:14px;margin-top:4px">
+    <div class="fg">
+      <label>Nova palavra-passe</label>
+      <input type="password" id="apwdNew" placeholder="••••••" autocomplete="new-password" style="font-size:.95rem">
+    </div>
+    <div class="fg">
+      <label>Confirmar nova palavra-passe</label>
+      <input type="password" id="apwdConf" placeholder="••••••" autocomplete="new-password" style="font-size:.95rem" onkeydown="if(event.key==='Enter')A._adminPwdSave('${this.esc(user)}')">
+    </div>
+    <div id="apwdErr" style="color:var(--red);font-size:.82rem;min-height:18px"></div>
+  </div>
+  <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-top:4px">
+    <button class="btn btn-s btn-sm" onclick="A._resetUserPwd('${this.esc(user)}');A.closeInfoModal();" title="Repor para a senha padrão cgc2024">↩ Repor para cgc2024</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-s" onclick="A.closeInfoModal()">Cancelar</button>
+      <button class="btn btn-p" onclick="A._adminPwdSave('${this.esc(user)}')">💾 Guardar</button>
+    </div>
+  </div>`;
+  const box=document.getElementById('modalInfoBox');
+  if(box)box.innerHTML=h;
+  document.getElementById('modalInfo').classList.add('on');
+  setTimeout(()=>document.getElementById('apwdNew')?.focus(),80);
+},
+async _adminPwdSave(user){
+  const DH='65148fa4fd5e13302a764d2d90f46d59fbfd7e6bc1110cc6558566396d686379';
+  const nw=document.getElementById('apwdNew')?.value||'';
+  const cf=document.getElementById('apwdConf')?.value||'';
+  const errEl=document.getElementById('apwdErr');
+  const setErr=m=>{if(errEl)errEl.textContent=m;};
+  setErr('');
+  if(!nw){setErr('⚠️ Introduza a nova palavra-passe.');return;}
+  if(nw.length<4){setErr('⚠️ Mínimo 4 caracteres.');return;}
+  if(nw!==cf){setErr('❌ As palavras-passe não coincidem.');return;}
+  const newH=await this._hashPwd(nw);
+  try{
+    const res=await this._authPost({action:'adminSetPassword',token:this.S.sessionToken||'',targetUser:user,newHash:newH});
+    if(res&&res.ok){this.closeInfoModal();this.showNotif('✅ Senha de "'+user+'" alterada com sucesso','ok');return;}
+    setErr('❌ '+(res?.error||'Erro ao guardar senha.'));
+  }catch(_){
+    const CREDS=this._loadCreds();
+    if(!CREDS[user])CREDS[user]={role:'guest'};
+    CREDS[user].h=newH;
+    localStorage.setItem(this._CREDS_KEY,JSON.stringify(CREDS));
+    this.closeInfoModal();this.showNotif('✅ Senha de "'+user+'" alterada','ok');
   }
 },
 
@@ -2957,7 +3010,7 @@ showHistoria(id){
        +'<div style="font-size:.78em;font-weight:700;color:'+(isToday?'#1e40af':'var(--ink)')+';margin-bottom:2px">'+d+'</div>';
       ms.slice(0,3).forEach(m=>{
         const c=colors[m.status||'Concluída']||'#6b7280';
-        h+='<div draggable="true" ondragstart="event.dataTransfer.setData(\'text/mid\',\''+m.id+'\');event.stopPropagation()" style="font-size:.65em;background:'+c+';color:#fff;padding:2px 4px;border-radius:3px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:grab" title="'+this.esc(m.num)+' — '+this.esc(m.tipo)+' (arrastar para mover)">'+this.esc(m.num)+'</div>';
+        h+='<div draggable="true" ondragstart="event.dataTransfer.setData(\'text/mid\',\''+m.id+'\');event.stopPropagation()" onclick="event.stopPropagation();A.openEdit(\''+m.id+'\')" style="font-size:.65em;background:'+c+';color:#fff;padding:2px 4px;border-radius:3px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer" title="'+this.esc(m.num)+' — '+this.esc(m.tipo)+' (clicar para abrir / arrastar para mover)">'+this.esc(m.num)+'</div>';
       });
       if(ms.length>3)h+='<div style="font-size:.65em;color:var(--ink3);text-align:center">+'+(ms.length-3)+' mais</div>';
       h+='</div>';
@@ -4577,7 +4630,7 @@ buildCharts(){
 },
 
 buildAnalysisCharts(){
-  this._destroyCharts('cTipo','cAero','cHor','cFunc','cTend','cBTvsDur','cCustoMes','cCancel','cDurHist');
+  this._destroyCharts('cTipo','cAero','cHor','cFunc','cTend','cBTvsDur','cCustoMes','cCancel','cDurHist','cBTTrip');
   const mis=this.S.filtered;
   const SC={x:{grid:{color:this._gridColor()},ticks:{color:this._textColor()}},y:{grid:{color:this._gridColor()},ticks:{color:this._textColor(),stepSize:1},beginAtZero:true}};
   const mkChart=(id,cfg)=>{const ctx=document.getElementById(id)?.getContext('2d');if(ctx)this.S.charts[id]=new Chart(ctx,cfg);};
@@ -4666,23 +4719,6 @@ buildAnalysisCharts(){
 
   // Heatmap dia da semana × hora
   this.renderHeatmap(mis);
-
-  // Block Time por Tripulante — gráfico de barras horizontais
-  {this._destroyCharts('cBTTrip');
-  const mapBT={};
-  mis.filter(m=>m.status==='Concluída').forEach(m=>{
-    const btStr=this.calcBT(m.boff,m.bon);if(btStr==='—')return;
-    const[bh,bm]=btStr.split(':').map(Number);const btMins=bh*60+(bm||0);
-    (m.crew||[]).forEach(c=>{mapBT[c.nome]=(mapBT[c.nome]||0)+btMins;});
-  });
-  const topBT=Object.entries(mapBT).sort((a,b)=>b[1]-a[1]).slice(0,12);
-  if(topBT.length){
-    const labs=topBT.map(([n])=>n.trim().split(/\s+/).map((w,i)=>i===0?w[0]+'.':w).join(' '));
-    const vals=topBT.map(([,m])=>+(m/60).toFixed(1));
-    const GREEN=['#1B5E20','#2E7D32','#388E3C','#43A047','#4CAF50','#66BB6A','#81C784','#A5D6A7','#C8E6C9','#E8F5E9','#F1F8E9','#F9FBE7'];
-    const ctx=document.getElementById('cBTTrip')?.getContext('2d');
-    if(ctx)this.S.charts['cBTTrip']=new Chart(ctx,{type:'bar',data:{labels:labs,datasets:[{label:'Block Time (h)',data:vals,backgroundColor:GREEN.slice(0,vals.length),borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx2=>ctx2.raw+'h BT'}}},scales:{x:{grid:{color:this._gridColor()},ticks:{color:this._textColor(),callback:v=>v+'h'},beginAtZero:true},y:{grid:{display:false},ticks:{color:this._textColor(),font:{size:11}}}}}});
-  }}
 
   // Ranking Block Time
   this.renderRankBT(mis);
@@ -5101,7 +5137,7 @@ async openChangePwd(){
   }else{opts=`<option value="${this.esc(curU)}">${this.esc(curU)}</option>`;}
   const adminLabel=this.canManageUsers()?'A sua palavra-passe atual (verificação)':'Palavra-passe atual';
   const h=`
-  <div class="modal-hd"><h3>🔑 Alterar Palavra-passe</h3><span class="modal-x" onclick="A.closeModal()" aria-label="Fechar">×</span></div>
+  <div class="modal-hd"><h3>🔑 Alterar Palavra-passe</h3><span class="modal-x" onclick="A.closeInfoModal()" aria-label="Fechar">×</span></div>
   <div style="display:flex;flex-direction:column;gap:14px;margin-top:4px">
     <div class="fg">
       <label>Utilizador a alterar</label>
@@ -5124,7 +5160,7 @@ async openChangePwd(){
     <div id="pwdErr" style="color:var(--red);font-size:.82rem;min-height:18px"></div>
   </div>
   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
-    <button class="btn btn-s" onclick="A.closeModal()">Cancelar</button>
+    <button class="btn btn-s" onclick="A.closeInfoModal()">Cancelar</button>
     <button class="btn btn-p" onclick="A.saveChangePwd()">🔑 Alterar</button>
   </div>`;
   const box=document.getElementById('modalInfoBox');
@@ -5162,7 +5198,7 @@ async saveChangePwd(){
       CREDS[user].h=newH;
       localStorage.setItem(this._CREDS_KEY,JSON.stringify(CREDS));done=true;
     }
-    if(done){this.closeModal();this.showNotif('Palavra-passe de "'+user+'" alterada com sucesso','ok');}
+    if(done){this.closeInfoModal();this.showNotif('Palavra-passe de "'+user+'" alterada com sucesso','ok');}
   }catch(e){setErr('❌ Erro ao alterar a palavra-passe.');if(btn){btn.disabled=false;btn.textContent='🔑 Alterar';}}
 },
 // ─── LOGOUT ───────────────────────────────────────────────────
