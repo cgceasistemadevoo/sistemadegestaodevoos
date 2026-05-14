@@ -500,6 +500,9 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 .login-btn{width:100%;padding:13px;background:#2E7D32;color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s}
 .login-btn:hover{background:#1B5E20}
 .login-footer{text-align:center;font-size:.72rem;color:#9baf9e;margin-top:18px}
+.forgot-link{background:none;border:none;color:#6b8a72;font-size:.78rem;cursor:pointer;text-decoration:underline;font-family:inherit;padding:0}
+.forgot-link:hover{color:#1B5E20}
+.login-ok{color:#2E7D32;font-size:.82rem;text-align:center;min-height:18px;margin:8px 0 4px;line-height:1.4}
 /* Modo convidado: esconde elementos só de admin */
 .guest-mode .admin-only{display:none!important}
 </style>
@@ -511,22 +514,49 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 ══════════════════════════════════════════ -->
 <div id="loginScreen">
   <div class="login-box">
-    <div class="login-logo">✈️</div>
-    <div class="login-title">CGC — Esquadrilha Aérea</div>
-    <div class="login-sub">Sistema de Gestão de Voo · Guarda Costeira de Cabo Verde</div>
-    <div class="login-fields">
-      <div>
-        <label>Utilizador</label>
-        <input id="lUser" placeholder="utilizador" autocomplete="username" oninput="document.getElementById('lErr').textContent=''">
+
+    <!-- Painel principal de login -->
+    <div id="loginMain">
+      <div class="login-logo">✈️</div>
+      <div class="login-title">CGC — Esquadrilha Aérea</div>
+      <div class="login-sub">Sistema de Gestão de Voo · Guarda Costeira de Cabo Verde</div>
+      <div class="login-fields">
+        <div>
+          <label>Utilizador</label>
+          <input id="lUser" placeholder="utilizador" autocomplete="username" oninput="document.getElementById('lErr').textContent=''">
+        </div>
+        <div>
+          <label>Palavra-passe</label>
+          <input id="lPass" type="password" placeholder="••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')A.doLogin()">
+        </div>
       </div>
-      <div>
-        <label>Palavra-passe</label>
-        <input id="lPass" type="password" placeholder="••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')A.doLogin()">
+      <div class="login-err" id="lErr"></div>
+      <button class="login-btn" onclick="A.doLogin()">Entrar no Sistema</button>
+      <div style="text-align:center;margin-top:12px">
+        <button onclick="A.showForgotPwd()" class="forgot-link">Esqueceu a palavra-passe?</button>
+      </div>
+      <div class="login-footer">Administrador — acesso total &nbsp;|&nbsp; Convidado — apenas consulta</div>
+    </div>
+
+    <!-- Painel de recuperação de acesso -->
+    <div id="forgotPanel" style="display:none">
+      <div class="login-logo">🔑</div>
+      <div class="login-title">Recuperar Acesso</div>
+      <div class="login-sub">O administrador receberá uma notificação por email</div>
+      <div class="login-fields" style="margin-top:20px">
+        <div>
+          <label>Utilizador</label>
+          <input id="fUser" placeholder="o seu nome de utilizador" autocomplete="username" oninput="document.getElementById('fErr').textContent=''" onkeydown="if(event.key==='Enter')A.submitForgotPwd()">
+        </div>
+      </div>
+      <div class="login-err" id="fErr"></div>
+      <div class="login-ok" id="fOk"></div>
+      <button class="login-btn" id="fBtn" onclick="A.submitForgotPwd()">📧 Notificar Administrador</button>
+      <div style="text-align:center;margin-top:14px">
+        <button onclick="A.hideForgotPwd()" class="forgot-link">← Voltar ao login</button>
       </div>
     </div>
-    <div class="login-err" id="lErr"></div>
-    <button class="login-btn" onclick="A.doLogin()">Entrar no Sistema</button>
-    <div class="login-footer">Administrador — acesso total &nbsp;|&nbsp; Convidado — apenas consulta</div>
+
   </div>
 </div>
 
@@ -567,7 +597,8 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="fg"><label>Block Time estimado</label><input id="eBTPreview" readonly placeholder="—"></div>
     <div class="fg"><label>Origem</label><input id="eOrigem" placeholder="ex: Praia, SAL, CV01"></div>
     <div class="fg"><label>Destino</label><input id="eDestino" placeholder="ex: SAL, Boa Vista, CV02"></div>
-    <div class="fg"><label>Perna</label><select id="ePerna"><option value="">—</option><option value="A">A (Ida)</option><option value="B">B (Regresso)</option><option value="C">C</option><option value="D">D</option><option value="E">E</option></select></div>
+    <div class="fg"><label>Perna</label><select id="ePerna"><option value="">—</option><option value="1">1ª (Ida)</option><option value="2">2ª (Regresso)</option><option value="3">3ª</option><option value="4">4ª</option><option value="5">5ª</option><option value="6">6ª</option><option value="7">7ª</option><option value="8">8ª</option><option value="9">9ª</option><option value="10">10ª</option></select></div>
+    <div class="fg" style="align-self:end"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 2px;user-select:none"><input type="checkbox" id="eCatering" style="width:17px;height:17px;accent-color:#2E7D32;flex-shrink:0"><span>🍽️ Refeição fornecida por catering<br><small style="color:var(--ink3);font-weight:400">Não inclui subsídio de refeição</small></span></label></div>
     <div class="fg"><label>⛽ Comb. Adicionado (L)</label><input type="number" id="eFuelAdd" placeholder="ex: 450" min="0" step="1"></div>
     <div class="fg"><label>⛽ Comb. Consumido (L)</label><input type="number" id="eFuelUse" placeholder="ex: 380" min="0" step="1"></div>
     <div class="fg" style="grid-column:1/-1"><label>📝 Observações / Ocorrências</label><textarea id="eObs" rows="2" placeholder="Anomalias, avarias, condições meteorológicas, ocorrências…" style="width:100%;padding:8px 10px;border:1.5px solid var(--border2);border-radius:8px;font-size:.88em;font-family:inherit;background:var(--white);color:var(--ink);outline:none;resize:vertical"></textarea></div>
@@ -848,7 +879,8 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
       <div class="fg"><label>Origem</label><input id="iOrigem" placeholder="ex: Praia, SAL, CV01"></div>
       <div class="fg"><label>Destino</label><input id="iDestino" placeholder="ex: SAL, Boa Vista, CV02"></div>
       <div class="fg"><label>🏷️ Etiquetas</label><input id="iTags" placeholder="ex: noturno, urgente"></div>
-      <div class="fg"><label>Perna</label><select id="iPerna"><option value="">—</option><option value="A">A (Ida)</option><option value="B">B (Regresso)</option><option value="C">C</option><option value="D">D</option><option value="E">E</option></select></div>
+      <div class="fg"><label>Perna</label><select id="iPerna"><option value="">—</option><option value="1">1ª (Ida)</option><option value="2">2ª (Regresso)</option><option value="3">3ª</option><option value="4">4ª</option><option value="5">5ª</option><option value="6">6ª</option><option value="7">7ª</option><option value="8">8ª</option><option value="9">9ª</option><option value="10">10ª</option></select></div>
+      <div class="fg" style="align-self:end"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 2px;user-select:none"><input type="checkbox" id="iCatering" style="width:17px;height:17px;accent-color:#2E7D32;flex-shrink:0"><span>🍽️ Refeição fornecida por catering<br><small style="color:var(--ink3);font-weight:400">Não inclui subsídio de refeição</small></span></label></div>
       <div class="fg"><label>Estado</label>
         <select id="iStatus">
           <option value="Concluída">✅ Concluída</option>
@@ -1363,6 +1395,14 @@ async saveToCloud(){
       colocacoes:this.S.colocacoes,
       aeros:this.S.aeros,
       auditLog:this.S.auditLog,
+      config:{
+        funcoes:this.C.funcoes,
+        fnRates:this.C.vPF,
+        meals:this.getMealVals(),
+        limits:this.getHrLimits(),
+        seriesDefault:this.getDefaultSeries(),
+        metas:this.getMetas(),
+      },
     };
     const resp=await fetch(url,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(data)});
     const r=await resp.json();
@@ -1395,11 +1435,38 @@ async loadFromCloud(){
     if(d&&d.error)throw new Error(d.error);
     if(d&&d.missoes){
       this.S.trips=d.trips?.length?d.trips:JSON.parse(JSON.stringify(this.C.defTrips));
-      this.S.missoes=(d.missoes||[]).map(m=>({...m,dt:new Date(m.dt),status:m.status||'Concluída',serie:m.serie||'CGC-EA',history:m.history||[],tags:m.tags||[],origem:m.origem||'',destino:m.destino||'',perna:m.perna||'',obs:m.obs||'',fuelAdd:m.fuelAdd??null,fuelUse:m.fuelUse??null}));
+      this.S.missoes=(d.missoes||[]).map(m=>({...m,dt:new Date(m.dt),status:m.status||'Concluída',serie:m.serie||'CGC-EA',history:m.history||[],tags:m.tags||[],origem:m.origem||'',destino:m.destino||'',perna:m.perna||'',catering:m.catering||false,obs:m.obs||'',fuelAdd:m.fuelAdd??null,fuelUse:m.fuelUse??null}));
       this.S.series=d.series||[];
       this.S.colocacoes=d.colocacoes||[];
       this.S.aeros=d.aeros||[];
       this.S.auditLog=d.auditLog||[];
+      // ── Restaurar configurações guardadas no Drive ──
+      if(d.config){
+        const cfg=d.config;
+        if(Array.isArray(cfg.funcoes)&&cfg.funcoes.length){
+          this.C.funcoes=cfg.funcoes;
+          try{localStorage.setItem('fx9_funcoes',JSON.stringify(cfg.funcoes));}catch{}
+        }
+        if(cfg.fnRates&&typeof cfg.fnRates==='object'){
+          this.C.vPF=cfg.fnRates;
+          try{localStorage.setItem('fx9_fn_rates',JSON.stringify(cfg.fnRates));}catch{}
+        }
+        if(cfg.meals&&cfg.meals.pa>=0){
+          try{localStorage.setItem('fx9_meals',JSON.stringify(cfg.meals));}catch{}
+        }
+        if(cfg.limits&&cfg.limits.hrLimit>0){
+          this.S.hrLimit=cfg.limits.hrLimit;
+          this.S.hrLimitYear=cfg.limits.hrLimitYear||800;
+          try{localStorage.setItem('fx9_limits',JSON.stringify(cfg.limits));}catch{}
+        }
+        if(Array.isArray(cfg.seriesDefault)){
+          this.C.seriesDefault=cfg.seriesDefault;
+          try{localStorage.setItem('fx9_series_default',JSON.stringify(cfg.seriesDefault));}catch{}
+        }
+        if(cfg.metas&&typeof cfg.metas==='object'){
+          try{localStorage.setItem('fx9_metas',JSON.stringify(cfg.metas));}catch{}
+        }
+      }
       this.S.lastSave=new Date().toISOString();
       this.syncUI('synced',this.S.lastSave);
       this.addAudit('Dados carregados do Drive',this.S.missoes.length+' missões');
@@ -1659,7 +1726,8 @@ saveCfgFuncoes(){
   this.C.vPF=newRates;
   try{localStorage.setItem('fx9_funcoes',JSON.stringify(newFuncoes));}catch{}
   try{localStorage.setItem('fx9_fn_rates',JSON.stringify(newRates));}catch{}
-  if(affected){this.markDirty();this.S.filtered=[...this.S.missoes];}
+  if(affected)this.S.filtered=[...this.S.missoes];
+  this.markDirty();
   this.closeInfoModal();
   const msg=affected?'✅ Funções guardadas — '+affected+' registo(s) de tripulação migrados':'✅ Funções e tarifas guardadas';
   this.showNotif(msg);
@@ -1683,6 +1751,7 @@ saveCfgRates(){
   document.querySelectorAll('.cfg-rate').forEach(inp=>{const fn=inp.dataset.fn;if(fn)rates[fn]=Number(inp.value)||0;});
   try{localStorage.setItem('fx9_rates',JSON.stringify(rates));}catch{}
   this.closeInfoModal();this.showNotif('✅ Tarifas guardadas!');
+  this.markDirty();
 },
 saveCfgMeals(){
   const pa=Number(document.getElementById('cfgPA')?.value)||0;
@@ -1690,6 +1759,7 @@ saveCfgMeals(){
   const jn=Number(document.getElementById('cfgJN')?.value)||0;
   try{localStorage.setItem('fx9_meals',JSON.stringify({pa,al,jn}));}catch{}
   this.closeInfoModal();this.showNotif('✅ Refeições guardadas!');
+  this.markDirty();
 },
 saveCfgLimits(){
   const hrLimit=Math.max(10,Math.min(300,Number(document.getElementById('cfgHrMonth')?.value)||80));
@@ -1697,12 +1767,14 @@ saveCfgLimits(){
   try{localStorage.setItem('fx9_limits',JSON.stringify({hrLimit,hrLimitYear}));}catch{}
   this.S.hrLimit=hrLimit;this.S.hrLimitYear=hrLimitYear;
   this.closeInfoModal();this.showNotif('✅ Limites guardados!');this.renderTrips();
+  this.markDirty();
 },
 saveCfgSeries(){
   const raw=(document.getElementById('cfgSeries')?.value||'').split('\n').map(s=>s.trim()).filter(Boolean);
   try{localStorage.setItem('fx9_series_default',JSON.stringify(raw));}catch{}
   this.C.seriesDefault=raw;
   this.closeInfoModal();this.showNotif('✅ Séries guardadas!');this.fillSelects();
+  this.markDirty();
 },
 _addColocacaoRow(){
   const list=document.getElementById('cfgColList');if(!list)return;
@@ -1719,6 +1791,7 @@ saveCfgColocacoes(){
   try{localStorage.setItem('fx9_colocacoes',JSON.stringify(rows));}catch{}
   this._fillColSelect();
   this.closeInfoModal();this.showNotif('✅ Colocações guardadas!');
+  this.markDirty();
 },
 _addUserRow(){
   const list=document.getElementById('cfgUserList');if(!list)return;
@@ -2364,6 +2437,7 @@ addMissao(){
     origem:(document.getElementById('iOrigem')?.value||'').trim(),
     destino:(document.getElementById('iDestino')?.value||'').trim(),
     perna:(document.getElementById('iPerna')?.value||'').trim(),
+    catering:document.getElementById('iCatering')?.checked||false,
     tags:(document.getElementById('iTags')?.value||'').split(',').map(s=>s.trim()).filter(Boolean),
     fuelAdd:document.getElementById('iFuelAdd')?.value?Number(document.getElementById('iFuelAdd').value):null,
     fuelUse:document.getElementById('iFuelUse')?.value?Number(document.getElementById('iFuelUse').value):null,
@@ -2387,6 +2461,7 @@ addMissao(){
 },
 clearForm(){
   ['iData','iBOff','iTOff','iLand','iBOn','durPreview','iTags','iOrigem','iDestino','iFuelAdd','iFuelUse'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  const _iCat=document.getElementById('iCatering');if(_iCat)_iCat.checked=false;
   const _iObs=document.getElementById('iObs');if(_iObs)_iObs.value='';
   const iS=document.getElementById('iSerie');if(iS)iS.value='';
   const iT=document.getElementById('iTipo');if(iT)iT.value='';
@@ -2420,6 +2495,7 @@ editMissao(id){
   const eOr=document.getElementById('eOrigem');if(eOr)eOr.value=m.origem||'';
   const eDe=document.getElementById('eDestino');if(eDe)eDe.value=m.destino||'';
   const ePe=document.getElementById('ePerna');if(ePe)ePe.value=m.perna||'';
+  const eCat=document.getElementById('eCatering');if(eCat)eCat.checked=m.catering||false;
   const eFa=document.getElementById('eFuelAdd');if(eFa)eFa.value=m.fuelAdd!=null?m.fuelAdd:'';
   const eFu=document.getElementById('eFuelUse');if(eFu)eFu.value=m.fuelUse!=null?m.fuelUse:'';
   const eOb=document.getElementById('eObs');if(eOb)eOb.value=m.obs||'';
@@ -2472,6 +2548,7 @@ saveEdit(){
   m.origem=(document.getElementById('eOrigem')?.value||'').trim();
   m.destino=(document.getElementById('eDestino')?.value||'').trim();
   m.perna=(document.getElementById('ePerna')?.value||'').trim();
+  m.catering=document.getElementById('eCatering')?.checked||false;
   m.fuelAdd=document.getElementById('eFuelAdd')?.value?Number(document.getElementById('eFuelAdd').value):null;
   m.fuelUse=document.getElementById('eFuelUse')?.value?Number(document.getElementById('eFuelUse').value):null;
   m.obs=(document.getElementById('eObs')?.value||'').trim();
@@ -3048,11 +3125,13 @@ showHistoria(id){
     let num, perna, origemNova, destinoNovo, histAction;
     if(isRegresso){
       num=mOrig.num;
-      const letraBase=(mOrig.perna||'A').charCodeAt(0);
-      perna=String.fromCharCode(letraBase+1);
+      const _curP=mOrig.perna||'';
+      const _numP=parseInt(_curP)||0;
+      const _nextNum=_numP?_numP+1:(/^[A-Z]$/.test(_curP)?_curP.charCodeAt(0)-63:2);
+      perna=String(Math.min(_nextNum,10));
       origemNova=mOrig.destino||'';
       destinoNovo=mOrig.origem||'';
-      histAction='Perna '+perna+' criada (regresso de '+mOrig.num+(mOrig.perna||'')+')';
+      histAction='Perna '+perna+'ª criada (regresso de '+mOrig.num+(mOrig.perna||'')+')';
     } else {
       num=this.genNum(mOrig.serie);
       perna=mOrig.perna||'';
@@ -4099,9 +4178,9 @@ calcPag(){
     const btStr=this.calcBT(m.boff,m.bon);
     const btMins=btStr!=='—'?(()=>{const[bh,bm]=btStr.split(':').map(Number);return bh*60+(bm||0);})():0;
     const effMins=btMins||dMin;
-    const hasPA=this.overlaps(tMin,effMins,0,8);
-    const hasA=this.overlaps(tMin,effMins,12,14);
-    const hasJ=this.overlaps(tMin,effMins,19,24);
+    const hasPA=!m.catering&&this.overlaps(tMin,effMins,0,8);
+    const hasA=!m.catering&&this.overlaps(tMin,effMins,12,14);
+    const hasJ=!m.catering&&this.overlaps(tMin,effMins,19,24);
     const mealR=(hasPA?mv.pa:0)+(hasA?mv.al:0)+(hasJ?mv.jn:0);
     const mCVE=(m.crew||[]).reduce((s,c)=>s+(vPF[c.fn]||1500)*(effMins/60)+mealR,0);
     const sk=m.serie||'—';
@@ -4122,7 +4201,7 @@ calcPag(){
   });
   const lista=Object.values(pag).sort((a,b)=>a.nome.localeCompare(b.nome));
   let totMin=0,totVal=0;lista.forEach(p=>{totMin+=p.min;totVal+=p.tot;});
-  if(e('sMis'))e('sMis').textContent=mMes.length;
+  if(e('sMis'))e('sMis').textContent=new Set(mMes.map(m=>m.num)).size;
   if(e('sHr'))e('sHr').textContent=Math.floor(totMin/60)+'h';
   if(e('sTr'))e('sTr').textContent=lista.length;
   if(e('sRef'))e('sRef').textContent=totRef;
@@ -4178,9 +4257,9 @@ gerarRecibo(nome){
     const dMin=this.dur2m(m.dur);const effMs=btMs||dMin;
     const vhP=(_vPF[crewM?.fn]||1500);const vH=vhP*(effMs/60);
     const tMin=this.t2m((m.toff||'00:00').slice(0,5));
-    const hasPA=this.overlaps(tMin,effMs,0,8);
-    const hasA=this.overlaps(tMin,effMs,12,14);
-    const hasJ=this.overlaps(tMin,effMs,19,24);
+    const hasPA=!m.catering&&this.overlaps(tMin,effMs,0,8);
+    const hasA=!m.catering&&this.overlaps(tMin,effMs,12,14);
+    const hasJ=!m.catering&&this.overlaps(tMin,effMs,19,24);
     let vR=0;
     if(hasPA){pa++;vR+=_mv.pa;}
     if(hasA){al++;vR+=_mv.al;}
@@ -4637,7 +4716,7 @@ buildAnalysisCharts(){
 
   // Por Tipo de Missão + Por Aeronave (doughnuts)
   {const byTipo={},byAero={};
-  mis.forEach(m=>{byTipo[m.tipo]=(byTipo[m.tipo]||0)+1;byAero[m.aero]=(byAero[m.aero]||0)+1;});
+  const _seenN=new Set();mis.forEach(m=>{if(_seenN.has(m.num))return;_seenN.add(m.num);byTipo[m.tipo]=(byTipo[m.tipo]||0)+1;byAero[m.aero]=(byAero[m.aero]||0)+1;});
   const mkPie=(id,data,labels,colors)=>{const ctx=document.getElementById(id)?.getContext('2d');if(!ctx)return;this.S.charts[id]=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:2,borderColor:this._isDark()?'#0e1f10':'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},color:this._textColor(),boxWidth:14,padding:10}}}}});};
   const GREEN=['#1B5E20','#2E7D32','#388E3C','#43A047','#4CAF50','#66BB6A','#81C784'];
   const BLUE=['#01579b','#0277bd','#0288d1','#0097a7','#00838f','#00695c','#00796b'];
@@ -4660,7 +4739,7 @@ buildAnalysisCharts(){
   // Annual trend
   {const now=new Date(),yr=now.getFullYear();
   const labels=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  const mk=(y)=>labels.map((_,i)=>mis.filter(m=>m.dt.getFullYear()===y&&m.dt.getMonth()===i).length);
+  const mk=(y)=>labels.map((_,i)=>{const _s=new Set();return mis.filter(m=>m.dt.getFullYear()===y&&m.dt.getMonth()===i&&!_s.has(m.num)&&_s.add(m.num)).length;});
   mkChart('cTend',{type:'line',data:{labels,datasets:[{label:String(yr-1),data:mk(yr-1),borderColor:'#81C784',backgroundColor:'#81C78430',fill:true,tension:.3},{label:String(yr),data:mk(yr),borderColor:'#1B5E20',backgroundColor:'#1B5E2030',fill:true,tension:.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:this._textColor(),font:{size:11}}}},scales:{x:{grid:{color:this._gridColor()},ticks:{color:this._textColor()}},y:{grid:{color:this._gridColor()},ticks:{color:this._textColor(),stepSize:1},beginAtZero:true}}}});}
 
   // Block Time vs Duração (12 months)
@@ -4690,7 +4769,7 @@ buildAnalysisCharts(){
       const btStr=this.calcBT(m.boff,m.bon);
       const btMins=btStr!=='—'?(()=>{const[bh,bm]=btStr.split(':').map(Number);return bh*60+(bm||0);})():0;
       const tMin=this.t2m((m.toff||'00:00').slice(0,5));const dMin2=this.dur2m(m.dur);
-      const mR=(this.overlaps(tMin,dMin2,0,8)?mv.pa:0)+(this.overlaps(tMin,dMin2,12,14)?mv.al:0)+(this.overlaps(tMin,dMin2,19,24)?mv.jn:0);
+      const mR=m.catering?0:(this.overlaps(tMin,dMin2,0,8)?mv.pa:0)+(this.overlaps(tMin,dMin2,12,14)?mv.al:0)+(this.overlaps(tMin,dMin2,19,24)?mv.jn:0);
       (m.crew||[]).forEach(c=>{total+=(vPF[c.fn]||1500)*(btMins/60)+mR;});
     });
     custoData.push(Math.round(total));
@@ -4704,7 +4783,9 @@ buildAnalysisCharts(){
     const y=d.getFullYear(),mo=d.getMonth();
     months.push(['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][mo]+' '+String(y).slice(2));
     const mMes=mis.filter(m=>m.dt.getFullYear()===y&&m.dt.getMonth()===mo);
-    const total=mMes.length,canc=mMes.filter(m=>m.status==='Cancelada').length;
+    const _sT=new Set(),_sC=new Set();
+    const total=mMes.filter(m=>!_sT.has(m.num)&&_sT.add(m.num)).length;
+    const canc=mMes.filter(m=>m.status==='Cancelada'&&!_sC.has(m.num)&&_sC.add(m.num)).length;
     cancelData.push(total?Math.round(canc/total*100):0);
   }
   mkChart('cCancel',{type:'bar',data:{labels:months,datasets:[{label:'% Canceladas',data:cancelData,backgroundColor:cancelData.map(v=>v>30?'#dc2626':v>15?'#f59e0b':'#10b981'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.raw+'%'}}},scales:{x:{grid:{color:this._gridColor()},ticks:{color:this._textColor(),font:{size:9}}},y:{grid:{color:this._gridColor()},ticks:{color:this._textColor(),callback:v=>v+'%'},beginAtZero:true,max:100}}}});}
@@ -5200,6 +5281,44 @@ async saveChangePwd(){
     }
     if(done){this.closeInfoModal();this.showNotif('Palavra-passe de "'+user+'" alterada com sucesso','ok');}
   }catch(e){setErr('❌ Erro ao alterar a palavra-passe.');if(btn){btn.disabled=false;btn.textContent='🔑 Alterar';}}
+},
+// ─── RECUPERAÇÃO DE PALAVRA-PASSE ────────────────────────────
+showForgotPwd(){
+  const u=document.getElementById('lUser')?.value||'';
+  document.getElementById('loginMain').style.display='none';
+  document.getElementById('forgotPanel').style.display='block';
+  document.getElementById('fErr').textContent='';
+  document.getElementById('fOk').textContent='';
+  const fBtn=document.getElementById('fBtn');
+  if(fBtn){fBtn.disabled=false;fBtn.textContent='📧 Notificar Administrador';}
+  const fUser=document.getElementById('fUser');
+  if(fUser){fUser.value=u;fUser.focus();}
+},
+hideForgotPwd(){
+  document.getElementById('forgotPanel').style.display='none';
+  document.getElementById('loginMain').style.display='block';
+},
+async submitForgotPwd(){
+  const u=(document.getElementById('fUser')?.value||'').trim().toLowerCase();
+  const errEl=document.getElementById('fErr');
+  const okEl=document.getElementById('fOk');
+  const btn=document.getElementById('fBtn');
+  errEl.textContent='';okEl.textContent='';
+  if(!u){errEl.textContent='Introduza o nome de utilizador.';return;}
+  if(btn){btn.disabled=true;btn.textContent='A enviar...';}
+  try{
+    const res=await this._authPost({action:'requestPasswordReset',username:u});
+    if(res&&res.ok){
+      okEl.textContent='✅ Pedido enviado com sucesso. O administrador receberá uma notificação por email e irá resetar a sua palavra-passe brevemente.';
+      if(btn){btn.disabled=true;btn.textContent='✅ Pedido enviado';}
+    }else{
+      errEl.textContent='❌ '+(res?.error||'Erro ao enviar pedido.');
+      if(btn){btn.disabled=false;btn.textContent='📧 Notificar Administrador';}
+    }
+  }catch(_){
+    errEl.textContent='⚠️ Sem ligação ao servidor. Contacte o administrador diretamente.';
+    if(btn){btn.disabled=false;btn.textContent='📧 Notificar Administrador';}
+  }
 },
 // ─── LOGOUT ───────────────────────────────────────────────────
 doLogout(){
@@ -5915,18 +6034,22 @@ missaoPDF(id){
 // ─── T002: BACKUP / RESTAURO JSON ─────────────────────────────
 exportBackup(){
   const data={
-    _version:2,
+    _version:3,
     _exportedAt:new Date().toISOString(),
     _app:'CGC-EA Sistema de Gestão de Voo',
     trips:this.S.trips,
     missoes:this.S.missoes.map(m=>({...m,dt:m.dt instanceof Date?m.dt.toISOString():m.dt})),
     series:this.S.series,
+    colocacoes:this.S.colocacoes,
     aeros:this.S.aeros,
     auditLog:this.S.auditLog,
-    metas:this.getMetas(),
     config:{
       funcoes:this.C.funcoes,
-      vPF:this.C.vPF,
+      fnRates:this.C.vPF,
+      meals:this.getMealVals(),
+      limits:this.getHrLimits(),
+      seriesDefault:this.getDefaultSeries(),
+      metas:this.getMetas(),
     },
   };
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
@@ -5952,9 +6075,21 @@ importBackup(ev){
       this.S.trips=data.trips||[];
       this.S.missoes=(data.missoes||[]).map(m=>({...m,dt:new Date(m.dt),status:m.status||'Concluída',serie:m.serie||'CGC-EA',history:m.history||[],tags:m.tags||[],origem:m.origem||'',destino:m.destino||'',perna:m.perna||'',obs:m.obs||'',fuelAdd:m.fuelAdd??null,fuelUse:m.fuelUse??null}));
       this.S.series=data.series||[];
+      this.S.colocacoes=data.colocacoes||this.S.colocacoes;
       this.S.aeros=data.aeros||[];
       this.S.auditLog=data.auditLog||[];
-      if(data.metas){try{localStorage.setItem('fx9_metas',JSON.stringify(data.metas));}catch{}}
+      // Restaurar config do backup
+      const cfg=data.config||{};
+      // suporte a backups antigos (v2) que usavam vPF em vez de fnRates
+      const fnRates=cfg.fnRates||(data.config?.vPF)||null;
+      if(Array.isArray(cfg.funcoes)&&cfg.funcoes.length){this.C.funcoes=cfg.funcoes;try{localStorage.setItem('fx9_funcoes',JSON.stringify(cfg.funcoes));}catch{}}
+      if(fnRates&&typeof fnRates==='object'){this.C.vPF=fnRates;try{localStorage.setItem('fx9_fn_rates',JSON.stringify(fnRates));}catch{}}
+      if(cfg.meals&&cfg.meals.pa>=0){try{localStorage.setItem('fx9_meals',JSON.stringify(cfg.meals));}catch{}}
+      if(cfg.limits&&cfg.limits.hrLimit>0){this.S.hrLimit=cfg.limits.hrLimit;this.S.hrLimitYear=cfg.limits.hrLimitYear||800;try{localStorage.setItem('fx9_limits',JSON.stringify(cfg.limits));}catch{}}
+      if(Array.isArray(cfg.seriesDefault)){this.C.seriesDefault=cfg.seriesDefault;try{localStorage.setItem('fx9_series_default',JSON.stringify(cfg.seriesDefault));}catch{}}
+      if(cfg.metas){try{localStorage.setItem('fx9_metas',JSON.stringify(cfg.metas));}catch{}}
+      // suporte a backup antigo com metas no topo
+      if(data.metas&&!cfg.metas){try{localStorage.setItem('fx9_metas',JSON.stringify(data.metas));}catch{}}
       this.S.filtered=[...this.S.missoes];
       this.markDirty();
       this.fillSelects();
@@ -6046,6 +6181,7 @@ saveCfgMetas(){
   this.closeInfoModal();
   this.renderMetas();
   this.showNotif('✅ Metas operacionais guardadas!');
+  this.markDirty();
 },
 renderMetas(){
   const el=document.getElementById('tMetas');if(!el)return;
