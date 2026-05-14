@@ -1202,7 +1202,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 //  CONFIGURAÇÃO — URL lido de localStorage (configurável na app)
 // ══════════════════════════════════════════════════════════════
 // ── Cole aqui o URL do Google Apps Script para ligar automaticamente ──
-const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbzGAJjHR_asoaZEB51hSQEPo7f6ekxsV2iunAiaw0KEyoSFho2SNmwbWSLn98-DM-fy/exec';  // ex: 'https://script.google.com/macros/s/XXXX/exec'
+const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbwEsQl3sqN201LkxLjS9dqZI5pQLGEOl9Ben8uF2dvfy3FV6mjjCf-liH1paWJVKsN5/exec';  // ex: 'https://script.google.com/macros/s/XXXX/exec'
 
 function getApiUrl(){
   try{ return localStorage.getItem('fx9_api_url') || DEFAULT_GAS_URL || ''; }catch{ return DEFAULT_GAS_URL || ''; }
@@ -5155,10 +5155,10 @@ async doLogin(){
       this.S.role=res.role;this.S.currentUser=res.username;this.S.sessionToken=res.token;
       sessionStorage.setItem(this._SESSION_KEY,res.token);ok=true;
     }else{if(err)err.textContent=res?.error||'Utilizador ou palavra-passe incorretos.';}
-  }catch(_){
-    const CREDS=this._loadCreds();const cred=CREDS[u];
-    if(cred&&cred.h===ph){this.S.role=cred.role||'guest';this.S.currentUser=u;this.S.sessionToken=null;ok=true;}
-    else{if(err)err.textContent='Utilizador ou palavra-passe incorretos.';}
+  }catch(e){
+    const noUrl=!getApiUrl();
+    if(noUrl){if(err)err.textContent='⚙️ Configure primeiro o URL do Google Script nas definições.';}
+    else{if(err)err.textContent='❌ Servidor inacessível. Verifique o URL do Google Script e as permissões.';}
   }
   if(btn){btn.disabled=false;btn.textContent='Entrar no Sistema';}
   if(ok){document.getElementById('loginScreen').style.display='none';this._applyRole();this.init();}
