@@ -849,7 +849,11 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
       <div class="fg"><label>NIF * (9 dígitos)</label><input id="iNIF" placeholder="123456789" maxlength="9" inputmode="numeric"></div>
       <div class="fg"><label>📋 Validade Médico</label><input type="date" id="iValMed"></div>
       <div class="fg"><label>🎫 Validade Licença</label><input type="date" id="iValLic"></div>
-      <div class="fg"><label>🎓 Validade Curso</label><input type="date" id="iValCur"></div>
+      <div class="fg" style="grid-column:1/-1">
+        <label>🎓 Cursos e Validades <span style="font-weight:400;color:var(--ink3);font-size:.85em">— adicione quantos necessitar</span></label>
+        <div id="iCursosList" style="display:flex;flex-direction:column;gap:5px;margin-top:4px"></div>
+        <button type="button" class="btn btn-s btn-sm" style="margin-top:6px;font-size:.8em" onclick="A._addCursoRow('iCursosList')">➕ Adicionar Curso</button>
+      </div>
     </div>
     <button class="btn btn-p admin-only" onclick="A.addTrip()">✅ Adicionar Tripulante</button>
   </div>
@@ -1421,7 +1425,7 @@ async loadFromCloud(){
     // Suporte a respostas embrulhadas {ok:true,data:{...}} e resposta directa {missoes:[...]}
     const d=(_raw&&_raw.missoes)?_raw:(_raw&&_raw.data&&_raw.data.missoes?_raw.data:_raw);
     if(d&&d.missoes){
-      this.S.trips=d.trips?.length?d.trips:JSON.parse(JSON.stringify(this.C.defTrips));
+      this.S.trips=(d.trips?.length?d.trips:JSON.parse(JSON.stringify(this.C.defTrips))).map(t=>{if(t.valCur!==undefined&&!t.cursos){t.cursos=t.valCur?[{nome:'Curso',val:t.valCur}]:[];delete t.valCur;}else if(!t.cursos)t.cursos=[];return t;});
       this.S.missoes=(d.missoes||[]).map(m=>({...m,dt:new Date(m.dt),status:m.status||'Concluída',serie:m.serie||'CGC-EA',history:m.history||[],tags:m.tags||[],origem:m.origem||'',destino:m.destino||'',perna:m.perna||'',catering:m.catering||false,obs:m.obs||'',fuelAdd:m.fuelAdd??null,fuelUse:m.fuelUse??null}));
       this.S.series=d.series||[];
       this.S.colocacoes=d.colocacoes||[];
@@ -2563,7 +2567,7 @@ showHistoria(id){
   },
   buildAlerts(){
     const out=[];
-    const types=[['valMed','📋 Médico'],['valLic','🎫 Licença'],['valCur','🎓 Curso']];
+    const types=[['valMed','📋 Médico'],['valLic','🎫 Licença']];
     this.S.trips.forEach(t=>{
       types.forEach(([k,lab])=>{
         const v=t[k];
@@ -2571,6 +2575,13 @@ showHistoria(id){
         const st=this.validityStatus(v);
         if(st.status==='expired'||st.status==='soon'){
           out.push({nome:t.nome,posto:t.posto,tipo:lab,date:v,...st});
+        }
+      });
+      (t.cursos||[]).forEach(c=>{
+        if(!c.val)return;
+        const st=this.validityStatus(c.val);
+        if(st.status==='expired'||st.status==='soon'){
+          out.push({nome:t.nome,posto:t.posto,tipo:'🎓 '+(c.nome||'Curso'),date:c.val,...st});
         }
       });
     });
@@ -2621,12 +2632,17 @@ showHistoria(id){
 
       // ── TRIPULANTES ─────────────────────────────────────────────
       const crewAll=[];
-      const types=[['valMed','Médico'],['valLic','Licença'],['valCur','Curso']];
+      const types=[['valMed','Médico'],['valLic','Licença']];
       this.S.trips.forEach(t=>{
         types.forEach(([k,lab])=>{
           if(!t[k])return;
           const st=this.validityStatus(t[k]);
           crewAll.push({nome:t.nome,posto:t.posto||'',col:t.col||'',tipo:lab,date:t[k],status:st.status,label:st.label,days:st.days});
+        });
+        (t.cursos||[]).forEach(c=>{
+          if(!c.val)return;
+          const st=this.validityStatus(c.val);
+          crewAll.push({nome:t.nome,posto:t.posto||'',col:t.col||'',tipo:c.nome||'Curso',date:c.val,status:st.status,label:st.label,days:st.days});
         });
       });
       const crewExp=crewAll.filter(a=>a.status==='expired').sort((a,b)=>a.days-b.days);
@@ -2793,7 +2809,13 @@ showHistoria(id){
         <div class="fg"><label>NIF</label><input id="etNif" value="${this.esc(t.nif||'')}" maxlength="9"></div>
         <div class="fg"><label>📋 Validade Médico</label><input type="date" id="etValMed" value="${t.valMed||''}"></div>
         <div class="fg"><label>🎫 Validade Licença</label><input type="date" id="etValLic" value="${t.valLic||''}"></div>
-        <div class="fg"><label>🎓 Validade Curso</label><input type="date" id="etValCur" value="${t.valCur||''}"></div>
+        <div class="fg" style="grid-column:1/-1">
+          <label>🎓 Cursos e Validades</label>
+          <div id="etCursosList" style="display:flex;flex-direction:column;gap:5px;margin-top:4px">
+            ${(t.cursos||[]).map(c=>`<div class="curso-row" style="display:grid;grid-template-columns:1fr 150px 34px;gap:6px;align-items:center"><input class="curso-nome" placeholder="Nome do curso" value="${this.esc(c.nome||'')}" style="padding:7px 10px;border:1.5px solid var(--border2);border-radius:8px;font-size:.85em;font-family:inherit;background:var(--white);color:var(--ink);outline:none"><input type="date" class="curso-val" value="${c.val||''}" style="padding:7px 8px;border:1.5px solid var(--border2);border-radius:8px;font-size:.85em;font-family:inherit;background:var(--white);color:var(--ink);outline:none"><button onclick="this.closest('.curso-row').remove()" title="Remover" style="width:34px;height:36px;border:1.5px solid #fca5a5;border-radius:8px;background:#fee2e2;color:#991b1b;font-size:1.1rem;cursor:pointer;line-height:1">×</button></div>`).join('')}
+          </div>
+          <button type="button" class="btn btn-s btn-sm" style="margin-top:6px;font-size:.8em" onclick="A._addCursoRow('etCursosList')">➕ Adicionar Curso</button>
+        </div>
       </div>
       <div style="display:flex;gap:8px;margin-top:14px">
         <button class="btn btn-p" onclick="A.saveEditTrip('${nome.replace(/'/g,"\\'")}')">💾 Guardar</button>
@@ -2820,7 +2842,7 @@ showHistoria(id){
     t.nome=n;t.posto=p;t.col=c;t.nif=nif;
     t.valMed=document.getElementById('etValMed')?.value||'';
     t.valLic=document.getElementById('etValLic')?.value||'';
-    t.valCur=document.getElementById('etValCur')?.value||'';
+    t.cursos=this._getCursosList('etCursosList');
     this.markDirty();
     this.fillSelects();
     this.renderAll();
@@ -3511,8 +3533,8 @@ renderFutureKpis(){
     if(d>=today&&d<=in7)n7++;
   });
   let nVal=0;
-  const types=['valMed','valLic','valCur'];
-  this.S.trips.forEach(t=>types.forEach(k=>{if(!t[k])return;const st=this.validityStatus(t[k]);if(st.status==='expired'||st.status==='soon')nVal++;}));
+  const types=['valMed','valLic'];
+  this.S.trips.forEach(t=>{types.forEach(k=>{if(!t[k])return;const st=this.validityStatus(t[k]);if(st.status==='expired'||st.status==='soon')nVal++;});(t.cursos||[]).forEach(c=>{if(!c.val)return;const st=this.validityStatus(c.val);if(st.status==='expired'||st.status==='soon')nVal++;});});
   nVal+=this.buildMaintAlerts().length;
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
   set('mHoje',nHoje);set('mSem',nSem);set('m7d',n7);set('mVal',nVal);
@@ -3622,8 +3644,8 @@ saveTemplateFromMission(id){
     const tomorrowMs=this.S.missoes.filter(m=>{const d=m.dt instanceof Date?m.dt:new Date(m.dt);d.setHours(0,0,0,0);return d.getTime()===tomorrow.getTime()&&(m.status||'Concluída')!=='Cancelada';});
 
     const expSoon=[];
-    const types=[['valMed','📋 Médico'],['valLic','🎫 Licença'],['valCur','🎓 Curso']];
-    this.S.trips.forEach(t=>{types.forEach(([k,lab])=>{if(!t[k])return;const st=this.validityStatus(t[k]);if(st.status==='expired'||(st.status==='soon'&&st.days<=7))expSoon.push({nome:t.nome,tipo:lab,...st});});});
+    const types=[['valMed','📋 Médico'],['valLic','🎫 Licença']];
+    this.S.trips.forEach(t=>{types.forEach(([k,lab])=>{if(!t[k])return;const st=this.validityStatus(t[k]);if(st.status==='expired'||(st.status==='soon'&&st.days<=7))expSoon.push({nome:t.nome,tipo:lab,...st});});(t.cursos||[]).forEach(c=>{if(!c.val)return;const st=this.validityStatus(c.val);if(st.status==='expired'||(st.status==='soon'&&st.days<=7))expSoon.push({nome:t.nome,tipo:'🎓 '+(c.nome||'Curso'),...st});});});
     const maint=this.buildMaintAlerts().filter(a=>a.status==='expired'||(a.status==='soon'&&(a.days==null||a.days<=7)));
 
     if(!todayMs.length&&!tomorrowMs.length&&!expSoon.length&&!maint.length)return;
@@ -3668,15 +3690,16 @@ addTrip(){
   if(this._firstInvalid){this._focusInvalid();this.showNotif('❌ Corrija os campos destacados','err');return;}
   const valMed=document.getElementById('iValMed')?.value||'';
     const valLic=document.getElementById('iValLic')?.value||'';
-    const valCur=document.getElementById('iValCur')?.value||'';
-    this.S.trips.push({nome:n,posto:p,col:c,nif,valMed,valLic,valCur});
+    const cursos=this._getCursosList('iCursosList');
+    this.S.trips.push({nome:n,posto:p,col:c,nif,valMed,valLic,cursos});
   this.markDirty();
   this.fillSelects();
   this.renderAll();
   this.addAudit('Tripulante adicionado',n);
   this.showNotif('✅ '+n+' adicionado');
-  ['iNome','iPosto','iNIF','iValMed','iValLic','iValCur'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['iNome','iPosto','iNIF','iValMed','iValLic'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('iCol').value='';
+  const cl=document.getElementById('iCursosList');if(cl)cl.innerHTML='';
 },
 delTrip(nome){
   if(!this.isAdmin()){this.showNotif('❌ Sem permissão — apenas administradores podem eliminar','err');return;}
@@ -3859,16 +3882,31 @@ _anoCell(t,now){
     const bCls=pY>=100?'warn':pY>=85?'caution':'';
     return '<td class="'+wCls+'">'+hY+'h'+(pY>=85?' ⚠️':'')+'<span class="hr-bar-wrap"><span class="hr-bar '+bCls+'" style="width:'+pY+'%"></span></span></td>';
   },
+  _addCursoRow(listId,nome='',val=''){
+    const list=document.getElementById(listId);if(!list)return;
+    const row=document.createElement('div');row.className='curso-row';
+    row.style.cssText='display:grid;grid-template-columns:1fr 150px 34px;gap:6px;align-items:center';
+    row.innerHTML='<input class="curso-nome" placeholder="Nome do curso (ex: SAR, CRM, Mergulho…)" value="'+this.esc(nome)+'" style="padding:7px 10px;border:1.5px solid var(--border2);border-radius:8px;font-size:.85em;font-family:inherit;background:var(--white);color:var(--ink);outline:none">'
+      +'<input type="date" class="curso-val" value="'+val+'" style="padding:7px 8px;border:1.5px solid var(--border2);border-radius:8px;font-size:.85em;font-family:inherit;background:var(--white);color:var(--ink);outline:none">'
+      +'<button onclick="this.closest(\'.curso-row\').remove()" title="Remover" style="width:34px;height:36px;border:1.5px solid #fca5a5;border-radius:8px;background:#fee2e2;color:#991b1b;font-size:1.1rem;cursor:pointer;line-height:1">×</button>';
+    list.appendChild(row);row.querySelector('.curso-nome').focus();
+  },
+  _getCursosList(listId){
+    return[...document.querySelectorAll('#'+listId+' .curso-row')].map(r=>({
+      nome:(r.querySelector('.curso-nome')?.value||'').trim(),
+      val:r.querySelector('.curso-val')?.value||''
+    })).filter(c=>c.nome||c.val);
+  },
   _validityCell(t){
-    const types=[['valMed','📋'],['valLic','🎫'],['valCur','🎓']];
-    const parts=types.map(([k,ic])=>{
-      const v=t[k];
+    const colors={expired:'#dc2626',soon:'#f59e0b',ok:'#10b981'};
+    const mk=(ic,v)=>{
       if(!v)return '<span style="color:var(--ink3);font-size:.85em" title="Sem registo">'+ic+' —</span>';
-      const st=this.validityStatus(v);
-      const colors={expired:'#dc2626',soon:'#f59e0b',ok:'#10b981',none:'var(--ink3)'};
-      const c=colors[st.status]||'var(--ink3)';
-      return '<span style="color:'+c+';font-size:.85em;white-space:nowrap" title="'+ic+' '+st.label+'">'+ic+' '+(st.status==='ok'?st.label:st.label)+'</span>';
-    });
+      const st=this.validityStatus(v);const c=colors[st.status]||'var(--ink3)';
+      return '<span style="color:'+c+';font-size:.85em;white-space:nowrap" title="'+ic+' '+st.label+'">'+ic+' '+st.label+'</span>';
+    };
+    const parts=[mk('📋',t.valMed),mk('🎫',t.valLic)];
+    if(t.cursos&&t.cursos.length){t.cursos.forEach(c=>parts.push(mk('🎓 '+this.esc(c.nome||'Curso'),c.val)));}
+    else parts.push('<span style="color:var(--ink3);font-size:.85em">🎓 —</span>');
     return parts.join(' &nbsp; ');
   },
   renderTrips(){
@@ -6084,7 +6122,7 @@ importBackup(ev){
     try{
       const data=JSON.parse(e.target.result);
       if(!data.trips||!Array.isArray(data.missoes))throw new Error('Formato inválido');
-      this.S.trips=data.trips||[];
+      this.S.trips=(data.trips||[]).map(t=>{if(t.valCur!==undefined&&!t.cursos){t.cursos=t.valCur?[{nome:'Curso',val:t.valCur}]:[];delete t.valCur;}else if(!t.cursos)t.cursos=[];return t;});
       this.S.missoes=(data.missoes||[]).map(m=>({...m,dt:new Date(m.dt),status:m.status||'Concluída',serie:m.serie||'CGC-EA',history:m.history||[],tags:m.tags||[],origem:m.origem||'',destino:m.destino||'',perna:m.perna||'',obs:m.obs||'',fuelAdd:m.fuelAdd??null,fuelUse:m.fuelUse??null}));
       this.S.series=data.series||[];
       this.S.colocacoes=data.colocacoes||this.S.colocacoes;
