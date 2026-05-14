@@ -2577,6 +2577,35 @@ showHistoria(id){
     out.sort((a,b)=>(a.days||0)-(b.days||0));
     return out;
   },
+  // ─── BLOCO DE ASSINATURAS (helper partilhado por todos os PDFs) ──────────────
+  _pdfSig(doc,lm,rm,pageH){
+    const isLand=pageH<240;
+    const sigY=isLand?170:252;
+    const lastPg=doc.internal.getNumberOfPages();
+    doc.setPage(lastPg);
+    const mid=(lm+rm)/2;const gap=10;
+    const lCtr=lm+(mid-gap-lm)/2;
+    const rCtr=mid+gap+(rm-mid-gap)/2;
+    // Linha divisória fina
+    doc.setDrawColor(180,180,180);doc.setLineWidth(0.25);
+    doc.line(lm,sigY-2,rm,sigY-2);
+    // Linhas de assinatura
+    doc.setDrawColor(0,0,0);doc.setLineWidth(0.5);
+    doc.line(lm+4,sigY+12,mid-gap-4,sigY+12);
+    doc.line(mid+gap+4,sigY+12,rm-4,sigY+12);
+    // "Assinatura"
+    doc.setFont('helvetica','italic');doc.setFontSize(6.5);doc.setTextColor(140,140,140);
+    doc.text('Assinatura',lCtr,sigY+6,{align:'center'});
+    doc.text('Assinatura',rCtr,sigY+6,{align:'center'});
+    // Cargos
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(30,30,30);
+    doc.text('Oficial de Operações',lCtr,sigY+17,{align:'center'});
+    doc.text('Diretor de Operações Aereas',rCtr,sigY+17,{align:'center'});
+    // Data
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(100,100,100);
+    doc.text('Data: _____ / _____ / ________',lCtr,sigY+22,{align:'center'});
+    doc.text('Data: _____ / _____ / ________',rCtr,sigY+22,{align:'center'});
+  },
   alertsPDF(){
     try{
       if(!window.jspdf){this.showNotif('❌ Biblioteca PDF não carregada','err');return;}
@@ -2700,6 +2729,7 @@ showHistoria(id){
         doc.setFontSize(7);doc.setTextColor(120,120,120);
         doc.text('Página '+i+'/'+pages+' — CGC - EA - Sistema de Gestão de Voo',105,290,{align:'center'});
       }
+      this._pdfSig(doc,10,200,297);
 
       savePDF(doc,'CGC_Validades_'+new Date().toISOString().slice(0,10)+'.pdf');
       this.showNotif('📄 Relatório de validades exportado!');
@@ -2995,7 +3025,7 @@ showHistoria(id){
       +'<div class="hdr"><div><h1>FOLHA DE SERVIÇO DIÁRIA</h1><h2>CGC - EA - Sistema de Gestão de Voo</h2></div><div class="meta"><b>Data:</b> '+dateStr+'<br><b>Emitida:</b> '+new Date().toLocaleString('pt-PT')+'</div></div>'
       +'<div class="totals"><div><b>'+dayMs.length+'</b>Missões</div><div><b>'+totH+'</b>Total horas voo</div><div><b>'+(new Set(dayMs.flatMap(m=>(m.crew||[]).map(c=>c.nome)))).size+'</b>Tripulantes</div><div><b>'+(new Set(dayMs.map(m=>m.aero))).size+'</b>Aeronaves</div></div>'
       +'<table><thead><tr><th>#</th><th>Missão</th><th>Tipo</th><th>Aeronave</th><th>Horários</th><th>Duração</th><th>Tripulação</th><th>Estado</th><th>Visto</th></tr></thead><tbody>'+rows+'</tbody></table>'
-      +'<div class="sig"><div>Comandante de Operações</div><div>Chefe de Esquadrão</div><div>Oficial de Serviço</div></div>'
+      +'<div class="sig"><div>Oficial de Operações<br><span style="font-size:9px;color:#999">Data: _____ / _____ / ________</span></div><div>Diretor de Operações Aereas<br><span style="font-size:9px;color:#999">Data: _____ / _____ / ________</span></div></div>'
       +'<div class="foot">CGC - EA - Sistema de Gestão de Voo — Documento gerado automaticamente</div>'
       +'</body></html>';
     w.document.write(html);
@@ -3245,6 +3275,7 @@ showHistoria(id){
 
       const pages=doc.internal.getNumberOfPages();
       for(let i=1;i<=pages;i++){doc.setPage(i);doc.setFontSize(7);doc.setTextColor(120,120,120);doc.text('Página '+i+'/'+pages+' — CGC - EA - Sistema de Gestão de Voo',105,290,{align:'center'});}
+      this._pdfSig(doc,10,200,297);
       savePDF(doc,'CGC_'+nome.replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.pdf');
       this.showNotif('📄 Relatório individual exportado!');
       this.addAudit('PDF individual exportado',nome);
@@ -4032,9 +4063,9 @@ _renderCards(list){
 renderTop(){
   const el=document.getElementById('tTop');
   if(!el)return;
-  const d={};this.S.filtered.forEach(m=>d[m.tipo]=(d[m.tipo]||0)+1);
+  const d={};const _snT=new Set();this.S.filtered.forEach(m=>{if(_snT.has(m.num))return;_snT.add(m.num);d[m.tipo]=(d[m.tipo]||0)+1;});
   const top=Object.entries(d).sort((a,b)=>b[1]-a[1]).slice(0,7);
-  const tot=this.S.filtered.length;
+  const tot=Object.values(d).reduce((s,v)=>s+v,0);
   if(!top.length){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--ink3)">Sem dados</div>';return;}
   let h='<table><thead><tr><th>Tipo</th><th>Qtd</th><th>%</th></tr></thead><tbody>';
   top.forEach(([t,q])=>{
@@ -4048,14 +4079,15 @@ renderHorasTrip(){
   const el=document.getElementById('tHT');
   if(!el)return;
   const lim=this.S.hrLimit||80;
-  const d={};
+  const d={};const _crewMis={};
   this.S.filtered.forEach(m=>{
     const btStr=this.calcBT(m.boff,m.bon);
     const btMins=btStr!=='—'?(()=>{const[bh,bm]=btStr.split(':').map(Number);return bh*60+(bm||0);})():0;
     const durMins=m.dur?(()=>{const[hh,mm]=m.dur.split(':').map(Number);return(isNaN(hh)?0:hh*60+(mm||0));})():0;
     (m.crew||[]).forEach(c=>{
       if(!d[c.nome])d[c.nome]={nome:c.nome,mis:0,btMin:0,durMin:0};
-      d[c.nome].mis++;
+      if(!_crewMis[c.nome])_crewMis[c.nome]=new Set();
+      if(!_crewMis[c.nome].has(m.num)){_crewMis[c.nome].add(m.num);d[c.nome].mis++;}
       d[c.nome].btMin+=btMins;
       d[c.nome].durMin+=durMins;
     });
@@ -4206,9 +4238,25 @@ gerarRecibo(nome){
   const ano=Number(selAnoR.value);
   const mo=Number(selMes.value);
   const mesNome=this.C.NM[mo-1]||'';
+  // Ler os mesmos filtros activos na aba Pagamentos
+  const selTp=document.getElementById('selPagTipo')?.value||'';
+  const selSr=document.getElementById('selPagSerie')?.value||'';
+  const selAr=document.getElementById('selPagAero')?.value||'';
+  const selMis=document.getElementById('selPagMissao')?.value||'';
   const trip=this.S.trips.find(t=>t.nome===nome);
-  const mMes=this.S.missoes.filter(m=>{const _d=m.dt instanceof Date?m.dt:new Date(m.dt);return _d.getFullYear()===ano&&_d.getMonth()+1===mo&&m.status==='Concluída'&&(m.crew||[]).some(c=>c.nome===nome);});
-  if(!mMes.length){this.showNotif('❌ Sem missões para este tripulante neste mês','err');return;}
+  const mMes=this.S.missoes.filter(m=>{
+    const _d=m.dt instanceof Date?m.dt:new Date(m.dt);
+    if(_d.getFullYear()!==ano||_d.getMonth()+1!==mo||m.status!=='Concluída')return false;
+    if(!(m.crew||[]).some(c=>c.nome===nome))return false;
+    if(selTp&&m.tipo!==selTp)return false;
+    if(selSr&&m.serie!==selSr)return false;
+    if(selAr&&m.aero!==selAr)return false;
+    if(selMis&&m.num!==selMis)return false;
+    return true;
+  });
+  if(!mMes.length){this.showNotif('❌ Sem missões para este tripulante com os filtros activos','err');return;}
+  // Etiqueta dos filtros activos para mostrar no cabeçalho do PDF
+  const filtrosActivos=[selTp&&'Tipo: '+selTp,selSr&&'Série: '+selSr,selAr&&'Aeronave: '+selAr,selMis&&'Missão: '+selMis].filter(Boolean).join('  |  ');
   let totMin=0,totVH=0,totVR=0,pa=0,al=0,jn=0,totBTMin=0;
   const rows=mMes.map(m=>{
     const crewM=m.crew.find(c=>c.nome===nome);
@@ -4239,7 +4287,7 @@ gerarRecibo(nome){
     doc.text('RECIBO DE PAGAMENTO',148,12,{align:'center'});
     doc.setFontSize(9);doc.setFont('helvetica','normal');
     doc.text('Comando da Guarda Costeira de Cabo Verde — Esquadrilha Aérea — Missões Aéreas',148,20,{align:'center'});
-    doc.text(mesNome+' '+ano,148,27,{align:'center'});
+    doc.text(mesNome+' '+ano+(filtrosActivos?' — '+filtrosActivos:''),148,27,{align:'center'});
     doc.setTextColor(0,0,0);
     // Bloco de dados do tripulante em 2 colunas
     let y=37;
@@ -4295,6 +4343,7 @@ gerarRecibo(nome){
     doc.setFontSize(7.5);doc.setTextColor(120,120,120);doc.setFont('helvetica','normal');
     doc.text('Documento gerado em: '+new Date().toLocaleString('pt-PT'),14,y);
     doc.text('CGC - EA — Sistema de Gestão de Voo',148,y,{align:'center'});
+    this._pdfSig(doc,10,287,210);
     savePDF(doc,'Recibo_'+nome.split(' ')[0]+'_'+mesNome+'_'+ano+'.pdf');
     this.showNotif('📄 Recibo exportado!');
   }catch(e){this.showNotif('❌ Erro ao gerar PDF: '+e.message,'err');}
@@ -4353,6 +4402,7 @@ toPDF(){
       },
       margin:{left:10,right:10},
     });
+    this._pdfSig(doc,10,287,210);
     savePDF(doc,'CGC_Missoes_'+new Date().toISOString().slice(0,10)+'.pdf');
     this.showNotif('📄 PDF exportado!');
   }catch(e){this.showNotif('❌ Erro: '+e.message,'err');}
@@ -4535,6 +4585,7 @@ pagPDF(){
         margin:{left:148,right:46},
       });
     }
+    this._pdfSig(doc,10,287,210);
     savePDF(doc,'Pagamentos_'+mesNome+'_'+ano+'.pdf');
     this.showNotif('📄 PDF exportado!');
   }catch(e){this.showNotif('❌ Erro: '+e.message,'err');}
@@ -4640,7 +4691,7 @@ _buildCombinedChart(){
     const y=d.getFullYear(),mo=d.getMonth();
     months.push(MLBL[mo]+' '+String(y).slice(2));
     const inMonth=mis.filter(m=>{const dt=m.dt instanceof Date?m.dt:new Date(m.dt);return dt.getFullYear()===y&&dt.getMonth()===mo;});
-    counts.push(inMonth.length);
+    const _snCB=new Set();counts.push(inMonth.filter(m=>!_snCB.has(m.num)&&_snCB.add(m.num)).length);
     let btMin=0;
     inMonth.forEach(m=>{const btStr=this.calcBT(m.boff,m.bon);if(btStr!=='—'){const[bh,bm]=btStr.split(':').map(Number);btMin+=bh*60+(bm||0);}});
     btHours.push(+(btMin/60).toFixed(1));
@@ -4686,9 +4737,9 @@ buildAnalysisCharts(){
   const aeroK=Object.keys(byAero).sort((a,b)=>byAero[b]-byAero[a]);
   mkPie('cAero',aeroK.map(k=>byAero[k]),aeroK,BLUE);}
 
-  // Hourly distribution
+  // Hourly distribution (deduplicated by mission number — pernas not double-counted)
   {const ranges=['00–04','04–08','08–12','12–16','16–20','20–24'],d=new Array(6).fill(0);
-  mis.forEach(m=>{const h=parseInt((m.toff||'00:00').slice(0,2));d[Math.min(5,Math.floor(h/4))]++;});
+  const _snH=new Set();mis.forEach(m=>{if(_snH.has(m.num))return;_snH.add(m.num);const h=parseInt((m.toff||'00:00').slice(0,2));d[Math.min(5,Math.floor(h/4))]++;});
   mkChart('cHor',{type:'bar',data:{labels:ranges,datasets:[{label:'Missões',data:d,backgroundColor:'#388E3C',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:SC}});}
 
   // Crew functions polar
@@ -4751,9 +4802,9 @@ buildAnalysisCharts(){
   }
   mkChart('cCancel',{type:'bar',data:{labels:months,datasets:[{label:'% Canceladas',data:cancelData,backgroundColor:cancelData.map(v=>v>30?'#dc2626':v>15?'#f59e0b':'#10b981'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.raw+'%'}}},scales:{x:{grid:{color:this._gridColor()},ticks:{color:this._textColor(),font:{size:9}}},y:{grid:{color:this._gridColor()},ticks:{color:this._textColor(),callback:v=>v+'%'},beginAtZero:true,max:100}}}});}
 
-  // Histograma de duração
+  // Histograma de duração (deduplicated — conta missões, não pernas)
   {const bins=['0–1h','1–2h','2–4h','4–6h','+6h'],d=new Array(5).fill(0);
-  mis.filter(m=>m.status==='Concluída'&&m.dur).forEach(m=>{
+  const _snDH=new Set();mis.filter(m=>m.status==='Concluída'&&m.dur&&!_snDH.has(m.num)&&_snDH.add(m.num)).forEach(m=>{
     const[hh,mm]=m.dur.split(':').map(Number);const h=hh+(mm||0)/60;
     if(h<1)d[0]++;else if(h<2)d[1]++;else if(h<4)d[2]++;else if(h<6)d[3]++;else d[4]++;
   });
@@ -4772,7 +4823,7 @@ renderHeatmap(mis){
   const dias=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
   const faixas=['00–04','04–08','08–12','12–16','16–20','20–24'];
   const grid=Array.from({length:7},()=>new Array(6).fill(0));
-  mis.forEach(m=>{
+  const _snHM=new Set();mis.forEach(m=>{if(_snHM.has(m.num))return;_snHM.add(m.num);
     const h=parseInt((m.toff||'00:00').slice(0,2));
     const dow=(m.dt.getDay()+6)%7;
     const fx=Math.min(5,Math.floor(h/4));
@@ -5037,7 +5088,7 @@ toggleNav(){
     const inp=document.getElementById('newSerieInp');if(!inp)return;
     const v=(inp.value||'').trim().toUpperCase();
     if(!v){this.showNotif('Digite um nome para a série','warn');return;}
-    if(!/^[A-Z0-9_-]+$/.test(v)){this.showNotif('Use apenas letras, números, _ ou -','warn');return;}
+    if(v.length<2){this.showNotif('O nome da série deve ter pelo menos 2 caracteres','warn');return;}
     if(this.allSeries().includes(v)){this.showNotif('Essa série já existe','warn');return;}
     this.S.series=this.S.series||[];this.S.series.push(v);
     inp.value='';
@@ -5050,7 +5101,7 @@ toggleNav(){
     if(nv===null)return;
     const v=nv.trim().toUpperCase();
     if(!v||v===old)return;
-    if(!/^[A-Z0-9_-]+$/.test(v)){this.showNotif('Nome inválido (use letras, números, _ ou -)','warn');return;}
+    if(v.length<2){this.showNotif('O nome deve ter pelo menos 2 caracteres','warn');return;}
     if(this.allSeries().includes(v)){this.showNotif('Já existe uma série com esse nome','warn');return;}
     const used=this.S.missoes.filter(m=>m.serie===old).length;
     if(used>0&&!confirm('Esta série tem '+used+' missão(ões). Renomear vai atualizar TODAS as missões. Continuar?'))return;
@@ -5432,6 +5483,7 @@ relatorioMensalPDF(){
     doc.text('CGC-EA · Relatório Mensal · Gerado em '+new Date().toLocaleString('pt-PT'),lm,291);
     doc.text(p+'/'+totalPgs,rm,291,{align:'right'});
   }
+  this._pdfSig(doc,lm,rm,297);
   savePDF(doc,'Relatorio_Mensal_'+mesNome+'_'+ano+'.pdf');
   this.showNotif('📄 Relatório Mensal '+mesNome+' '+ano+' gerado!');
 },
@@ -5559,6 +5611,7 @@ relatorioAnualPDF(){
     doc.text('CGC-EA · Relatório Anual '+ano+' · Gerado em '+new Date().toLocaleString('pt-PT'),lm,204);
     doc.text(p+'/'+totalPgs,rm,204,{align:'right'});
   }
+  this._pdfSig(doc,lm,rm,210);
   savePDF(doc,'Relatorio_Anual_'+ano+'.pdf');
   this.showNotif('📅 Relatório Anual '+ano+' gerado!');
 },
@@ -5879,6 +5932,7 @@ dashboardExecutivoPDF(){
     doc.text('Nenhuma missão registada neste período.',lm,y+8);
   }
 
+  this._pdfSig(doc,lm,rm,210);
   _footer();
   savePDF(doc,'Dashboard_Executivo_'+periodoLabel.replace(/ /g,'_')+'.pdf');
   this.showNotif('📊 Dashboard '+periodoLabel+' gerado com '+msMes.length+' missões!');
@@ -5973,6 +6027,9 @@ missaoPDF(id){
       if(y>275){doc.addPage();y=20;}
     });
   }
+  // Assinaturas — nova página se o conteúdo não deixou espaço suficiente
+  if(y>242){doc.addPage();y=20;}
+  this._pdfSig(doc,lm,rm,297);
   // Footer
   const totalPages=doc.internal.getNumberOfPages();
   for(let p=1;p<=totalPages;p++){
