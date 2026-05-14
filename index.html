@@ -1202,7 +1202,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 //  CONFIGURAÇÃO — URL lido de localStorage (configurável na app)
 // ══════════════════════════════════════════════════════════════
 // ── Cole aqui o URL do Google Apps Script para ligar automaticamente ──
-const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbzL2IsxRXFxI38FdSlc_eIOrIfpvxuR8nwqh4vUv1qBCBB76oEgriP2pwgbrPEjrjqH/exec';  // ex: 'https://script.google.com/macros/s/XXXX/exec'
+const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbw4kaqnfnDQMQgvvppU-0Tx6DYHBj2hA-BmljWvH4UtH7Qe_n6gousLxgOufnIS7WoG/exec';  // ex: 'https://script.google.com/macros/s/XXXX/exec'
 
 function getApiUrl(){
   try{ return localStorage.getItem('fx9_api_url') || DEFAULT_GAS_URL || ''; }catch{ return DEFAULT_GAS_URL || ''; }
@@ -1221,7 +1221,7 @@ S:{
   trips:[], missoes:[], filtered:[], series:[],
   aeros:[],
   auditLog:[], templates:[], charts:{}, viewMode:'table', hrLimit:80, hrLimitYear:800, dirty:false,
-  lastSave:null, role:null, currentUser:null, sessionToken:null,
+  lastSave:null, role:null, currentUser:null, sessionToken:null, usersCache:null,
 },
 
 // ─── CONSTANTES ───────────────────────────────────────────────
@@ -1231,6 +1231,9 @@ C:{
   aeros:[],
   seriesDefault:[],
   vPF:{'Piloto':2000,'Piloto Observador':2000,'Observador':1500,'Médico':1500,'Operador':1500,'Auxiliar de Operador':1000},
+  meals:{pa:500,al:1000,jn:1000},
+  limits:{hrLimit:80,hrLimitYear:800},
+  metas:{mis:0,hr:0,fuel:0,cve:0},
   bdgTipo:{'Patrulhamento':'bdg-patrol','Evacuação Médica (MEDVAC)':'bdg-medvac','Transporte VIP':'bdg-vip','Busca e Salvamento (SAR)':'bdg-sar','Transporte de Valores':'bdg-val','Transporte Logístico':'bdg-log','Transporte Tático (Militar)':'bdg-mil','Treino':'bdg-treino'},
   bdgStatus:{Planeada:'bdg-plan','Em Curso':'bdg-inprog',Concluída:'bdg-done',Cancelada:'bdg-cancel'},
   NM:['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
@@ -1261,30 +1264,12 @@ calcBT(boff,bon){
   if(d<0)d+=1440;
   return String(Math.floor(d/60)).padStart(2,'0')+':'+String(d%60).padStart(2,'0');
 },
-getVPF(){
-  try{
-    const fn=JSON.parse(localStorage.getItem('fx9_fn_rates')||'null');
-    if(fn&&typeof fn==='object')return fn;
-    const v=JSON.parse(localStorage.getItem('fx9_rates')||'null');
-    if(v&&typeof v==='object')return{...this.C.vPF,...v};
-  }catch{}
-  return this.C.vPF;
-},
-getMealVals(){
-  try{const v=JSON.parse(localStorage.getItem('fx9_meals')||'null');if(v&&v.pa>=0)return v;}catch{}
-  return{pa:500,al:1000,jn:1000};
-},
-getHrLimits(){
-  try{const v=JSON.parse(localStorage.getItem('fx9_limits')||'null');if(v&&v.hrLimit>0)return v;}catch{}
-  return{hrLimit:this.S.hrLimit||80,hrLimitYear:this.S.hrLimitYear||800};
-},
-getDefaultSeries(){
-  try{const v=JSON.parse(localStorage.getItem('fx9_series_default')||'null');if(Array.isArray(v))return v;}catch{}
-  return this.C.seriesDefault||[];
-},
+getVPF(){ return this.C.vPF; },
+getMealVals(){ return this.C.meals; },
+getHrLimits(){ return this.C.limits; },
+getDefaultSeries(){ return this.C.seriesDefault||[]; },
 getColocacoes(){
   if(Array.isArray(this.S.colocacoes)&&this.S.colocacoes.length)return this.S.colocacoes;
-  try{const v=JSON.parse(localStorage.getItem('fx9_colocacoes')||'null');if(Array.isArray(v)&&v.length)return v;}catch{}
   return['EA','COSMAR'];
 },
 _fillColSelect(){
@@ -1445,29 +1430,16 @@ async loadFromCloud(){
       // ── Restaurar configurações guardadas no Drive ──
       if(d.config){
         const cfg=d.config;
-        if(Array.isArray(cfg.funcoes)&&cfg.funcoes.length){
-          this.C.funcoes=cfg.funcoes;
-          try{localStorage.setItem('fx9_funcoes',JSON.stringify(cfg.funcoes));}catch{}
-        }
-        if(cfg.fnRates&&typeof cfg.fnRates==='object'){
-          this.C.vPF=cfg.fnRates;
-          try{localStorage.setItem('fx9_fn_rates',JSON.stringify(cfg.fnRates));}catch{}
-        }
-        if(cfg.meals&&cfg.meals.pa>=0){
-          try{localStorage.setItem('fx9_meals',JSON.stringify(cfg.meals));}catch{}
-        }
+        if(Array.isArray(cfg.funcoes)&&cfg.funcoes.length) this.C.funcoes=cfg.funcoes;
+        if(cfg.fnRates&&typeof cfg.fnRates==='object') this.C.vPF=cfg.fnRates;
+        if(cfg.meals&&cfg.meals.pa>=0) this.C.meals=cfg.meals;
         if(cfg.limits&&cfg.limits.hrLimit>0){
+          this.C.limits=cfg.limits;
           this.S.hrLimit=cfg.limits.hrLimit;
           this.S.hrLimitYear=cfg.limits.hrLimitYear||800;
-          try{localStorage.setItem('fx9_limits',JSON.stringify(cfg.limits));}catch{}
         }
-        if(Array.isArray(cfg.seriesDefault)){
-          this.C.seriesDefault=cfg.seriesDefault;
-          try{localStorage.setItem('fx9_series_default',JSON.stringify(cfg.seriesDefault));}catch{}
-        }
-        if(cfg.metas&&typeof cfg.metas==='object'){
-          try{localStorage.setItem('fx9_metas',JSON.stringify(cfg.metas));}catch{}
-        }
+        if(Array.isArray(cfg.seriesDefault)) this.C.seriesDefault=cfg.seriesDefault;
+        if(cfg.metas&&typeof cfg.metas==='object') this.C.metas=cfg.metas;
       }
       this.S.lastSave=new Date().toISOString();
       this.syncUI('synced',this.S.lastSave);
@@ -1682,10 +1654,18 @@ async _loadUsersTab(){
   let users={};
   try{
     const res=await this._authPost({action:'getUsers',token:this.S.sessionToken||''});
-    if(res&&res.ok)res.users.forEach(u=>{if(u.username!=='admin')users[u.username]={role:u.role};});
+    if(res&&res.ok){
+      res.users.forEach(u=>{if(u.username!=='admin')users[u.username]={role:u.role};});
+      this.S.usersCache=users; // guardar cache em memória
+    }
   }catch(_){
-    const CREDS=this._loadCreds();
-    Object.keys(CREDS).filter(u=>u!=='admin').forEach(u=>{users[u]={role:CREDS[u].role||'guest'};});
+    // Usar cache em memória se disponível, depois defaults
+    if(this.S.usersCache){
+      users=this.S.usersCache;
+    }else{
+      const CREDS=this._loadCreds();
+      Object.keys(CREDS).filter(u=>u!=='admin').forEach(u=>{users[u]={role:CREDS[u].role||'guest'};});
+    }
   }
   const keys=Object.keys(users);
   if(!keys.length){list.innerHTML='<div style="color:var(--ink3);font-size:.85em;padding:10px">Nenhum utilizador encontrado.</div>';return;}
@@ -1702,10 +1682,7 @@ async _loadUsersTab(){
     </div>`;
   }).join('');
 },
-getFuncoes(){
-  try{const v=JSON.parse(localStorage.getItem('fx9_funcoes')||'null');if(Array.isArray(v)&&v.length)return v;}catch{}
-  return this.C.funcoes;
-},
+getFuncoes(){ return this.C.funcoes; },
 saveCfgFuncoes(){
   const rows=document.querySelectorAll('#cfgFnList .cfg-fn-row');
   const newFuncoes=[];const newRates={};const renames={};
@@ -1726,8 +1703,6 @@ saveCfgFuncoes(){
   }
   this.C.funcoes=newFuncoes;
   this.C.vPF=newRates;
-  try{localStorage.setItem('fx9_funcoes',JSON.stringify(newFuncoes));}catch{}
-  try{localStorage.setItem('fx9_fn_rates',JSON.stringify(newRates));}catch{}
   if(affected)this.S.filtered=[...this.S.missoes];
   this.markDirty();
   this.closeInfoModal();
@@ -1751,7 +1726,7 @@ _addFuncaoRow(){
 saveCfgRates(){
   const rates={};
   document.querySelectorAll('.cfg-rate').forEach(inp=>{const fn=inp.dataset.fn;if(fn)rates[fn]=Number(inp.value)||0;});
-  try{localStorage.setItem('fx9_rates',JSON.stringify(rates));}catch{}
+  Object.assign(this.C.vPF,rates);
   this.closeInfoModal();this.showNotif('✅ Tarifas guardadas!');
   this.markDirty();
 },
@@ -1759,21 +1734,20 @@ saveCfgMeals(){
   const pa=Number(document.getElementById('cfgPA')?.value)||0;
   const al=Number(document.getElementById('cfgAL')?.value)||0;
   const jn=Number(document.getElementById('cfgJN')?.value)||0;
-  try{localStorage.setItem('fx9_meals',JSON.stringify({pa,al,jn}));}catch{}
+  this.C.meals={pa,al,jn};
   this.closeInfoModal();this.showNotif('✅ Refeições guardadas!');
   this.markDirty();
 },
 saveCfgLimits(){
   const hrLimit=Math.max(10,Math.min(300,Number(document.getElementById('cfgHrMonth')?.value)||80));
   const hrLimitYear=Math.max(50,Math.min(3000,Number(document.getElementById('cfgHrYear')?.value)||800));
-  try{localStorage.setItem('fx9_limits',JSON.stringify({hrLimit,hrLimitYear}));}catch{}
+  this.C.limits={hrLimit,hrLimitYear};
   this.S.hrLimit=hrLimit;this.S.hrLimitYear=hrLimitYear;
   this.closeInfoModal();this.showNotif('✅ Limites guardados!');this.renderTrips();
   this.markDirty();
 },
 saveCfgSeries(){
   const raw=(document.getElementById('cfgSeries')?.value||'').split('\n').map(s=>s.trim()).filter(Boolean);
-  try{localStorage.setItem('fx9_series_default',JSON.stringify(raw));}catch{}
   this.C.seriesDefault=raw;
   this.closeInfoModal();this.showNotif('✅ Séries guardadas!');this.fillSelects();
   this.markDirty();
@@ -1790,7 +1764,6 @@ saveCfgColocacoes(){
   const rows=[...document.querySelectorAll('#cfgColList .cfg-col-name')].map(i=>i.value.trim()).filter(Boolean);
   if(!rows.length){this.showNotif('❌ Adicione pelo menos uma colocação','err');return;}
   this.S.colocacoes=rows;
-  try{localStorage.setItem('fx9_colocacoes',JSON.stringify(rows));}catch{}
   this._fillColSelect();
   this.closeInfoModal();this.showNotif('✅ Colocações guardadas!');
   this.markDirty();
@@ -1827,14 +1800,13 @@ async saveCfgUsers(){
     if(res&&res.ok){done=true;}
     else{this.showNotif('❌ '+(res?.error||'Erro ao guardar utilizadores'),'err');return;}
   }catch(_){
-    const CREDS=this._loadCreds();const newCREDS={admin:CREDS.admin};
-    for(const e of entries){
-      const ex=CREDS[e.oldUsername]||CREDS[e.username];
-      newCREDS[e.username]={h:ex?.h||DH,role:e.role};
-    }
-    localStorage.setItem(this._CREDS_KEY,JSON.stringify(newCREDS));done=true;
+    this.showNotif('❌ Sem ligação ao servidor. Verifique o URL do Google Script.','err');return;
   }
   if(done){
+    // Actualizar cache em memória para que a reabertura do painel reflicta imediatamente
+    const newCache={};
+    entries.forEach(e=>{newCache[e.username]={role:e.role};});
+    this.S.usersCache=newCache;
     this.closeInfoModal();
     const nG=entries.filter(e=>e.role==='gestor').length;
     const nC=entries.filter(e=>e.role==='guest').length;
@@ -1842,16 +1814,12 @@ async saveCfgUsers(){
   }
 },
 async _resetUserPwd(user){
-  const DH='65148fa4fd5e13302a764d2d90f46d59fbfd7e6bc1110cc6558566396d686379';
   try{
     const res=await this._authPost({action:'resetPassword',token:this.S.sessionToken||'',targetUser:user});
     if(res&&res.ok){this.showNotif('Senha de "'+user+'" reposta para cgc2024','ok');return;}
     this.showNotif('❌ '+(res?.error||'Erro ao repor senha'),'err');
   }catch(_){
-    const CREDS=this._loadCreds();
-    if(!CREDS[user]){this.showNotif('❌ Utilizador não encontrado','err');return;}
-    CREDS[user].h=DH;localStorage.setItem(this._CREDS_KEY,JSON.stringify(CREDS));
-    this.showNotif('Senha de "'+user+'" reposta para cgc2024','ok');
+    this.showNotif('❌ Sem ligação ao servidor. Não foi possível repor a senha.','err');
   }
 },
 // ─── ALTERAR SENHA (admin define directamente) ─────────────────
@@ -1897,11 +1865,7 @@ async _adminPwdSave(user){
     if(res&&res.ok){this.closeInfoModal();this.showNotif('✅ Senha de "'+user+'" alterada com sucesso','ok');return;}
     setErr('❌ '+(res?.error||'Erro ao guardar senha.'));
   }catch(_){
-    const CREDS=this._loadCreds();
-    if(!CREDS[user])CREDS[user]={role:'guest'};
-    CREDS[user].h=newH;
-    localStorage.setItem(this._CREDS_KEY,JSON.stringify(CREDS));
-    this.closeInfoModal();this.showNotif('✅ Senha de "'+user+'" alterada','ok');
+    setErr('❌ Sem ligação ao servidor. Não foi possível alterar a senha.');
   }
 },
 
@@ -1957,12 +1921,7 @@ async init(){
   this.initDark();
   this.bindNav();
   this._updateConfigBtn();
-  // Carregar limites guardados em localStorage
-  try{const lv=JSON.parse(localStorage.getItem('fx9_limits')||'null');if(lv&&lv.hrLimit>0){this.S.hrLimit=lv.hrLimit;this.S.hrLimitYear=lv.hrLimitYear||800;}}catch{}
-  // Carregar séries padrão guardadas
-  try{const sv=JSON.parse(localStorage.getItem('fx9_series_default')||'null');if(Array.isArray(sv)&&sv.length)this.C.seriesDefault=sv;}catch{}
-  // Carregar funções personalizadas
-  try{const fv=JSON.parse(localStorage.getItem('fx9_funcoes')||'null');if(Array.isArray(fv)&&fv.length){this.C.funcoes=fv;const rv=JSON.parse(localStorage.getItem('fx9_fn_rates')||'null');if(rv&&typeof rv==='object')this.C.vPF=rv;}}catch{}
+  // Configurações são carregadas do Drive em loadFromCloud() — sem localStorage
 
   const ok=await this.loadFromCloud();
   if(!ok){
@@ -5141,7 +5100,7 @@ _SESSION_KEY:'fx9_session',
 _CREDS_KEY:'fx9_creds',
 // ─── AUTH: chamada ao Apps Script ─────────────────────────────
 async _authPost(payload){
-  const url=localStorage.getItem('fx9_api_url')||'';
+  const url=getApiUrl();
   if(!url)throw new Error('no-url');
   const r=await fetch(url,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(payload)});
   if(!r.ok)throw new Error('HTTP '+r.status);
@@ -5272,14 +5231,8 @@ async saveChangePwd(){
       if(res&&res.ok){done=true;}
       else{setErr('❌ '+(res?.error||'Erro ao alterar.'));if(btn){btn.disabled=false;btn.textContent='🔑 Alterar';}return;}
     }catch(_){
-      const CREDS=this._loadCreds();
-      const verifyUser=this.isAdmin()&&user!==this.S.currentUser?this.S.currentUser:user;
-      if(!CREDS[verifyUser]||CREDS[verifyUser].h!==curH){
-        setErr('❌ Palavra-passe atual incorreta.');if(btn){btn.disabled=false;btn.textContent='🔑 Alterar';}return;
-      }
-      if(!CREDS[user])CREDS[user]={role:'guest'};
-      CREDS[user].h=newH;
-      localStorage.setItem(this._CREDS_KEY,JSON.stringify(CREDS));done=true;
+      setErr('❌ Sem ligação ao servidor. Configure o URL do Google Script.');
+      if(btn){btn.disabled=false;btn.textContent='🔑 Alterar';}return;
     }
     if(done){this.closeInfoModal();this.showNotif('Palavra-passe de "'+user+'" alterada com sucesso','ok');}
   }catch(e){setErr('❌ Erro ao alterar a palavra-passe.');if(btn){btn.disabled=false;btn.textContent='🔑 Alterar';}}
@@ -6083,15 +6036,18 @@ importBackup(ev){
       // Restaurar config do backup
       const cfg=data.config||{};
       // suporte a backups antigos (v2) que usavam vPF em vez de fnRates
-      const fnRates=cfg.fnRates||(data.config?.vPF)||null;
-      if(Array.isArray(cfg.funcoes)&&cfg.funcoes.length){this.C.funcoes=cfg.funcoes;try{localStorage.setItem('fx9_funcoes',JSON.stringify(cfg.funcoes));}catch{}}
-      if(fnRates&&typeof fnRates==='object'){this.C.vPF=fnRates;try{localStorage.setItem('fx9_fn_rates',JSON.stringify(fnRates));}catch{}}
-      if(cfg.meals&&cfg.meals.pa>=0){try{localStorage.setItem('fx9_meals',JSON.stringify(cfg.meals));}catch{}}
-      if(cfg.limits&&cfg.limits.hrLimit>0){this.S.hrLimit=cfg.limits.hrLimit;this.S.hrLimitYear=cfg.limits.hrLimitYear||800;try{localStorage.setItem('fx9_limits',JSON.stringify(cfg.limits));}catch{}}
-      if(Array.isArray(cfg.seriesDefault)){this.C.seriesDefault=cfg.seriesDefault;try{localStorage.setItem('fx9_series_default',JSON.stringify(cfg.seriesDefault));}catch{}}
-      if(cfg.metas){try{localStorage.setItem('fx9_metas',JSON.stringify(cfg.metas));}catch{}}
+      const fnRates=cfg.fnRates||(cfg.vPF)||null;
+      if(Array.isArray(cfg.funcoes)&&cfg.funcoes.length) this.C.funcoes=cfg.funcoes;
+      if(fnRates&&typeof fnRates==='object') this.C.vPF=fnRates;
+      if(cfg.meals&&cfg.meals.pa>=0) this.C.meals=cfg.meals;
+      if(cfg.limits&&cfg.limits.hrLimit>0){
+        this.C.limits=cfg.limits;
+        this.S.hrLimit=cfg.limits.hrLimit;this.S.hrLimitYear=cfg.limits.hrLimitYear||800;
+      }
+      if(Array.isArray(cfg.seriesDefault)) this.C.seriesDefault=cfg.seriesDefault;
+      if(cfg.metas&&typeof cfg.metas==='object') this.C.metas=cfg.metas;
       // suporte a backup antigo com metas no topo
-      if(data.metas&&!cfg.metas){try{localStorage.setItem('fx9_metas',JSON.stringify(data.metas));}catch{}}
+      if(data.metas&&!cfg.metas) this.C.metas=data.metas;
       this.S.filtered=[...this.S.missoes];
       this.markDirty();
       this.fillSelects();
@@ -6170,16 +6126,13 @@ exportExcelCompleto(){
 },
 
 // ─── T007: METAS OPERACIONAIS ─────────────────────────────────
-getMetas(){
-  try{const v=JSON.parse(localStorage.getItem('fx9_metas'));if(v&&typeof v==='object')return v;}catch{}
-  return{mis:0,hr:0,fuel:0,cve:0};
-},
+getMetas(){ return this.C.metas; },
 saveCfgMetas(){
   const mis=Number(document.getElementById('cfgMetaMis')?.value)||0;
   const hr=Number(document.getElementById('cfgMetaHr')?.value)||0;
   const fuel=Number(document.getElementById('cfgMetaFuel')?.value)||0;
   const cve=Number(document.getElementById('cfgMetaCVE')?.value)||0;
-  try{localStorage.setItem('fx9_metas',JSON.stringify({mis,hr,fuel,cve}));}catch{}
+  this.C.metas={mis,hr,fuel,cve};
   this.closeInfoModal();
   this.renderMetas();
   this.showNotif('✅ Metas operacionais guardadas!');
