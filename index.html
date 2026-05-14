@@ -1008,7 +1008,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     </div>
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
       <button class="btn btn-ex btn-sm" onclick="A.pagExcel()">📊 Excel Pagamentos</button>
-      <button class="btn btn-ex btn-sm" style="background:#166534;border-color:#166534" onclick="A.exportExcelCompleto()">📥 Excel Completo</button>
+      <button class="btn btn-ex btn-sm" style="background:#166534;border-color:#166534" onclick="A.openRelatorioExcel()">📊 Relatório Excel</button>
       <button class="btn btn-pdf btn-sm" onclick="A.pagPDF()">📄 PDF</button>
     </div>
   </div>
@@ -6157,67 +6157,106 @@ importBackup(ev){
   ev.target.value='';
 },
 
-// ─── T003: EXCEL COMPLETO (3 folhas) ──────────────────────────
-exportExcelCompleto(){
+// ─── T003: EXCEL COMPLETO (5 folhas) ──────────────────────────
+openRelatorioExcel(){
+  const now=new Date();const mo=now.getMonth()+1;const yr=now.getFullYear();
+  const mOpts=this.C.NM.map((n,i)=>`<option value="${i+1}"${i+1===mo?'selected':''}>${n}</option>`).join('');
+  const html='<h3 style="margin-bottom:14px">📊 Relatório Excel — 5 Folhas</h3>'
+    +'<p style="color:var(--ink3);font-size:.88em;margin-bottom:16px">Selecione o período para filtrar as missões e horas. Tripulantes, validades e manutenção são sempre exportados na totalidade.</p>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px">'
+    +'<div class="fg"><label>Mês (opcional)</label><select id="relMes" style="padding:9px 10px;border:1.5px solid var(--border2);border-radius:8px;background:var(--white);color:var(--ink);font-size:.9em;width:100%"><option value="">— Todos os meses —</option>'+mOpts+'</select></div>'
+    +'<div class="fg"><label>Ano</label><input type="number" id="relAno" value="'+yr+'" min="2020" max="2035" style="padding:9px 10px;border:1.5px solid var(--border2);border-radius:8px;background:var(--white);color:var(--ink);font-size:.9em;width:100%;box-sizing:border-box"></div>'
+    +'</div>'
+    +'<p style="color:var(--ink3);font-size:.8em;margin-bottom:16px">Deixe o mês em branco para exportar todo o ano.</p>'
+    +'<div style="display:flex;gap:8px">'
+    +'<button class="btn btn-p" onclick="A.exportExcelCompleto(document.getElementById(\'relMes\')?.value,document.getElementById(\'relAno\')?.value);A.closeInfoModal()">📥 Exportar Excel</button>'
+    +'<button class="btn btn-s" onclick="A.closeInfoModal()">Cancelar</button>'
+    +'</div>';
+  this.openInfoModal(html);
+},
+exportExcelCompleto(mes,ano){
   if(typeof XLSX==='undefined'){this.showNotif('❌ XLSX.js não disponível','err');return;}
   const wb=XLSX.utils.book_new();
-  // ── Folha 1: Missões ──
-  const misRows=[['Nº Missão','Série','Data','Estado','Tipo','Aeronave','Blocks Off','Take Off','Landing','Blocks On','Block Time','Duração','Origem','Destino','Perna','Tripulantes','Comb.Adicionado(L)','Comb.Consumido(L)','Tags','Observações']];
-  this.S.missoes.forEach(m=>{
+  const mesN=mes?parseInt(mes):0;const anoN=ano?parseInt(ano):0;
+  const periodLabel=mesN&&anoN?String(this.C.NM[mesN-1])+'_'+anoN:(anoN?String(anoN):'total');
+  const filterPeriod=m=>{
+    if(!mesN&&!anoN)return true;
     const dt=m.dt instanceof Date?m.dt:new Date(m.dt);
-    misRows.push([
-      m.num||'',m.serie||'',dt.toLocaleDateString('pt-PT'),m.status||'',m.tipo||'',m.aero||'',
-      m.boff||'',m.toff||'',m.land||'',m.bon||'',this.calcBT(m.boff,m.bon),m.dur||'',
-      m.origem||'',m.destino||'',m.perna||'',
-      (m.crew||[]).map(c=>c.nome+'('+c.fn+')').join('; '),
-      m.fuelAdd!=null?m.fuelAdd:'',m.fuelUse!=null?m.fuelUse:'',
-      (m.tags||[]).join(', '),m.obs||''
-    ]);
+    if(anoN&&dt.getFullYear()!==anoN)return false;
+    if(mesN&&dt.getMonth()+1!==mesN)return false;
+    return true;
+  };
+  // ── Folha 1: Missões (período) ──
+  const misRows=[['Nº Missão','Série','Data','Estado','Tipo','Aeronave','Origem','Destino','Blocks Off','Take Off','Landing','Blocks On','Block Time','Duração','Perna','Tripulantes e Funções','Comb.Abast.(L)','Comb.Cons.(L)','Tags','Observações']];
+  const misFilt=this.S.missoes.filter(filterPeriod).slice().sort((a,b)=>(a.dt instanceof Date?a.dt:new Date(a.dt))-(b.dt instanceof Date?b.dt:new Date(b.dt)));
+  misFilt.forEach(m=>{
+    const dt=m.dt instanceof Date?m.dt:new Date(m.dt);
+    misRows.push([m.num||'',m.serie||'',dt.toLocaleDateString('pt-PT'),m.status||'',m.tipo||'',m.aero||'',m.origem||'',m.destino||'',(m.boff||'').slice(0,5),(m.toff||'').slice(0,5),(m.land||'').slice(0,5),(m.bon||'').slice(0,5),this.calcBT(m.boff,m.bon),m.dur?.slice(0,5)||'—',m.perna||'',(m.crew||[]).map(c=>c.nome+' ('+c.fn+')').join('; '),m.fuelAdd!=null?m.fuelAdd:'',m.fuelUse!=null?m.fuelUse:'',(m.tags||[]).join(', '),m.obs||'']);
   });
   const wsMis=XLSX.utils.aoa_to_sheet(misRows);
-  wsMis['!cols']=[{wch:16},{wch:10},{wch:14},{wch:12},{wch:14},{wch:12},{wch:10},{wch:10},{wch:10},{wch:10},{wch:12},{wch:10},{wch:12},{wch:12},{wch:6},{wch:30},{wch:14},{wch:14},{wch:20},{wch:40}];
+  wsMis['!cols']=[{wch:18},{wch:10},{wch:14},{wch:12},{wch:18},{wch:14},{wch:12},{wch:12},{wch:10},{wch:10},{wch:10},{wch:10},{wch:12},{wch:12},{wch:6},{wch:36},{wch:14},{wch:14},{wch:20},{wch:40}];
   XLSX.utils.book_append_sheet(wb,wsMis,'Missões');
-  // ── Folha 2: Tripulantes ──
-  const tripRows=[['Nome','Posto','Colocação','NIF','Val.Médico','Val.Licença','Val.Curso','Missões','Block Time Total (h)']];
+  // ── Folha 2: Horas por Tripulante (período) ──
+  const tipos=[...new Set(misFilt.map(m=>m.tipo||'Outro'))].sort();
+  const hrRows=[['Nome','Posto','Colocação','Nº Missões','Block Time (h)','Horas Voo (h)',...tipos.map(t=>'BT '+t+' (h)')]];
   this.S.trips.forEach(t=>{
-    let btTot=0;
-    this.S.missoes.filter(m=>m.status==='Concluída'&&(m.crew||[]).some(c=>c.nome===t.nome)).forEach(m=>{
+    const myMis=misFilt.filter(m=>(m.crew||[]).some(c=>c.nome===t.nome));
+    if(!myMis.length)return;
+    let btTot=0,durTot=0;const tipoMap={};tipos.forEach(tp=>tipoMap[tp]=0);const seen=new Set();
+    myMis.forEach(m=>{
+      if(seen.has(m.num))return;seen.add(m.num);
+      const bt=this.calcBT(m.boff,m.bon);
+      if(bt&&bt!=='—'){const[bh,bm]=bt.split(':').map(Number);const mins=bh*60+(bm||0);btTot+=mins;tipoMap[m.tipo||'Outro']=(tipoMap[m.tipo||'Outro']||0)+mins;}
+      const d=String(m.dur||'0:0').split(':').map(Number);durTot+=(d[0]||0)*60+(d[1]||0);
+    });
+    hrRows.push([t.nome,t.posto||'',t.col||'',myMis.length,+(btTot/60).toFixed(2),+(durTot/60).toFixed(2),...tipos.map(tp=>+((tipoMap[tp]||0)/60).toFixed(2))]);
+  });
+  const wsHr=XLSX.utils.aoa_to_sheet(hrRows);
+  wsHr['!cols']=[{wch:26},{wch:14},{wch:12},{wch:10},{wch:14},{wch:14},...tipos.map(()=>({wch:14}))];
+  XLSX.utils.book_append_sheet(wb,wsHr,'Horas por Tripulante');
+  // ── Folha 3: Tripulantes (todos) ──
+  const allCursoNames=[...new Set(this.S.trips.flatMap(t=>(t.cursos||[]).map(c=>c.nome||'Curso')))];
+  const tripRows=[['Nome','Posto','Colocação','NIF','Val. Médico','Val. Licença',...allCursoNames.map(n=>n+' (Validade)'),'Total Missões','Block Time Total (h)']];
+  this.S.trips.forEach(t=>{
+    let btTot=0;const seen=new Set();
+    this.S.missoes.filter(m=>(m.crew||[]).some(c=>c.nome===t.nome)).forEach(m=>{
+      if(seen.has(m.num))return;seen.add(m.num);
       const bt=this.calcBT(m.boff,m.bon);if(bt&&bt!=='—'){const[bh,bm]=bt.split(':').map(Number);btTot+=bh*60+(bm||0);}
     });
     const nm=this.S.missoes.filter(m=>(m.crew||[]).some(c=>c.nome===t.nome)).length;
-    tripRows.push([t.nome,t.posto||'',t.col||'',t.nif||'',t.valMed||'',t.valLic||'',t.valCur||'',nm,+(btTot/60).toFixed(2)]);
+    const cursoVals=allCursoNames.map(cn=>{const c=(t.cursos||[]).find(x=>(x.nome||'Curso')===cn);return c?.val||'';});
+    tripRows.push([t.nome,t.posto||'',t.col||'',t.nif||'',t.valMed||'',t.valLic||'',...cursoVals,nm,+(btTot/60).toFixed(2)]);
   });
   const wsTrip=XLSX.utils.aoa_to_sheet(tripRows);
-  wsTrip['!cols']=[{wch:26},{wch:14},{wch:10},{wch:12},{wch:12},{wch:12},{wch:12},{wch:8},{wch:14}];
+  wsTrip['!cols']=[{wch:26},{wch:14},{wch:12},{wch:12},{wch:14},{wch:14},...allCursoNames.map(()=>({wch:18})),{wch:10},{wch:16}];
   XLSX.utils.book_append_sheet(wb,wsTrip,'Tripulantes');
-  // ── Folha 3: Pagamentos (período seleccionado) ──
-  const mes=document.getElementById('selMes')?.value||'';
-  const ano=document.getElementById('selAno')?.value||'';
-  const vPF=this.getVPF();const mv=this.getMealVals();
-  let pagMs=this.S.missoes.filter(m=>m.status==='Concluída');
-  if(mes&&ano){pagMs=pagMs.filter(m=>{const dt=m.dt instanceof Date?m.dt:new Date(m.dt);return dt.getMonth()+1===parseInt(mes)&&dt.getFullYear()===parseInt(ano);});}
-  const pagRows=[['Tripulante','Missão','Data','Aeronave','Block Time','Horas (h)','Tarifa/h (CVE)','Honorários (CVE)','P.Almoço','Almoço','Jantar','Total Refeições (CVE)','Total (CVE)']];
-  pagMs.forEach(m=>{
-    const btStr=this.calcBT(m.boff,m.bon);
-    const btMins=btStr&&btStr!=='—'?(()=>{const[bh,bm]=btStr.split(':').map(Number);return bh*60+(bm||0);})():0;
-    const tMin=this.t2m((m.toff||'00:00').slice(0,5));const effMins=btMins||this.dur2m(m.dur);
-    const pa=this.overlaps(tMin,effMins,0,8)?mv.pa:0;
-    const al=this.overlaps(tMin,effMins,12,14)?mv.al:0;
-    const jn=this.overlaps(tMin,effMins,19,24)?mv.jn:0;
-    const mR=pa+al+jn;
-    const dt=m.dt instanceof Date?m.dt:new Date(m.dt);
-    (m.crew||[]).forEach(c=>{
-      const rate=vPF[c.fn]||1500;const hon=+(rate*(effMins/60)).toFixed(0);
-      pagRows.push([c.nome,m.num,dt.toLocaleDateString('pt-PT'),m.aero||'',btStr,+(effMins/60).toFixed(2),rate,hon,pa?mv.pa:0,al?mv.al:0,jn?mv.jn:0,mR,hon+mR]);
-    });
+  // ── Folha 4: Validades a Tratar ──
+  const valRows=[['Nome','Posto','Colocação','Tipo','Data Validade','Estado','Dias']];
+  this.S.trips.forEach(t=>{
+    const chk=(tipo,val)=>{if(!val)return;const st=this.validityStatus(val);if(st.status==='expired'||st.status==='soon')valRows.push([t.nome,t.posto||'',t.col||'',tipo,val,st.status==='expired'?'Expirado':'A Expirar',st.days]);};
+    chk('Médico',t.valMed);chk('Licença',t.valLic);
+    (t.cursos||[]).forEach(c=>chk(c.nome||'Curso',c.val));
   });
-  const wsPag=XLSX.utils.aoa_to_sheet(pagRows);
-  wsPag['!cols']=[{wch:24},{wch:16},{wch:12},{wch:12},{wch:12},{wch:8},{wch:12},{wch:14},{wch:10},{wch:10},{wch:10},{wch:16},{wch:14}];
-  XLSX.utils.book_append_sheet(wb,wsPag,'Pagamentos');
-  // Save
-  const fn='cgcea_completo_'+(mes&&ano?mes+'-'+ano:new Date().toISOString().slice(0,10))+'.xlsx';
+  (this.S.aeros||[]).forEach(a=>{if(a.inspDate){const st=this.validityStatus(a.inspDate);if(st.status==='expired'||st.status==='soon')valRows.push([a.nome||'','—','—','Inspeção',a.inspDate,st.status==='expired'?'Expirado':'A Expirar',st.days]);}});
+  if(valRows.length===1)valRows.push(['Sem validades em alerta','','','','','','']);
+  const wsVal=XLSX.utils.aoa_to_sheet(valRows);
+  wsVal['!cols']=[{wch:26},{wch:14},{wch:12},{wch:18},{wch:14},{wch:14},{wch:8}];
+  XLSX.utils.book_append_sheet(wb,wsVal,'Validades a Tratar');
+  // ── Folha 5: Manutenção ──
+  const maintRows=[['Aeronave','Tipo Alerta','Data Insp. Prevista','Horas Limite','Horas Actuais','Horas Restantes','Estado','Detalhe']];
+  (this.S.aeros||[]).forEach(a=>{
+    if(a.inspDate){const st=this.validityStatus(a.inspDate);maintRows.push([a.nome||'','Inspeção por Data',a.inspDate,'—','—','—',st.status==='expired'?'Expirado':st.status==='soon'?'Em breve':'OK',st.label]);}
+    if(a.inspHr!=null&&a.hrAtual!=null){const rem=a.inspHr-a.hrAtual;maintRows.push([a.nome||'','Inspeção por Horas','—',a.inspHr,a.hrAtual,rem,rem<=0?'Excedido':rem<=50?'Em breve':'OK',rem<=0?'Excedido em '+Math.abs(rem)+'h':'Faltam '+rem+'h']);}
+    if(!a.inspDate&&(a.inspHr==null||a.hrAtual==null)){maintRows.push([a.nome||'','Sem dados de manutenção','—','—','—','—','—','—']);}
+  });
+  if(!(this.S.aeros||[]).length)maintRows.push(['Sem aeronaves registadas','','','','','','','']);
+  const wsMaint=XLSX.utils.aoa_to_sheet(maintRows);
+  wsMaint['!cols']=[{wch:18},{wch:20},{wch:18},{wch:14},{wch:14},{wch:14},{wch:12},{wch:24}];
+  XLSX.utils.book_append_sheet(wb,wsMaint,'Manutenção');
+  // Guardar
+  const fn='cgcea_relatorio_'+periodLabel+'_'+new Date().toISOString().slice(0,10)+'.xlsx';
   XLSX.writeFile(wb,fn);
-  this.showNotif('✅ Excel completo exportado!');
+  this.showNotif('✅ Relatório Excel exportado! (5 folhas)');
 },
 
 // ─── T007: METAS OPERACIONAIS ─────────────────────────────────
