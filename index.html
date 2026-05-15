@@ -3972,7 +3972,7 @@ _anoCell(t,now){
       '<td class="'+wCls+'">'+hrMes+'h'+(pct>=85?' ⚠️':'')+
         '<span class="hr-bar-wrap"><span class="hr-bar '+bCls+'" style="width:'+pct+'%"></span></span></td>'+
       this._anoCell(t,_now)+
-      '<td>'+this._validityCell(t)+'</td>'+'<td style="white-space:nowrap"><button class="btn btn-xs btn-p" onclick="A.tripPerfil(\''+ne+'\')" title="Perfil completo">👤</button> <button class="btn btn-xs" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd" onclick="A.tripStats(\''+ne+'\')" title="Estatísticas avançadas">📊</button> <button class="btn btn-xs" style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0" onclick="A.tripLogbook(\''+ne+'\')" title="Caderneta de Voo">📓</button> <button class="btn btn-xs btn-edit admin-only" onclick="A.editTrip(\''+ne+'\')">✏️</button> <button class="btn btn-xs btn-pdf" onclick="A.tripPDF(\''+ne+'\')" title="Relatório PDF">📄</button> <button class="btn btn-xs btn-del admin-only" onclick="A.delTrip(\''+ne+'\')">🗑️</button></td>'+
+      '<td>'+this._validityCell(t)+'</td>'+'<td style="white-space:nowrap"><button class="btn btn-xs btn-p" onclick="A.tripPerfil(\''+ne+'\')" title="Perfil completo">👤</button> <button class="btn btn-xs" style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0" onclick="A.tripLogbook(\''+ne+'\')" title="Caderneta de Voo">📓</button> <button class="btn btn-xs btn-edit admin-only" onclick="A.editTrip(\''+ne+'\')">✏️</button> <button class="btn btn-xs btn-pdf" onclick="A.tripPDF(\''+ne+'\')" title="Relatório PDF">📄</button> <button class="btn btn-xs btn-del admin-only" onclick="A.delTrip(\''+ne+'\')">🗑️</button></td>'+
       '</tr>';
   });
   el.innerHTML=h+'</tbody></table>';
@@ -6451,6 +6451,18 @@ tripLogbook(nome){
     const tp=m.tipo||'—';if(!byTipo[tp])byTipo[tp]={mis:0,ft:0};byTipo[tp].mis++;byTipo[tp].ft+=ft;
     const yr=m._dt.getFullYear();if(!byYear[yr])byYear[yr]={mis:0,ft:0,bt:0};byYear[yr].mis++;byYear[yr].ft+=ft;byYear[yr].bt+=bt;
   });
+  // Remuneração estimada (migrada de tripStats)
+  const vPF=this.getVPF();const mv=this.getMealVals();
+  let totPay=0;
+  const concl=allMs.filter(m=>m.status==='Concluída');
+  concl.forEach(m=>{
+    const cr=(m.crew||[]).find(c=>c.nome===nome);if(!cr)return;
+    const bt=this.calcBT(m.boff,m.bon);let btMin=0;if(bt&&bt!=='—'){const[bh,bm]=bt.split(':').map(Number);btMin=bh*60+(bm||0);}
+    const effMins=btMin||this.dur2m(m.dur);
+    const tMin=this.t2m((m.toff||'00:00').slice(0,5));
+    const mR=(this.overlaps(tMin,effMins,0,8)?mv.pa:0)+(this.overlaps(tMin,effMins,12,14)?mv.al:0)+(this.overlaps(tMin,effMins,19,24)?mv.jn:0);
+    totPay+=(vPF[cr.fn]||1500)*(effMins/60)+mR;
+  });
   const fH=min=>Math.floor(min/60)+'h '+(min%60<10?'0':'')+(min%60)+'m';
   const fD=min=>(min/60).toFixed(1)+'h';
   const ne=nome.replace(/'/g,"\\'");
@@ -6465,40 +6477,39 @@ tripLogbook(nome){
   let p1=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px">`;
   const kp=(lbl,val,cor)=>`<div style="padding:10px;background:var(--g0);border-radius:8px;border-left:3px solid ${cor}"><div style="font-size:.7em;color:var(--ink3);text-transform:uppercase;margin-bottom:2px">${lbl}</div><div style="font-size:1.3em;font-weight:800">${val}</div></div>`;
   p1+=kp('Missões',''+allMs.length,'#6366f1');
-  p1+=kp('FLIGHT TIME',fH(totFt),'#3b82f6');
-  p1+=kp('Block Time',fH(totBt),'#10b981');
+  p1+=kp('Flight time',fH(totFt),'#3b82f6');
+  p1+=kp('Block time',fH(totBt),'#10b981');
   if(allMs.length){const y0=allMs[allMs.length-1]._dt.getFullYear(),y1=allMs[0]._dt.getFullYear();p1+=kp('Período',y0===y1?''+y0:y0+'–'+y1,'#f59e0b');}
+  if(totPay>0)p1+=kp('Remuneração est.',this.cve(Math.round(totPay)),'#a855f7');
   p1+=`</div>`;
-  const tblHd=(cols)=>`<table style="width:100%;border-collapse:collapse;font-size:.83em;margin-bottom:12px"><thead><tr style="background:var(--g1)">${cols.map(c=>`<th style="padding:5px 8px;text-align:${typeof c==='object'?c.a||'left':'left'}">${typeof c==='object'?c.t:c}</th>`).join('')}</tr></thead><tbody>`;
-  const tblFt=(cols)=>`</tbody></table>`;
   // por função
   const fns=Object.entries(byFn).sort((a,b)=>b[1].ft-a[1].ft);
   if(fns.length){
-    p1+=`<div style="font-weight:700;font-size:.85em;color:var(--g8);margin:8px 0 5px">✈️ Por Função</div>`;
-    p1+=`<table style="width:100%;border-collapse:collapse;font-size:.83em;margin-bottom:12px"><thead><tr style="background:var(--g1)"><th style="padding:5px 8px">Função</th><th style="padding:5px 8px;text-align:right">Missões</th><th style="padding:5px 8px;text-align:right">FLIGHT TIME</th><th style="padding:5px 8px;text-align:right">Block Time</th></tr></thead><tbody>`;
+    p1+=`<div style="font-weight:700;font-size:.85em;color:var(--g8);margin:8px 0 5px">✈️ Por função</div>`;
+    p1+=`<table style="width:100%;border-collapse:collapse;font-size:.83em;margin-bottom:12px"><thead><tr style="background:var(--g1)"><th style="padding:5px 8px">Função</th><th style="padding:5px 8px;text-align:right">Missões</th><th style="padding:5px 8px;text-align:right">Flight time</th><th style="padding:5px 8px;text-align:right">Block time</th></tr></thead><tbody>`;
     fns.forEach(([fn,v])=>{p1+=`<tr style="border-top:1px solid var(--g1)"><td style="padding:5px 8px;font-weight:600">${this.esc(fn)}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono)">${v.mis}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono);color:var(--g8)">${fD(v.ft)}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono)">${fD(v.bt)}</td></tr>`;});
     p1+=`</tbody></table>`;
   }
   // por aeronave
   const aeros=Object.entries(byAero).sort((a,b)=>b[1].ft-a[1].ft);
   if(aeros.length){
-    p1+=`<div style="font-weight:700;font-size:.85em;color:var(--g8);margin:8px 0 5px">🛩️ Por Aeronave</div>`;
-    p1+=`<table style="width:100%;border-collapse:collapse;font-size:.83em;margin-bottom:12px"><thead><tr style="background:var(--g1)"><th style="padding:5px 8px">Aeronave</th><th style="padding:5px 8px;text-align:right">Missões</th><th style="padding:5px 8px;text-align:right">FLIGHT TIME</th></tr></thead><tbody>`;
+    p1+=`<div style="font-weight:700;font-size:.85em;color:var(--g8);margin:8px 0 5px">🛩️ Por aeronave</div>`;
+    p1+=`<table style="width:100%;border-collapse:collapse;font-size:.83em;margin-bottom:12px"><thead><tr style="background:var(--g1)"><th style="padding:5px 8px">Aeronave</th><th style="padding:5px 8px;text-align:right">Missões</th><th style="padding:5px 8px;text-align:right">Flight time</th></tr></thead><tbody>`;
     aeros.forEach(([a,v])=>{p1+=`<tr style="border-top:1px solid var(--g1)"><td style="padding:5px 8px">${this.esc(a)}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono)">${v.mis}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono);color:var(--g8)">${fD(v.ft)}</td></tr>`;});
     p1+=`</tbody></table>`;
   }
   // por tipo
   const tipos=Object.entries(byTipo).sort((a,b)=>b[1].ft-a[1].ft);
   if(tipos.length){
-    p1+=`<div style="font-weight:700;font-size:.85em;color:var(--g8);margin:8px 0 5px">🎯 Por Tipo de Missão</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">`;
+    p1+=`<div style="font-weight:700;font-size:.85em;color:var(--g8);margin:8px 0 5px">🎯 Por tipo de missão</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">`;
     tipos.forEach(([tp,v])=>{const bc=this.C.bdgTipo[tp]||'bdg-log';p1+=`<span class="bdg ${bc}">${this.esc(tp)}: <b>${v.mis}</b> · ${fD(v.ft)}</span>`;});
     p1+=`</div>`;
   }
   // por ano
   const years=Object.entries(byYear).sort((a,b)=>Number(b[0])-Number(a[0]));
   if(years.length){
-    p1+=`<div style="font-weight:700;font-size:.85em;color:var(--g8);margin:8px 0 5px">📅 Por Ano</div>`;
-    p1+=`<table style="width:100%;border-collapse:collapse;font-size:.83em;margin-bottom:4px"><thead><tr style="background:var(--g1)"><th style="padding:5px 8px">Ano</th><th style="padding:5px 8px;text-align:right">Missões</th><th style="padding:5px 8px;text-align:right">FLIGHT TIME</th><th style="padding:5px 8px;text-align:right">Block Time</th></tr></thead><tbody>`;
+    p1+=`<div style="font-weight:700;font-size:.85em;color:var(--g8);margin:8px 0 5px">📅 Por ano</div>`;
+    p1+=`<table style="width:100%;border-collapse:collapse;font-size:.83em;margin-bottom:4px"><thead><tr style="background:var(--g1)"><th style="padding:5px 8px">Ano</th><th style="padding:5px 8px;text-align:right">Missões</th><th style="padding:5px 8px;text-align:right">Flight time</th><th style="padding:5px 8px;text-align:right">Block time</th></tr></thead><tbody>`;
     years.forEach(([yr,v])=>{p1+=`<tr style="border-top:1px solid var(--g1)"><td style="padding:5px 8px;font-weight:600">${yr}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono)">${v.mis}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono);color:var(--g8)">${fD(v.ft)}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono)">${fD(v.bt)}</td></tr>`;});
     p1+=`</tbody></table>`;
   }
@@ -6506,7 +6517,7 @@ tripLogbook(nome){
   let p2=`<div style="max-height:420px;overflow-y:auto;border:1px solid var(--border2);border-radius:8px">`;
   if(!allMs.length){p2+=`<div style="color:var(--ink3);padding:20px;text-align:center">Sem missões registadas.</div>`;}
   else{
-    p2+=`<table style="width:100%;border-collapse:collapse;font-size:.79em"><thead style="position:sticky;top:0;z-index:1"><tr style="background:var(--g2)"><th style="padding:5px 7px;text-align:center">Data</th><th style="padding:5px 7px;text-align:left">Missão</th><th style="padding:5px 7px;text-align:left">Tipo</th><th style="padding:5px 7px;text-align:center">Aeronave</th><th style="padding:5px 7px;text-align:center">Função</th><th style="padding:5px 7px;text-align:right">FT</th><th style="padding:5px 7px;text-align:right">BT</th><th style="padding:5px 7px;text-align:center">Estado</th></tr></thead><tbody>`;
+    p2+=`<table style="width:100%;border-collapse:collapse;font-size:.79em"><thead style="position:sticky;top:0;z-index:1"><tr style="background:var(--g2)"><th style="padding:5px 7px;text-align:center">Data</th><th style="padding:5px 7px;text-align:left">Missão</th><th style="padding:5px 7px;text-align:left">Tipo</th><th style="padding:5px 7px;text-align:center">Aeronave</th><th style="padding:5px 7px;text-align:center">Função</th><th style="padding:5px 7px;text-align:right">Flight time</th><th style="padding:5px 7px;text-align:right">Block time</th><th style="padding:5px 7px;text-align:center">Estado</th></tr></thead><tbody>`;
     allMs.forEach((m,i)=>{
       const fn=(m.crew||[]).find(c=>c.nome===nome)?.fn||'—';
       const btS=this.calcBT(m.boff,m.bon);
@@ -6584,11 +6595,11 @@ tripLogbookPDF(nome){
     const yearRows=Object.entries(byYear).sort((a,b)=>Number(a[0])-Number(b[0])).map(([yr,v])=>[''+yr,''+v.mis,fD(v.ft),fD(v.bt)]);
     const hs={fillColor:[46,125,50],textColor:255,fontStyle:'bold'};
     const cs={fontSize:7.5,cellPadding:2};
-    doc.autoTable({startY:y,head:[['Função','Mis.','FLIGHT TIME','Block Time']],body:fnsRows.length?fnsRows:[['—','—','—','—']],styles:cs,headStyles:hs,tableWidth:82,margin:{left:lm,right:W-lm-82},didDrawPage:()=>{}});
+    doc.autoTable({startY:y,head:[['Função','Mis.','Flight time','Block time']],body:fnsRows.length?fnsRows:[['—','—','—','—']],styles:cs,headStyles:hs,tableWidth:82,margin:{left:lm,right:W-lm-82},didDrawPage:()=>{}});
     const yFn=doc.lastAutoTable.finalY;
-    doc.autoTable({startY:y,head:[['Aeronave','Mis.','FLIGHT TIME']],body:aeroRows.length?aeroRows:[['—','—','—']],styles:cs,headStyles:hs,tableWidth:74,margin:{left:lm+86,right:W-lm-86-74},didDrawPage:()=>{}});
+    doc.autoTable({startY:y,head:[['Aeronave','Mis.','Flight time']],body:aeroRows.length?aeroRows:[['—','—','—']],styles:cs,headStyles:hs,tableWidth:74,margin:{left:lm+86,right:W-lm-86-74},didDrawPage:()=>{}});
     const yAe=doc.lastAutoTable.finalY;
-    doc.autoTable({startY:y,head:[['Ano','Mis.','FT','BT']],body:yearRows.length?yearRows:[['—','—','—','—']],styles:cs,headStyles:hs,tableWidth:60,margin:{left:lm+166,right:rm},didDrawPage:()=>{}});
+    doc.autoTable({startY:y,head:[['Ano','Mis.','Flight time','Block time']],body:yearRows.length?yearRows:[['—','—','—','—']],styles:cs,headStyles:hs,tableWidth:60,margin:{left:lm+166,right:rm},didDrawPage:()=>{}});
     y=Math.max(yFn,yAe,doc.lastAutoTable.finalY)+8;
     // Registo de voos (ordenado por data, mais antigo primeiro — formato caderneta)
     if(allMs.length){
@@ -6600,17 +6611,18 @@ tripLogbookPDF(nome){
         const btS=this.calcBT(m.boff,m.bon);
         return[m._dt.toLocaleDateString('pt-PT'),m.num||'—',m.serie||'—',m.tipo||'—',m.aero||'—',fn,(m.dur||'').slice(0,5)||'—',btS==='—'?'—':btS,(cumFt/60).toFixed(2),(cumBt/60).toFixed(2)];
       });
+      // Larguras proporcionais a preencher os 277mm disponíveis (297 - 10 - 10)
       doc.autoTable({startY:y,
-        head:[['Data','Nº Missão','Série','Tipo de Missão','Aeronave','Função','FT','BT','FT Acum.','BT Acum.']],
+        head:[['Data','Nº missão','Série','Tipo de missão','Aeronave','Função','Flight time','Block time','Flight time acum.','Block time acum.']],
         body:rows,
         styles:{fontSize:7,cellPadding:1.8,valign:'middle'},
         headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold',halign:'center'},
         alternateRowStyles:{fillColor:[243,249,243]},
         columnStyles:{
-          0:{cellWidth:21,halign:'center'},1:{cellWidth:30},2:{cellWidth:16,halign:'center'},
-          3:{cellWidth:50},4:{cellWidth:22,halign:'center'},5:{cellWidth:28,halign:'center'},
-          6:{cellWidth:14,halign:'center'},7:{cellWidth:14,halign:'center'},
-          8:{cellWidth:18,halign:'right'},9:{cellWidth:18,halign:'right'},
+          0:{cellWidth:22,halign:'center'},1:{cellWidth:30},2:{cellWidth:16,halign:'center'},
+          3:{cellWidth:55},4:{cellWidth:24,halign:'center'},5:{cellWidth:30,halign:'center'},
+          6:{cellWidth:20,halign:'center'},7:{cellWidth:20,halign:'center'},
+          8:{cellWidth:30,halign:'right'},9:{cellWidth:30,halign:'right'},
         },
         margin:{left:lm,right:rm}});
     }
