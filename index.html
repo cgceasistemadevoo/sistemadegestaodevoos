@@ -4590,7 +4590,7 @@ pagPDF(){
     const tMin=this.t2m((m.toff||'00:00').slice(0,5));const dMin=this.dur2m(m.dur);
     const ppBtStr=this.calcBT(m.boff,m.bon);const ppBtMins=ppBtStr!=='—'?(()=>{const[bh,bm]=ppBtStr.split(':').map(Number);return bh*60+(bm||0);})():0;
     const ppEff=ppBtMins||dMin;
-    const hasPA=this.overlaps(tMin,ppEff,0,8);const hasA=this.overlaps(tMin,ppEff,12,14);const hasJ=this.overlaps(tMin,ppEff,19,24);
+    const hasPA=!m.catering&&this.overlaps(tMin,ppEff,0,8);const hasA=!m.catering&&this.overlaps(tMin,ppEff,12,14);const hasJ=!m.catering&&this.overlaps(tMin,ppEff,19,24);
     (m.crew||[]).forEach(c=>{
       if(!pag[c.nome])pag[c.nome]={nome:c.nome,fn:c.fn,mis:0,min:0,vH:0,pa:0,al:0,jn:0,vR:0};
       const p=pag[c.nome];p.mis++;
@@ -4606,7 +4606,7 @@ pagPDF(){
     const btStr=this.calcBT(m.boff,m.bon);const btMins=btStr!=='—'?(()=>{const[bh,bm]=btStr.split(':').map(Number);return bh*60+(bm||0);})():0;
     const tMin=this.t2m((m.toff||'00:00').slice(0,5));const dMin=this.dur2m(m.dur);
     const effMins=btMins||dMin;
-    const mR=(this.overlaps(tMin,effMins,0,8)?ppMV.pa:0)+(this.overlaps(tMin,effMins,12,14)?ppMV.al:0)+(this.overlaps(tMin,effMins,19,24)?ppMV.jn:0);
+    const mR=m.catering?0:(this.overlaps(tMin,effMins,0,8)?ppMV.pa:0)+(this.overlaps(tMin,effMins,12,14)?ppMV.al:0)+(this.overlaps(tMin,effMins,19,24)?ppMV.jn:0);
     const mCVE=(m.crew||[]).reduce((s,c)=>s+(ppVPF[c.fn]||1500)*(effMins/60)+mR,0);
     const sk=m.serie||'—';if(!ppBySerie[sk])ppBySerie[sk]={mis:0,min:0,cveTot:0};ppBySerie[sk].mis++;ppBySerie[sk].min+=effMins;ppBySerie[sk].cveTot+=mCVE;
     const ak=m.aero||'—';if(!ppByAero[ak])ppByAero[ak]={mis:0,min:0};ppByAero[ak].mis++;ppByAero[ak].min+=effMins;
