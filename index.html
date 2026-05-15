@@ -755,6 +755,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
       <div style="display:flex;align-items:center;gap:14px;margin-left:auto;font-size:.78em;color:var(--ink3)">
         <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:12px;height:12px;background:#2E7D32;border-radius:3px"></span>Missões</span>
         <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:20px;height:2px;background:#1565c0;border-radius:2px;position:relative"><span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:6px;height:6px;background:#1565c0;border-radius:50%"></span></span>Block Time (h)</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:20px;height:2px;background:#b91c1c;border-radius:2px;position:relative"><span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:6px;height:6px;background:#b91c1c;border-radius:50%"></span></span>Flight Time (h)</span>
       </div>
     </div>
     <div class="card-bd"><div class="chart-box"><canvas id="cTemp"></canvas></div></div>
@@ -3638,7 +3639,7 @@ renderTopTrip(){
     const pctLim=Math.round(min/(lim*60)*100);
     const cor=pctLim>=100?'#dc2626':(pctLim>=85?'#f59e0b':'#10b981');
     const ne=this.esc(nome).replace(/'/g,"\\'");
-    h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--g0);border-radius:7px;cursor:pointer" onclick="A.tripPerfil(\''+ne+'\')" title="Ver perfil">'+
+    h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--g0);border-radius:7px;cursor:pointer" onclick="A.tripLogbook(\''+ne+'\')" title="Ver caderneta">'+
       (medals[i]?'<span style="font-size:1em;min-width:18px">'+medals[i]+'</span>':'')+
       '<div style="flex:1;min-width:0">'+
         '<div style="font-weight:600;font-size:.84em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+this.esc(nome)+'</div>'+
@@ -3972,7 +3973,7 @@ _anoCell(t,now){
       '<td class="'+wCls+'">'+hrMes+'h'+(pct>=85?' ⚠️':'')+
         '<span class="hr-bar-wrap"><span class="hr-bar '+bCls+'" style="width:'+pct+'%"></span></span></td>'+
       this._anoCell(t,_now)+
-      '<td>'+this._validityCell(t)+'</td>'+'<td style="white-space:nowrap"><button class="btn btn-xs btn-p" onclick="A.tripPerfil(\''+ne+'\')" title="Perfil completo">👤</button> <button class="btn btn-xs" style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0" onclick="A.tripLogbook(\''+ne+'\')" title="Caderneta de Voo">📓</button> <button class="btn btn-xs btn-edit admin-only" onclick="A.editTrip(\''+ne+'\')">✏️</button> <button class="btn btn-xs btn-del admin-only" onclick="A.delTrip(\''+ne+'\')">🗑️</button></td>'+
+      '<td>'+this._validityCell(t)+'</td>'+'<td style="white-space:nowrap"><button class="btn btn-xs btn-p" onclick="A.tripLogbook(\''+ne+'\')" title="Perfil / Caderneta">👤</button> <button class="btn btn-xs btn-edit admin-only" onclick="A.editTrip(\''+ne+'\')">✏️</button> <button class="btn btn-xs btn-del admin-only" onclick="A.delTrip(\''+ne+'\')">🗑️</button></td>'+
       '</tr>';
   });
   el.innerHTML=h+'</tbody></table>';
@@ -4760,7 +4761,7 @@ _buildCombinedChart(){
   this._destroyCharts('cTemp');
   const ctx=document.getElementById('cTemp')?.getContext('2d');if(!ctx)return;
   const mis=this.S.filtered;
-  const now=new Date(),months=[],counts=[],btHours=[];
+  const now=new Date(),months=[],counts=[],btHours=[],ftHours=[];
   const MLBL=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   for(let i=11;i>=0;i--){
     const d=new Date(now.getFullYear(),now.getMonth()-i,1);
@@ -4768,24 +4769,33 @@ _buildCombinedChart(){
     months.push(MLBL[mo]+' '+String(y).slice(2));
     const inMonth=mis.filter(m=>{const dt=m.dt instanceof Date?m.dt:new Date(m.dt);return dt.getFullYear()===y&&dt.getMonth()===mo;});
     const _snCB=new Set();counts.push(inMonth.filter(m=>!_snCB.has(m.num)&&_snCB.add(m.num)).length);
-    let btMin=0;
-    inMonth.forEach(m=>{const btStr=this.calcBT(m.boff,m.bon);if(btStr!=='—'){const[bh,bm]=btStr.split(':').map(Number);btMin+=bh*60+(bm||0);}});
+    let btMin=0,ftMin=0;
+    inMonth.forEach(m=>{
+      const btStr=this.calcBT(m.boff,m.bon);if(btStr!=='—'){const[bh,bm]=btStr.split(':').map(Number);btMin+=bh*60+(bm||0);}
+      const p=String(m.dur||'0:0').split(':').map(Number);ftMin+=(p[0]||0)*60+(p[1]||0);
+    });
     btHours.push(+(btMin/60).toFixed(1));
+    ftHours.push(+(ftMin/60).toFixed(1));
   }
   const gc=this._gridColor(),tc=this._textColor();
   this.S.charts['cTemp']=new Chart(ctx,{
     type:'bar',
     data:{labels:months,datasets:[
-      {type:'bar',label:'Missões',data:counts,backgroundColor:'#2E7D32cc',borderRadius:5,yAxisID:'yMis',order:2},
-      {type:'line',label:'Block Time (h)',data:btHours,borderColor:'#1565c0',backgroundColor:'#1565c022',fill:true,tension:.35,pointRadius:5,pointHoverRadius:8,borderWidth:3.5,pointBackgroundColor:'#1565c0',pointBorderColor:'#fff',pointBorderWidth:2,yAxisID:'yBT',order:1}
+      {type:'bar',label:'Missões',data:counts,backgroundColor:'#2E7D32cc',borderRadius:5,yAxisID:'yMis',order:3},
+      {type:'line',label:'Block Time (h)',data:btHours,borderColor:'#1565c0',backgroundColor:'#1565c015',fill:false,tension:.35,pointRadius:4,pointHoverRadius:7,borderWidth:3,pointBackgroundColor:'#1565c0',pointBorderColor:'#fff',pointBorderWidth:2,yAxisID:'yHr',order:1},
+      {type:'line',label:'Flight Time (h)',data:ftHours,borderColor:'#b91c1c',backgroundColor:'#b91c1c15',fill:false,tension:.35,pointRadius:4,pointHoverRadius:7,borderWidth:3,pointBackgroundColor:'#b91c1c',pointBorderColor:'#fff',pointBorderWidth:2,yAxisID:'yHr',order:2}
     ]},
     options:{responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx2=>ctx2.datasetIndex===0?ctx2.raw+' missões':ctx2.raw+'h BT'}}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx2=>{
+        if(ctx2.datasetIndex===0)return ' '+ctx2.raw+' missões';
+        if(ctx2.datasetIndex===1)return ' '+ctx2.raw+'h BT';
+        return ' '+ctx2.raw+'h FT';
+      }}}},
       scales:{
         x:{grid:{color:gc},ticks:{color:tc,font:{size:10}}},
         yMis:{position:'left',beginAtZero:true,grid:{color:gc},ticks:{color:'#2E7D32',stepSize:1,font:{size:10}},title:{display:true,text:'Missões',color:'#2E7D32',font:{size:10}}},
-        yBT:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},ticks:{color:'#1565c0',font:{size:10},callback:v=>v+'h'},title:{display:true,text:'Block Time',color:'#1565c0',font:{size:10}}}
+        yHr:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},ticks:{color:tc,font:{size:10},callback:v=>v+'h'},title:{display:true,text:'Horas',color:tc,font:{size:10}}}
       }
     }
   });
@@ -6629,9 +6639,19 @@ tripLogbookPDF(nome){
       .filter(m=>(m.crew||[]).some(c=>c.nome===nome))
       .map(m=>({...m,_dt:m.dt instanceof Date?m.dt:new Date(m.dt)}))
       .sort((a,b)=>a._dt-b._dt);
+    // Apply active modal filter if present
+    const _fYr=document.getElementById('lbFYear')?.value||'';
+    const _fMo=document.getElementById('lbFMonth')?.value||'';
+    const MESES_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const pdfMs=(_fYr||_fMo)?allMs.filter(m=>{
+      if(_fYr&&m._dt.getFullYear()!==Number(_fYr))return false;
+      if(_fMo&&(m._dt.getMonth()+1)!==Number(_fMo))return false;
+      return true;
+    }):allMs;
+    const filterLabel=_fYr||_fMo?'Filtro: '+(_fMo?MESES_PT[Number(_fMo)-1]+' ':'')+(_fYr||''):'';
     let totFt=0,totBt=0;
     const byFn={},byAero={},byYear={};
-    allMs.forEach(m=>{
+    pdfMs.forEach(m=>{
       const fn=(m.crew||[]).find(c=>c.nome===nome)?.fn||'—';
       const ft=_ftMin(m),bt=_btMin(m);
       totFt+=ft;totBt+=bt;
@@ -6649,17 +6669,17 @@ tripLogbookPDF(nome){
     doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(12);
     doc.text('CADERNETA DE VOO INDIVIDUAL — GUARDA COSTEIRA DE CABO VERDE · ESQUADRILHA AÉREA',W/2,9,{align:'center'});
     doc.setFontSize(8);doc.setFont('helvetica','normal');
-    doc.text('Gerado em: '+new Date().toLocaleString('pt-PT'),W/2,16,{align:'center'});
+    doc.text('Gerado em: '+new Date().toLocaleString('pt-PT')+(filterLabel?' · '+filterLabel:''),W/2,16,{align:'center'});
     doc.setTextColor(0,0,0);
     let y=26;
     // Caixa de identificação
     doc.setFillColor(240,250,240);doc.roundedRect(lm,y-2,W-lm-rm,16,2,2,'FD');
     doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text(nome,lm+4,y+4);
     doc.setFont('helvetica','normal');doc.setFontSize(8.5);
-    doc.text('Posto: '+t.posto+'   |   Colocação: '+t.col+'   |   NIF: '+t.nif,lm+4,y+10);
+    doc.text('Posto: '+(t.posto||'—')+'   |   Colocação: '+(t.col||'—')+'   |   NIF: '+(t.nif||'—'),lm+4,y+10);
     doc.setFont('helvetica','bold');
-    doc.text('Total: '+allMs.length+' missões   |   FLIGHT TIME: '+fH(totFt)+'   |   Block Time: '+fH(totBt),W-rm-4,y+4,{align:'right'});
-    if(allMs.length){const y0=allMs[0]._dt.getFullYear(),y1=allMs[allMs.length-1]._dt.getFullYear();doc.setFont('helvetica','normal');doc.text('Período: '+(y0===y1?''+y0:y0+' — '+y1),W-rm-4,y+10,{align:'right'});}
+    doc.text(''+pdfMs.length+' missões   |   Flight time: '+fH(totFt)+'   |   Block time: '+fH(totBt),W-rm-4,y+4,{align:'right'});
+    if(pdfMs.length){const y0=pdfMs[0]._dt.getFullYear(),y1=pdfMs[pdfMs.length-1]._dt.getFullYear();doc.setFont('helvetica','normal');doc.text('Período: '+(y0===y1?''+y0:y0+' — '+y1),W-rm-4,y+10,{align:'right'});}
     y+=22;
     // Tabelas de resumo lado a lado
     const fnsRows=Object.entries(byFn).sort((a,b)=>b[1].ft-a[1].ft).map(([fn,v])=>[fn,''+v.mis,fD(v.ft),fD(v.bt)]);
@@ -6674,16 +6694,15 @@ tripLogbookPDF(nome){
     doc.autoTable({startY:y,head:[['Ano','Mis.','Flight time','Block time']],body:yearRows.length?yearRows:[['—','—','—','—']],styles:cs,headStyles:hs,tableWidth:60,margin:{left:lm+166,right:rm},didDrawPage:()=>{}});
     y=Math.max(yFn,yAe,doc.lastAutoTable.finalY)+8;
     // Registo de voos (ordenado por data, mais antigo primeiro — formato caderneta)
-    if(allMs.length){
+    if(pdfMs.length){
       let cumFt=0,cumBt=0;
-      const rows=allMs.map(m=>{
+      const rows=pdfMs.map(m=>{
         const fn=(m.crew||[]).find(c=>c.nome===nome)?.fn||'—';
         const ft=_ftMin(m),bt=_btMin(m);
         cumFt+=ft;cumBt+=bt;
         const btS=this.calcBT(m.boff,m.bon);
         return[m._dt.toLocaleDateString('pt-PT'),m.num||'—',m.serie||'—',m.tipo||'—',m.aero||'—',fn,(m.dur||'').slice(0,5)||'—',btS==='—'?'—':btS,(cumFt/60).toFixed(2),(cumBt/60).toFixed(2)];
       });
-      // Larguras proporcionais a preencher os 277mm disponíveis (297 - 10 - 10)
       doc.autoTable({startY:y,
         head:[['Data','Nº missão','Série','Tipo de missão','Aeronave','Função','Flight time','Block time','Flight time acum.','Block time acum.']],
         body:rows,
@@ -6703,7 +6722,7 @@ tripLogbookPDF(nome){
     for(let i=1;i<=nPg;i++){
       doc.setPage(i);
       doc.setFontSize(7);doc.setTextColor(160,160,160);
-      doc.text('CGC — Esquadrilha Aérea  ·  Caderneta de Voo  ·  '+nome,lm,pH-3);
+      doc.text('CGC — Esquadrilha Aérea  ·  Caderneta de Voo  ·  '+nome+(filterLabel?' · '+filterLabel:''),lm,pH-3);
       doc.text('Pág. '+i+'/'+nPg,W-rm,pH-3,{align:'right'});
       doc.setTextColor(0,0,0);
     }
