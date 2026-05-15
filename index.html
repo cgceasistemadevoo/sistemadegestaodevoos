@@ -4456,11 +4456,28 @@ toPDF(){
     doc.setFontSize(9);doc.setFont('helvetica','normal');
     doc.text('Gerado em: '+new Date().toLocaleString('pt-PT')+'   |   Total: '+this.S.filtered.length+' missões',148,17,{align:'center'});
     doc.setTextColor(0,0,0);
+    // Caixa de filtros activos
+    const _fv=(id,d)=>{const v=document.getElementById(id)?.value||'';return(v&&v!==d)?v:'';};
+    const fParts=[];
+    if(_fv('fTipo','todos'))fParts.push('Tipo: '+_fv('fTipo','todos'));
+    if(_fv('fSerie','todos'))fParts.push('Serie: '+_fv('fSerie','todos'));
+    if(_fv('fTrip','todos'))fParts.push('Tripulante: '+_fv('fTrip','todos'));
+    if(_fv('fAero','todos'))fParts.push('Aeronave: '+_fv('fAero','todos'));
+    if(_fv('fStatus','todos'))fParts.push('Estado: '+_fv('fStatus','todos'));
+    const fIniV=document.getElementById('fInicio')?.value||'';if(fIniV)fParts.push('De: '+fIniV);
+    const fFimV=document.getElementById('fFim')?.value||'';if(fFimV)fParts.push('Ate: '+fFimV);
+    let sy=26;
+    if(fParts.length){
+      doc.setFillColor(240,250,240);doc.setDrawColor(46,125,50);doc.setLineWidth(0.4);doc.roundedRect(10,sy,277,9,2,2,'FD');
+      doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(27,94,32);doc.text('Filtros aplicados:',14,sy+5.8);
+      doc.setFont('helvetica','normal');doc.text(fParts.join('  |  '),55,sy+5.8,{maxWidth:228});
+      doc.setTextColor(0,0,0);sy+=12;
+    }
     const rows=this.S.filtered.slice().sort((a,b)=>b.dt-a.dt).map(m=>[
       m.num,m.serie,m.dt.toLocaleDateString('pt-PT'),m.status||'Concluída',m.tipo.slice(0,20),m.aero,m.dur?.slice(0,5)||'—',this.calcBT(m.boff,m.bon),(m.crew||[]).map(c=>(n=>{const p=n.trim().split(/\s+/);return p.length>1?p[0][0].toUpperCase()+'. '+p[p.length-1]:n;})(c.nome)+' ('+c.fn+')').join('\n')
     ]);
     doc.autoTable({
-      startY:26,
+      startY:sy,
       head:[['Nº Missão','Série','Data','Estado','Tipo','Aeronave','FLIGHT TIME','BT','Tripulação']],
       body:rows,
       styles:{fontSize:7.5,cellPadding:2.5,valign:'middle',overflow:'linebreak'},
@@ -4604,9 +4621,19 @@ pagPDF(){
     doc.setFontSize(9);doc.setFont('helvetica','normal');
     doc.text('Guarda Costeira de Cabo Verde   |   Total: '+this.cve(totVal),148,18,{align:'center'});
     doc.setTextColor(0,0,0);
+    // Caixa de filtros activos
+    const pFParts=['Periodo: '+mesNome+' '+ano];
+    if(pTp)pFParts.push('Tipo: '+pTp);
+    if(pSr)pFParts.push('Serie: '+pSr);
+    if(pAr)pFParts.push('Aeronave: '+pAr);
+    if(pMis)pFParts.push('Missao: '+pMis);
+    doc.setFillColor(240,250,240);doc.setDrawColor(46,125,50);doc.setLineWidth(0.4);doc.roundedRect(10,26,277,9,2,2,'FD');
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(27,94,32);doc.text('Filtros aplicados:',14,31.8);
+    doc.setFont('helvetica','normal');doc.text(pFParts.join('  |  '),55,31.8,{maxWidth:228});
+    doc.setTextColor(0,0,0);
     doc.autoTable({
-      startY:26,
-      head:[['Tripulante','Função','Mis.','Block Time','Val/BT','PA','Alm.','Jan.','Refeições','Total']],
+      startY:38,
+      head:[['Tripulante','Funcao','Mis.','Block Time','Val/BT','PA','Alm.','Jan.','Refeicoes','Total']],
       body:lista.map(p=>[p.nome,p.fn,p.mis,(p.min/60).toFixed(2)+'h',this.cve(p.vH),p.pa,p.al,p.jn,this.cve(p.vR),this.cve(p.vH+p.vR)]),
       styles:{fontSize:8,cellPadding:2.5,valign:'middle'},
       headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold',halign:'center'},
@@ -6681,6 +6708,13 @@ tripLogbookPDF(nome){
     doc.text(''+pdfMs.length+' missões   |   Flight time: '+fH(totFt)+'   |   Block time: '+fH(totBt),W-rm-4,y+4,{align:'right'});
     if(pdfMs.length){const y0=pdfMs[0]._dt.getFullYear(),y1=pdfMs[pdfMs.length-1]._dt.getFullYear();doc.setFont('helvetica','normal');doc.text('Período: '+(y0===y1?''+y0:y0+' — '+y1),W-rm-4,y+10,{align:'right'});}
     y+=22;
+    // Caixa de filtros activos (apenas quando há filtro)
+    if(filterLabel){
+      doc.setFillColor(240,250,240);doc.setDrawColor(46,125,50);doc.setLineWidth(0.4);doc.roundedRect(lm,y,W-lm-rm,9,2,2,'FD');
+      doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(27,94,32);doc.text('Filtros aplicados:',lm+3,y+5.8);
+      doc.setFont('helvetica','normal');doc.text(filterLabel,lm+40,y+5.8,{maxWidth:W-lm-rm-44});
+      doc.setTextColor(0,0,0);y+=12;
+    }
     // Tabelas de resumo lado a lado
     const fnsRows=Object.entries(byFn).sort((a,b)=>b[1].ft-a[1].ft).map(([fn,v])=>[fn,''+v.mis,fD(v.ft),fD(v.bt)]);
     const aeroRows=Object.entries(byAero).sort((a,b)=>b[1].ft-a[1].ft).map(([a,v])=>[a,''+v.mis,fD(v.ft)]);
@@ -6717,6 +6751,25 @@ tripLogbookPDF(nome){
         },
         margin:{left:lm,right:rm}});
     }
+    // Assinaturas — nova página se não houver espaço (mínimo 55mm)
+    const lastY=doc.lastAutoTable?doc.lastAutoTable.finalY:60;
+    let sigPage=doc.getNumberOfPages();
+    let sigY;
+    if(pH-lastY<58){doc.addPage();sigPage=doc.getNumberOfPages();sigY=20;}
+    else{doc.setPage(sigPage);sigY=lastY+14;}
+    const sigW=(W-lm-rm-20)/3;
+    const sigs=[['Tripulante',nome],['Comandante',''],['Oficial de Operacoes','']];
+    sigs.forEach(([label,pNome],i)=>{
+      const sx=lm+i*(sigW+10);
+      doc.setDrawColor(46,125,50);doc.setLineWidth(0.3);
+      doc.line(sx,sigY+28,sx+sigW,sigY+28);
+      doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(27,94,32);
+      doc.text(label,sx+sigW/2,sigY+5,{align:'center'});
+      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(0,0,0);
+      if(pNome){doc.text('Nome: '+pNome,sx,sigY+12);}else{doc.text('Nome: _________________________________',sx,sigY+12);}
+      doc.text('Posto/Funcao: _________________________',sx,sigY+19);
+      doc.text('Data: _____ / _____ / __________',sx,sigY+26);
+    });
     // Rodapé em todas as páginas
     const nPg=doc.getNumberOfPages();
     for(let i=1;i<=nPg;i++){
