@@ -825,6 +825,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="card-hd">
       <h3>📋 Lista de Tripulantes</h3>
       <div style="display:flex;align-items:center;gap:6px;font-size:.82em">
+        <div class="admin-only" style="display:flex;align-items:center;gap:6px">
         <label style="color:var(--ink3);font-weight:600">⏱️ Limite h/mês:</label>
         <input type="number" id="hrLimit" value="80" min="10" max="300"
           style="width:58px;padding:4px 7px;border:1.5px solid var(--border2);border-radius:6px;font-size:.9em;font-family:var(--mono);background:var(--white);color:var(--ink);outline:none"
@@ -833,6 +834,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
         <input type="number" id="hrLimitYear" value="800" min="50" max="2000"
           style="width:68px;padding:4px 7px;border:1.5px solid var(--border2);border-radius:6px;font-size:.9em;font-family:var(--mono);background:var(--white);color:var(--ink);outline:none"
           oninput="A.setHrLimitYear(this.value)">
+        </div>
       </div>
     </div>
     <div class="tscroll" id="tTrip"></div>
@@ -930,7 +932,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   <div class="card" id="seriesMgr">
     <div class="card-hd" style="flex-wrap:wrap;gap:8px">
       <h3>🎯 Gestão de Séries <span id="seriesCount" style="font-weight:400;color:var(--ink3)"></span></h3>
-      <div style="display:flex;gap:6px;align-items:center;margin-left:auto">
+      <div class="admin-only" style="display:flex;gap:6px;align-items:center;margin-left:auto">
         <input id="newSerieInp" placeholder="Nome (ex: CONDOR)" maxlength="20" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85em;text-transform:uppercase;width:160px">
         <button class="btn btn-p btn-sm" onclick="A.addSerie()">➕ Adicionar</button>
       </div>
@@ -1134,7 +1136,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="tscroll" id="tAeros"></div>
   </div>
 
-  <div class="form-sec">
+  <div class="form-sec admin-only">
     <h3>➕ Adicionar Aeronave</h3>
     <div class="fgrid2">
       <div class="fg"><label>Designação / Matrícula *</label><input id="iAeroNome" placeholder="Ex: KING AIR 360ER"></div>
@@ -3221,7 +3223,7 @@ showHistoria(id){
   },
 
   // ─── LIMITE HORAS ANUAL ────────────────────────────────────────
-  setHrLimitYear(v){this.S.hrLimitYear=Math.max(50,Math.min(2000,parseInt(v)||800));this.renderTrips();},
+  setHrLimitYear(v){if(!this.isAdmin())return;this.S.hrLimitYear=Math.max(50,Math.min(2000,parseInt(v)||800));this.renderTrips();},
 
   // ─── COMPARATIVO MENSAL ────────────────────────────────────────
   renderComparison(){
@@ -3707,7 +3709,7 @@ saveTemplateFromMission(id){
   },
 
   // ─── TRIPULANTES ──────────────────────────────────────────────
-setHrLimit(v){ this.S.hrLimit=Math.max(10,Math.min(300,parseInt(v)||80)); this.renderTrips(); },
+setHrLimit(v){ if(!this.isAdmin())return; this.S.hrLimit=Math.max(10,Math.min(300,parseInt(v)||80)); this.renderTrips(); },
 addTrip(){
   if(!this.isAdmin()){this.showNotif('❌ Sem permissão — apenas administradores podem adicionar tripulantes','err');return;}
   const FIDS=['iNome','iPosto','iCol','iNIF'];
@@ -4954,6 +4956,7 @@ renderRankBT(mis){
 
 // ─── AERONAVES ────────────────────────────────────────────────
 addAero(){
+  if(!this.isAdmin()){this.showNotif('❌ Sem permissão — apenas administradores podem adicionar aeronaves','err');return;}
   const nome=(document.getElementById('iAeroNome')?.value||'').trim();
   const tipo=document.getElementById('iAeroTipo')?.value;
   const reg=(document.getElementById('iAeroReg')?.value||'').trim();
@@ -5158,6 +5161,7 @@ toggleNav(){
     el.innerHTML=h;
   },
   addSerie(){
+    if(!this.isAdmin()){this.showNotif('❌ Sem permissão — apenas administradores podem criar séries','err');return;}
     const inp=document.getElementById('newSerieInp');if(!inp)return;
     const v=(inp.value||'').trim().toUpperCase();
     if(!v){this.showNotif('Digite um nome para a série','warn');return;}
