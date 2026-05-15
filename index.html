@@ -2621,6 +2621,30 @@ showHistoria(id){
     doc.text('Data: ___/___/________',c2,sigY+22,{align:'center'});
     doc.text('Data: ___/___/________',c3,sigY+22,{align:'center'});
   },
+  // ─── BLOCO DE ASSINATURAS DO RECIBO (2 cargos) ───────────────
+  _pdfSigRecibo(doc,lm,rm,pageH){
+    const isLand=pageH<240;
+    const sigY=isLand?170:252;
+    const lastPg=doc.internal.getNumberOfPages();
+    doc.setPage(lastPg);
+    const s=(rm-lm)/2;
+    const c1=lm+s/2;const c2=lm+s+s/2;
+    const g=6;
+    doc.setDrawColor(180,180,180);doc.setLineWidth(0.25);
+    doc.line(lm,sigY-2,rm,sigY-2);
+    doc.setDrawColor(0,0,0);doc.setLineWidth(0.5);
+    doc.line(lm+g,sigY+12,lm+s-g,sigY+12);
+    doc.line(lm+s+g,sigY+12,rm-g,sigY+12);
+    doc.setFont('helvetica','italic');doc.setFontSize(6.5);doc.setTextColor(140,140,140);
+    doc.text('Assinatura',c1,sigY+6,{align:'center'});
+    doc.text('Assinatura',c2,sigY+6,{align:'center'});
+    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(30,30,30);
+    doc.text('Chefe de Serviço de Logística',c1,sigY+17,{align:'center'});
+    doc.text('Comandante da Esquadrilha Aérea',c2,sigY+17,{align:'center'});
+    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(100,100,100);
+    doc.text('Data: ___/___/________',c1,sigY+22,{align:'center'});
+    doc.text('Data: ___/___/________',c2,sigY+22,{align:'center'});
+  },
   alertsPDF(){
     try{
       if(!window.jspdf){this.showNotif('❌ Biblioteca PDF não carregada','err');return;}
@@ -4346,7 +4370,7 @@ gerarRecibo(nome){
     y+=24;
     doc.autoTable({
       startY:y,
-      head:[['Missão','Data','Tipo','Função','Aeronave','FLIGHT TIME','BT','Val/Hora','PA','Alm','Jan','Refeições','Total']],
+      head:[['Missão','Data','Tipo','Função','Aeronave','FLIGHT TIME','BLOCK TIME','Val/Hora','PA','Alm','Jan','Refeições','Total']],
       body:rows,
       styles:{fontSize:7,cellPadding:2,valign:'middle'},
       headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold',fontSize:7,halign:'center'},
@@ -4385,7 +4409,7 @@ gerarRecibo(nome){
     doc.setFontSize(7.5);doc.setTextColor(120,120,120);doc.setFont('helvetica','normal');
     doc.text('Documento gerado em: '+new Date().toLocaleString('pt-PT'),14,y);
     doc.text('CGC - EA — Sistema de Gestão de Voo',148,y,{align:'center'});
-    this._pdfSig(doc,10,287,210);
+    this._pdfSigRecibo(doc,10,287,210);
     savePDF(doc,'Recibo_'+nome.split(' ')[0]+'_'+mesNome+'_'+ano+'.pdf');
     this.showNotif('📄 Recibo exportado!');
   }catch(e){this.showNotif('❌ Erro ao gerar PDF: '+e.message,'err');}
@@ -4476,7 +4500,7 @@ pagExcel(){
     const tMin=this.t2m((m.toff||'00:00').slice(0,5));const dMin=this.dur2m(m.dur);
     const pxBtStr=this.calcBT(m.boff,m.bon);const pxBtMins=pxBtStr!=='—'?(()=>{const[bh,bm]=pxBtStr.split(':').map(Number);return bh*60+(bm||0);})():0;
     const pxEff=pxBtMins||dMin;
-    const hasPA=this.overlaps(tMin,pxEff,0,8);const hasA=this.overlaps(tMin,pxEff,12,14);const hasJ=this.overlaps(tMin,pxEff,19,24);
+    const hasPA=!m.catering&&this.overlaps(tMin,pxEff,0,8);const hasA=!m.catering&&this.overlaps(tMin,pxEff,12,14);const hasJ=!m.catering&&this.overlaps(tMin,pxEff,19,24);
     (m.crew||[]).forEach(c=>{
       if(!pag[c.nome])pag[c.nome]={nome:c.nome,fn:c.fn,mis:0,min:0,vH:0,pa:0,al:0,jn:0,vR:0};
       const p=pag[c.nome];p.mis++;
