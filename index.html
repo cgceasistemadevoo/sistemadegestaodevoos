@@ -3972,7 +3972,7 @@ _anoCell(t,now){
       '<td class="'+wCls+'">'+hrMes+'h'+(pct>=85?' ⚠️':'')+
         '<span class="hr-bar-wrap"><span class="hr-bar '+bCls+'" style="width:'+pct+'%"></span></span></td>'+
       this._anoCell(t,_now)+
-      '<td>'+this._validityCell(t)+'</td>'+'<td style="white-space:nowrap"><button class="btn btn-xs btn-p" onclick="A.tripPerfil(\''+ne+'\')" title="Perfil completo">👤</button> <button class="btn btn-xs" style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0" onclick="A.tripLogbook(\''+ne+'\')" title="Caderneta de Voo">📓</button> <button class="btn btn-xs btn-edit admin-only" onclick="A.editTrip(\''+ne+'\')">✏️</button> <button class="btn btn-xs btn-pdf" onclick="A.tripPDF(\''+ne+'\')" title="Relatório PDF">📄</button> <button class="btn btn-xs btn-del admin-only" onclick="A.delTrip(\''+ne+'\')">🗑️</button></td>'+
+      '<td>'+this._validityCell(t)+'</td>'+'<td style="white-space:nowrap"><button class="btn btn-xs btn-p" onclick="A.tripPerfil(\''+ne+'\')" title="Perfil completo">👤</button> <button class="btn btn-xs" style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0" onclick="A.tripLogbook(\''+ne+'\')" title="Caderneta de Voo">📓</button> <button class="btn btn-xs btn-edit admin-only" onclick="A.editTrip(\''+ne+'\')">✏️</button> <button class="btn btn-xs btn-del admin-only" onclick="A.delTrip(\''+ne+'\')">🗑️</button></td>'+
       '</tr>';
   });
   el.innerHTML=h+'</tbody></table>';
@@ -6438,51 +6438,115 @@ tripLogbook(nome){
     .filter(m=>(m.crew||[]).some(c=>c.nome===nome))
     .map(m=>({...m,_dt:m.dt instanceof Date?m.dt:new Date(m.dt)}))
     .sort((a,b)=>b._dt-a._dt);
+  this._lbCache={nome,ms:allMs,t};
+  const yrs=[...new Set(allMs.map(m=>m._dt.getFullYear()))].sort((a,b)=>b-a);
+  const yrOpts=yrs.map(y=>`<option value="${y}">${y}</option>`).join('');
+  const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const moOpts=MESES.map((n,i)=>`<option value="${i+1}">${n}</option>`).join('');
+  const ss='padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface);color:var(--ink);font-size:.82em;cursor:pointer';
+  const ne=nome.replace(/'/g,"\\'");
+  let h=`<div class="modal-hd"><h3>📓 Caderneta de Voo</h3><span class="modal-x" onclick="A.closeInfoModal()">×</span></div>`;
+  h+=`<div style="font-size:.87em;color:var(--ink3);margin-bottom:8px;padding:8px 10px;background:var(--g0);border-radius:7px"><b>${this.esc(nome)}</b> &nbsp;·&nbsp; ${this.esc(t.posto||'—')} &nbsp;·&nbsp; ${this.esc(t.col||'—')} &nbsp;·&nbsp; NIF: ${t.nif?t.nif.slice(0,3)+'****'+t.nif.slice(-3):'—'}</div>`;
+  h+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;padding:7px 10px;background:var(--g0);border-radius:7px">
+    <span style="font-size:.8em;color:var(--ink3);font-weight:600">Filtrar:</span>
+    <select id="lbFYear" onchange="A._lbFilter()" style="${ss}"><option value="">Todos os anos</option>${yrOpts}</select>
+    <select id="lbFMonth" onchange="A._lbFilter()" style="${ss}"><option value="">Todos os meses</option>${moOpts}</select>
+    <button onclick="document.getElementById('lbFYear').value='';document.getElementById('lbFMonth').value='';A._lbFilter()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface);color:var(--ink3);font-size:.78em;cursor:pointer">✕ Limpar</button>
+    <span id="lbFCount" style="margin-left:auto;font-size:.78em;color:var(--ink3)"></span>
+  </div>`;
+  h+=`<div style="display:flex;gap:6px;margin-bottom:12px">
+    <button id="lbT1" onclick="A._lbTab(1)" style="padding:5px 16px;border-radius:20px;border:1.5px solid var(--g6);background:var(--g6);color:#fff;font-size:.82em;font-weight:700;cursor:pointer">📊 Resumo</button>
+    <button id="lbT2" onclick="A._lbTab(2)" style="padding:5px 16px;border-radius:20px;border:1.5px solid var(--border2);background:var(--surface);color:var(--ink1);font-size:.82em;font-weight:600;cursor:pointer">📋 Registo (${allMs.length})</button>
+  </div>`;
+  h+=`<div id="lbP1"></div><div id="lbP2" style="display:none"></div>`;
+  h+=`<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+    <button class="btn btn-pdf btn-sm" onclick="A.tripLogbookPDF('${ne}')">📄 PDF Caderneta</button>
+    <button class="btn btn-s btn-sm" onclick="A.closeInfoModal()">Fechar</button>
+  </div>`;
+  this.openInfoModal(h);
+  setTimeout(()=>this._lbRender('',''),0);
+},
+
+_lbFilter(){
+  const yr=document.getElementById('lbFYear')?.value||'';
+  const mo=document.getElementById('lbFMonth')?.value||'';
+  this._lbRender(yr,mo);
+},
+
+_lbRender(yr,mo){
+  const c=this._lbCache;if(!c)return;
+  const {nome,ms,t}=c;
+  const now=new Date();
+  const lim=this.S.hrLimit||80,limY=this.S.hrLimitYear||800;
   const _ftMin=m=>{const p=String(m.dur||'0:0').split(':').map(Number);return(p[0]||0)*60+(p[1]||0);};
   const _btMin=m=>{const s=this.calcBT(m.boff,m.bon);if(!s||s==='—')return 0;const[bh,bm]=s.split(':').map(Number);return bh*60+(bm||0);};
+  const fH=min=>Math.floor(min/60)+'h '+(min%60<10?'0':'')+(min%60)+'m';
+  const fD=min=>(min/60).toFixed(1)+'h';
+  // Filtered subset
+  const filtered=ms.filter(m=>{
+    if(yr&&m._dt.getFullYear()!==Number(yr))return false;
+    if(mo&&(m._dt.getMonth()+1)!==Number(mo))return false;
+    return true;
+  });
+  // Aggregate filtered
   let totFt=0,totBt=0;
   const byFn={},byAero={},byTipo={},byYear={};
-  allMs.forEach(m=>{
-    const fn=(m.crew||[]).find(c=>c.nome===nome)?.fn||'—';
+  filtered.forEach(m=>{
+    const fn=(m.crew||[]).find(cx=>cx.nome===nome)?.fn||'—';
     const ft=_ftMin(m),bt=_btMin(m);
     totFt+=ft;totBt+=bt;
     if(!byFn[fn])byFn[fn]={mis:0,ft:0,bt:0};byFn[fn].mis++;byFn[fn].ft+=ft;byFn[fn].bt+=bt;
     const ae=m.aero||'—';if(!byAero[ae])byAero[ae]={mis:0,ft:0};byAero[ae].mis++;byAero[ae].ft+=ft;
     const tp=m.tipo||'—';if(!byTipo[tp])byTipo[tp]={mis:0,ft:0};byTipo[tp].mis++;byTipo[tp].ft+=ft;
-    const yr=m._dt.getFullYear();if(!byYear[yr])byYear[yr]={mis:0,ft:0,bt:0};byYear[yr].mis++;byYear[yr].ft+=ft;byYear[yr].bt+=bt;
+    const y2=m._dt.getFullYear();if(!byYear[y2])byYear[y2]={mis:0,ft:0,bt:0};byYear[y2].mis++;byYear[y2].ft+=ft;byYear[y2].bt+=bt;
   });
-  // Remuneração estimada (migrada de tripStats)
+  // Pay (filtered)
   const vPF=this.getVPF();const mv=this.getMealVals();
   let totPay=0;
-  const concl=allMs.filter(m=>m.status==='Concluída');
-  concl.forEach(m=>{
-    const cr=(m.crew||[]).find(c=>c.nome===nome);if(!cr)return;
+  filtered.filter(m=>m.status==='Concluída').forEach(m=>{
+    const cr=(m.crew||[]).find(cx=>cx.nome===nome);if(!cr)return;
     const bt=this.calcBT(m.boff,m.bon);let btMin=0;if(bt&&bt!=='—'){const[bh,bm]=bt.split(':').map(Number);btMin=bh*60+(bm||0);}
     const effMins=btMin||this.dur2m(m.dur);
     const tMin=this.t2m((m.toff||'00:00').slice(0,5));
     const mR=(this.overlaps(tMin,effMins,0,8)?mv.pa:0)+(this.overlaps(tMin,effMins,12,14)?mv.al:0)+(this.overlaps(tMin,effMins,19,24)?mv.jn:0);
     totPay+=(vPF[cr.fn]||1500)*(effMins/60)+mR;
   });
-  const fH=min=>Math.floor(min/60)+'h '+(min%60<10?'0':'')+(min%60)+'m';
-  const fD=min=>(min/60).toFixed(1)+'h';
-  const ne=nome.replace(/'/g,"\\'");
-  this._lbCache={nome,ms:allMs,t,totFt,totBt,byFn,byAero,byTipo,byYear,_ftMin,_btMin};
-  let h=`<div class="modal-hd"><h3>📓 Caderneta de Voo</h3><span class="modal-x" onclick="A.closeInfoModal()">×</span></div>`;
-  h+=`<div style="font-size:.87em;color:var(--ink3);margin-bottom:12px;padding:8px 10px;background:var(--g0);border-radius:7px"><b>${this.esc(nome)}</b> &nbsp;·&nbsp; ${this.esc(t.posto||'—')} &nbsp;·&nbsp; ${this.esc(t.col||'—')} &nbsp;·&nbsp; NIF: ${t.nif?t.nif.slice(0,3)+'****'+t.nif.slice(-3):'—'}</div>`;
-  h+=`<div style="display:flex;gap:6px;margin-bottom:14px">
-    <button id="lbT1" onclick="A._lbTab(1)" style="padding:5px 16px;border-radius:20px;border:1.5px solid var(--g6);background:var(--g6);color:#fff;font-size:.82em;font-weight:700;cursor:pointer">📊 Resumo</button>
-    <button id="lbT2" onclick="A._lbTab(2)" style="padding:5px 16px;border-radius:20px;border:1.5px solid var(--border2);background:var(--surface);color:var(--ink1);font-size:.82em;font-weight:600;cursor:pointer">📋 Registo (${allMs.length})</button>
-  </div>`;
-  // ── Separador 1: Resumo ──
-  let p1=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px">`;
+  // Full-dataset stats for limits + bar chart (always current, regardless of filter)
+  const minPorMes={};let totAno=0;
+  ms.forEach(m=>{
+    const ft=_ftMin(m);
+    if(m._dt.getFullYear()===now.getFullYear())totAno+=ft;
+    const k=m._dt.getFullYear()+'-'+String(m._dt.getMonth()+1).padStart(2,'0');
+    minPorMes[k]=(minPorMes[k]||0)+ft;
+  });
+  const mAtual=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const minMes=minPorMes[mAtual]||0;
+  const pctM=Math.min(100,Math.round(minMes/(lim*60)*100));
+  const pctA=Math.min(100,Math.round(totAno/(limY*60)*100));
+  const meses6=Object.keys(minPorMes).sort().slice(-6);
+  // ── Pane 1: Resumo ──
   const kp=(lbl,val,cor)=>`<div style="padding:10px;background:var(--g0);border-radius:8px;border-left:3px solid ${cor}"><div style="font-size:.7em;color:var(--ink3);text-transform:uppercase;margin-bottom:2px">${lbl}</div><div style="font-size:1.3em;font-weight:800">${val}</div></div>`;
-  p1+=kp('Missões',''+allMs.length,'#6366f1');
+  let p1=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:10px;margin-bottom:12px">`;
+  p1+=kp('Missões',''+filtered.length,'#6366f1');
   p1+=kp('Flight time',fH(totFt),'#3b82f6');
   p1+=kp('Block time',fH(totBt),'#10b981');
-  if(allMs.length){const y0=allMs[allMs.length-1]._dt.getFullYear(),y1=allMs[0]._dt.getFullYear();p1+=kp('Período',y0===y1?''+y0:y0+'–'+y1,'#f59e0b');}
+  if(filtered.length){const ds=filtered.map(m=>m._dt);const y0=Math.min(...ds.map(d=>d.getFullYear())),y1=Math.max(...ds.map(d=>d.getFullYear()));p1+=kp('Período',y0===y1?''+y0:y0+'–'+y1,'#f59e0b');}
   if(totPay>0)p1+=kp('Remuneração est.',this.cve(Math.round(totPay)),'#a855f7');
   p1+=`</div>`;
-  // por função
+  // Barras de progresso h/mês e h/ano (sempre dados reais, não filtrados)
+  p1+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">`;
+  p1+=`<div style="padding:10px;background:var(--g0);border-radius:8px;border-left:3px solid ${pctM>=85?'#dc2626':'#f59e0b'}"><div style="font-size:.7em;color:var(--ink3);text-transform:uppercase;margin-bottom:3px">Mês actual (real)</div><div style="font-size:1.05em;font-weight:700">${(minMes/60).toFixed(1)}h <span style="font-size:.65em;color:var(--ink3)">/ ${lim}h</span></div><div style="height:5px;background:var(--g1);border-radius:3px;margin-top:5px"><div style="height:100%;width:${pctM}%;background:${pctM>=85?'#dc2626':'#10b981'};border-radius:3px"></div></div></div>`;
+  p1+=`<div style="padding:10px;background:var(--g0);border-radius:8px;border-left:3px solid ${pctA>=85?'#dc2626':'#6366f1'}"><div style="font-size:.7em;color:var(--ink3);text-transform:uppercase;margin-bottom:3px">Ano actual (real)</div><div style="font-size:1.05em;font-weight:700">${(totAno/60).toFixed(1)}h <span style="font-size:.65em;color:var(--ink3)">/ ${limY}h</span></div><div style="height:5px;background:var(--g1);border-radius:3px;margin-top:5px"><div style="height:100%;width:${pctA}%;background:${pctA>=85?'#dc2626':'#6366f1'};border-radius:3px"></div></div></div>`;
+  p1+=`</div>`;
+  // Gráfico de barras últimos 6 meses (dados reais)
+  if(meses6.length){
+    const maxV=Math.max(...meses6.map(k=>minPorMes[k]||0))||1;
+    p1+=`<div style="font-weight:700;font-size:.85em;color:var(--g8);margin:8px 0 5px">📈 Últimos 6 meses</div>`;
+    p1+=`<div style="display:flex;align-items:flex-end;gap:6px;height:90px;background:var(--g0);padding:10px;border-radius:8px;margin-bottom:12px">`;
+    meses6.forEach(k=>{const v=minPorMes[k]||0;const hp=Math.round(v/maxV*100);p1+=`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="font-size:.67em;font-weight:700">${(v/60).toFixed(1)}h</div><div style="width:100%;background:${k===mAtual?'#10b981':'#3b82f6'};border-radius:3px 3px 0 0;height:${hp}%;min-height:3px"></div><div style="font-size:.63em;color:var(--ink3)">${k.slice(2)}</div></div>`;});
+    p1+=`</div>`;
+  }
+  // Por função
   const fns=Object.entries(byFn).sort((a,b)=>b[1].ft-a[1].ft);
   if(fns.length){
     p1+=`<div style="font-weight:700;font-size:.85em;color:var(--g8);margin:8px 0 5px">✈️ Por função</div>`;
@@ -6490,7 +6554,7 @@ tripLogbook(nome){
     fns.forEach(([fn,v])=>{p1+=`<tr style="border-top:1px solid var(--g1)"><td style="padding:5px 8px;font-weight:600">${this.esc(fn)}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono)">${v.mis}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono);color:var(--g8)">${fD(v.ft)}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono)">${fD(v.bt)}</td></tr>`;});
     p1+=`</tbody></table>`;
   }
-  // por aeronave
+  // Por aeronave
   const aeros=Object.entries(byAero).sort((a,b)=>b[1].ft-a[1].ft);
   if(aeros.length){
     p1+=`<div style="font-weight:700;font-size:.85em;color:var(--g8);margin:8px 0 5px">🛩️ Por aeronave</div>`;
@@ -6498,28 +6562,34 @@ tripLogbook(nome){
     aeros.forEach(([a,v])=>{p1+=`<tr style="border-top:1px solid var(--g1)"><td style="padding:5px 8px">${this.esc(a)}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono)">${v.mis}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono);color:var(--g8)">${fD(v.ft)}</td></tr>`;});
     p1+=`</tbody></table>`;
   }
-  // por tipo
+  // Por tipo
   const tipos=Object.entries(byTipo).sort((a,b)=>b[1].ft-a[1].ft);
   if(tipos.length){
     p1+=`<div style="font-weight:700;font-size:.85em;color:var(--g8);margin:8px 0 5px">🎯 Por tipo de missão</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">`;
     tipos.forEach(([tp,v])=>{const bc=this.C.bdgTipo[tp]||'bdg-log';p1+=`<span class="bdg ${bc}">${this.esc(tp)}: <b>${v.mis}</b> · ${fD(v.ft)}</span>`;});
     p1+=`</div>`;
   }
-  // por ano
-  const years=Object.entries(byYear).sort((a,b)=>Number(b[0])-Number(a[0]));
-  if(years.length){
-    p1+=`<div style="font-weight:700;font-size:.85em;color:var(--g8);margin:8px 0 5px">📅 Por ano</div>`;
-    p1+=`<table style="width:100%;border-collapse:collapse;font-size:.83em;margin-bottom:4px"><thead><tr style="background:var(--g1)"><th style="padding:5px 8px">Ano</th><th style="padding:5px 8px;text-align:right">Missões</th><th style="padding:5px 8px;text-align:right">Flight time</th><th style="padding:5px 8px;text-align:right">Block time</th></tr></thead><tbody>`;
-    years.forEach(([yr,v])=>{p1+=`<tr style="border-top:1px solid var(--g1)"><td style="padding:5px 8px;font-weight:600">${yr}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono)">${v.mis}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono);color:var(--g8)">${fD(v.ft)}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono)">${fD(v.bt)}</td></tr>`;});
-    p1+=`</tbody></table>`;
+  // Por ano (só quando sem filtro de ano)
+  if(!yr){
+    const years=Object.entries(byYear).sort((a,b)=>Number(b[0])-Number(a[0]));
+    if(years.length){
+      p1+=`<div style="font-weight:700;font-size:.85em;color:var(--g8);margin:8px 0 5px">📅 Por ano</div>`;
+      p1+=`<table style="width:100%;border-collapse:collapse;font-size:.83em;margin-bottom:12px"><thead><tr style="background:var(--g1)"><th style="padding:5px 8px">Ano</th><th style="padding:5px 8px;text-align:right">Missões</th><th style="padding:5px 8px;text-align:right">Flight time</th><th style="padding:5px 8px;text-align:right">Block time</th></tr></thead><tbody>`;
+      years.forEach(([yrk,v])=>{p1+=`<tr style="border-top:1px solid var(--g1)"><td style="padding:5px 8px;font-weight:600">${yrk}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono)">${v.mis}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono);color:var(--g8)">${fD(v.ft)}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono)">${fD(v.bt)}</td></tr>`;});
+      p1+=`</tbody></table>`;
+    }
   }
-  // ── Separador 2: Registo completo ──
+  // Validades (sempre dados reais)
+  const valIds=[['valMed','📋 Médico'],['valLic','🎫 Licença'],['valCur','🎓 Curso']];
+  const vRows=valIds.filter(([k])=>t[k]).map(([k,lab])=>{const st=this.validityStatus(t[k]);const cor=st.status==='expired'?'#dc2626':(st.status==='soon'?'#f59e0b':'#10b981');return `<div style="display:flex;justify-content:space-between;padding:6px 10px;background:var(--g0);border-radius:6px;border-left:3px solid ${cor}"><span>${lab}</span><span style="color:${cor};font-weight:700">${st.label}</span></div>`;});
+  if(vRows.length){p1+=`<div style="font-weight:700;font-size:.85em;color:var(--g8);margin:8px 0 5px">📋 Validades</div><div style="display:grid;gap:4px;margin-bottom:4px">${vRows.join('')}</div>`;}
+  // ── Pane 2: Registo ──
   let p2=`<div style="max-height:420px;overflow-y:auto;border:1px solid var(--border2);border-radius:8px">`;
-  if(!allMs.length){p2+=`<div style="color:var(--ink3);padding:20px;text-align:center">Sem missões registadas.</div>`;}
+  if(!filtered.length){p2+=`<div style="color:var(--ink3);padding:20px;text-align:center">Sem missões para o filtro seleccionado.</div>`;}
   else{
     p2+=`<table style="width:100%;border-collapse:collapse;font-size:.79em"><thead style="position:sticky;top:0;z-index:1"><tr style="background:var(--g2)"><th style="padding:5px 7px;text-align:center">Data</th><th style="padding:5px 7px;text-align:left">Missão</th><th style="padding:5px 7px;text-align:left">Tipo</th><th style="padding:5px 7px;text-align:center">Aeronave</th><th style="padding:5px 7px;text-align:center">Função</th><th style="padding:5px 7px;text-align:right">Flight time</th><th style="padding:5px 7px;text-align:right">Block time</th><th style="padding:5px 7px;text-align:center">Estado</th></tr></thead><tbody>`;
-    allMs.forEach((m,i)=>{
-      const fn=(m.crew||[]).find(c=>c.nome===nome)?.fn||'—';
+    filtered.forEach((m,i)=>{
+      const fn=(m.crew||[]).find(cx=>cx.nome===nome)?.fn||'—';
       const btS=this.calcBT(m.boff,m.bon);
       const sc=this.C.bdgStatus[m.status||'Concluída']||'bdg-done';
       const bg=i%2===0?'background:var(--g0)':'';
@@ -6528,12 +6598,14 @@ tripLogbook(nome){
     p2+=`</tbody></table>`;
   }
   p2+=`</div>`;
-  h+=`<div id="lbP1">${p1}</div><div id="lbP2" style="display:none">${p2}</div>`;
-  h+=`<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
-    <button class="btn btn-pdf btn-sm" onclick="A.tripLogbookPDF('${ne}')">📄 PDF Caderneta</button>
-    <button class="btn btn-s btn-sm" onclick="A.closeInfoModal()">Fechar</button>
-  </div>`;
-  this.openInfoModal(h);
+  // Actualizar DOM
+  const p1el=document.getElementById('lbP1'),p2el=document.getElementById('lbP2');
+  if(p1el)p1el.innerHTML=p1;
+  if(p2el)p2el.innerHTML=p2;
+  const t2el=document.getElementById('lbT2');
+  if(t2el)t2el.textContent=`📋 Registo (${filtered.length})`;
+  const fc=document.getElementById('lbFCount');
+  if(fc)fc.textContent=(yr||mo)?`${filtered.length} de ${ms.length} missões`:'';
 },
 
 _lbTab(n){
