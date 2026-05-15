@@ -1654,26 +1654,32 @@ _cfgTab(btn,panelId){
 },
 async _loadUsersTab(){
   const list=document.getElementById('cfgUserList');if(!list)return;
-  list.innerHTML='<div style="color:var(--ink3);font-size:.85em;padding:10px">⏳ A carregar utilizadores...</div>';
-  let users={};
+  list.innerHTML='<div style="color:var(--ink3);font-size:.85em;padding:10px">⏳ A carregar utilizadores do servidor...</div>';
+  let users={};let gasOk=false;let gasError='';
   try{
     const res=await this._authPost({action:'getUsers',token:this.S.sessionToken||''});
     if(res&&res.ok){
       res.users.forEach(u=>{if(u.username!=='admin')users[u.username]={role:u.role};});
-      this.S.usersCache=users; // guardar cache em memória
-    }
-  }catch(_){
-    // Usar cache em memória se disponível, depois defaults
-    if(this.S.usersCache){
-      users=this.S.usersCache;
+      this.S.usersCache=users;
+      gasOk=true;
     }else{
-      const CREDS=this._loadCreds();
-      Object.keys(CREDS).filter(u=>u!=='admin').forEach(u=>{users[u]={role:CREDS[u].role||'guest'};});
+      gasError=res?.error||'Resposta inválida do servidor';
     }
+  }catch(e){
+    gasError=e.message==='no-url'?'URL do Google Script não configurado':('Sem ligação ao servidor GAS — '+(e.message||'erro de rede'));
+    // Usar cache em memória se disponível
+    if(this.S.usersCache){users=this.S.usersCache;}
   }
+  // Banner de estado da ligação
+  const banner=gasOk
+    ?'<div style="margin-bottom:8px;padding:6px 10px;background:#dcfce7;border:1px solid #86efac;border-radius:7px;font-size:.78rem;color:#166534">✅ Lista carregada do Google Drive</div>'
+    :'<div style="margin-bottom:8px;padding:6px 10px;background:#fef9c3;border:1px solid #fde047;border-radius:7px;font-size:.78rem;color:#854d0e">⚠️ '+this.esc(gasError)+(Object.keys(users).length?' — a mostrar dados em cache':'')+'</div>';
   const keys=Object.keys(users);
-  if(!keys.length){list.innerHTML='<div style="color:var(--ink3);font-size:.85em;padding:10px">Nenhum utilizador encontrado.</div>';return;}
-  list.innerHTML=keys.map(u=>{
+  if(!keys.length){
+    list.innerHTML=banner+'<div style="color:var(--ink3);font-size:.85em;padding:10px">Nenhum utilizador encontrado.'+(gasOk?'':' Verifique o URL do Google Script.')+'</div>';
+    return;
+  }
+  list.innerHTML=banner+keys.map(u=>{
     const role=users[u].role||'guest';
     return `<div class="cfg-user-row" data-old="${this.esc(u)}" style="display:grid;grid-template-columns:1fr 150px 80px 34px;gap:6px;align-items:center;margin-bottom:2px">
       <input class="cfg-user-name" value="${this.esc(u)}" placeholder="nome de utilizador" style="padding:8px 10px;border:1.5px solid var(--border2);border-radius:8px;font-size:.88rem;font-family:inherit;outline:none;background:var(--white);color:var(--ink)">
