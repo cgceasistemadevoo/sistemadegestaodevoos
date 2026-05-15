@@ -1782,7 +1782,7 @@ _addUserRow(){
       <option value="guest" selected>👁 Consulta</option>
       <option value="gestor">✏️ Gestor</option>
     </select>
-    <span style="padding:0 6px;height:36px;display:flex;align-items:center;justify-content:center;font-size:.72rem;color:var(--ink3);white-space:nowrap;border:1.5px solid var(--border2);border-radius:8px">cgc2024</span>
+    <span style="padding:0 6px;height:36px;display:flex;align-items:center;justify-content:center;font-size:.72rem;color:var(--ink3);white-space:nowrap;border:1.5px solid var(--border2);border-radius:8px" title="Senha inicial atribuída automaticamente">cgcea2024</span>
     <button onclick="this.closest('.cfg-user-row').remove()" title="Apagar" style="width:34px;height:36px;border:1.5px solid #fca5a5;border-radius:8px;background:#fee2e2;color:#991b1b;font-size:1.1rem;cursor:pointer">×</button>`;
   list.appendChild(row);row.querySelector('input').focus();
 },
@@ -1811,16 +1811,17 @@ async saveCfgUsers(){
     const newCache={};
     entries.forEach(e=>{newCache[e.username]={role:e.role};});
     this.S.usersCache=newCache;
-    this.closeInfoModal();
     const nG=entries.filter(e=>e.role==='gestor').length;
     const nC=entries.filter(e=>e.role==='guest').length;
-    this.showNotif('Utilizadores guardados — '+nG+' gestor(es), '+nC+' consulta','ok');
+    this.showNotif('✅ Utilizadores guardados — '+nG+' gestor(es), '+nC+' consulta','ok');
+    // Recarregar lista no painel para confirmar visualmente o que foi guardado
+    await this._loadUsersTab();
   }
 },
 async _resetUserPwd(user){
   try{
     const res=await this._authPost({action:'resetPassword',token:this.S.sessionToken||'',targetUser:user});
-    if(res&&res.ok){this.showNotif('Senha de "'+user+'" reposta para cgc2024','ok');return;}
+    if(res&&res.ok){this.showNotif('✅ Senha de "'+user+'" reposta para cgcea2024','ok');return;}
     this.showNotif('❌ '+(res?.error||'Erro ao repor senha'),'err');
   }catch(_){
     this.showNotif('❌ Sem ligação ao servidor. Não foi possível repor a senha.','err');
