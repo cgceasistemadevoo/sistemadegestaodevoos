@@ -664,7 +664,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <button class="btn btn-ex btn-sm" onclick="A.toExcel()" title="Exportar Excel">📊 Excel</button>
     <button class="btn btn-pdf btn-sm" onclick="A.toPDF()" title="Exportar PDF">📄 PDF</button>
     <button class="btn btn-s btn-sm" onclick="A.showAuditLog()" title="Auditoria">📋</button>
-    <button class="btn btn-s btn-sm admin-only" id="btnChangePwd" onclick="A.openChangePwd()" title="Alterar palavras-passe" style="display:none;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0">🔑</button>
+    <button class="btn btn-s btn-sm" id="btnChangePwd" onclick="A.openChangePwd()" title="Alterar palavra-passe" style="display:none;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0">🔑</button>
     <button class="btn btn-s btn-sm" id="btnLogout" onclick="A.doLogout()" title="Terminar sessão" style="display:none;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5">↩ Sair</button>
     <button class="dark-toggle" onclick="A.toggleDark()" id="darkBtn" title="Modo escuro">🌙</button>
   </div>
@@ -795,7 +795,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   </div>
 
   <div class="card" id="metasCard" style="margin-bottom:14px">
-    <div class="card-hd"><h3>🎯 Metas Operacionais</h3><button class="btn btn-s btn-sm" onclick="A.openSettings();setTimeout(()=>{const b=document.querySelector('[onclick*=cfgTabMetas]');if(b)b.click();},200)">⚙️ Definir</button></div>
+    <div class="card-hd"><h3>🎯 Metas Operacionais</h3><button class="btn btn-s btn-sm admin-only" onclick="A.openSettings();setTimeout(()=>{const b=document.querySelector('[onclick*=cfgTabMetas]');if(b)b.click();},200)">⚙️ Definir</button></div>
     <div id="tMetas" style="padding:8px 4px"></div>
   </div>
 
@@ -1479,6 +1479,7 @@ async reloadCloud(){
 
 // ─── CONFIGURAÇÕES (tabbed) ───────────────────────────────────
 openSettings(){
+  if(!this.isAdmin()){this.showNotif('❌ Sem permissão — apenas administradores podem aceder às configurações','err');return;}
   const cur=getApiUrl();
   const rates=this.getVPF();
   const meals=this.getMealVals();
@@ -6330,7 +6331,7 @@ renderMetas(){
   const totHr=totBtMin/60;
   // If no metas set
   if(!m.mis&&!m.hr&&!m.fuel&&!m.cve){
-    el.innerHTML='<div style="color:var(--ink3);font-size:.85em;padding:6px 0">Nenhuma meta definida. <button class="btn btn-s btn-sm" onclick="A.openSettings();setTimeout(()=>{const b=document.querySelector(\'[onclick*=cfgTabMetas]\');if(b)b.click();},200)">⚙️ Definir Metas</button></div>';
+    el.innerHTML='<div style="color:var(--ink3);font-size:.85em;padding:6px 0">Nenhuma meta definida.'+(this.isAdmin()?'<button class="btn btn-s btn-sm" onclick="A.openSettings();setTimeout(()=>{const b=document.querySelector(\'[onclick*=cfgTabMetas]\');if(b)b.click();},200)">⚙️ Definir Metas</button>':'')+'</div>';
     return;
   }
   const _bar=(label,val,meta,fmt)=>{
