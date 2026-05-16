@@ -1044,6 +1044,29 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
      ANÁLISES
 ══════════════════════════════════════════ -->
 <div id="page-analises" class="page hide">
+  <div class="fsection" style="margin-bottom:12px">
+    <div class="fgrid">
+      <div class="fg"><label>Data Início</label><input type="date" id="aInicio" onchange="document.getElementById('fInicio').value=this.value"></div>
+      <div class="fg"><label>Data Fim</label><input type="date" id="aFim" onchange="document.getElementById('fFim').value=this.value"></div>
+      <div class="fg"><label>Tipo</label><select id="aTipo" onchange="document.getElementById('fTipo').value=this.value"><option value="todos">Todos</option></select></div>
+      <div class="fg"><label>Série</label><select id="aSerie" onchange="document.getElementById('fSerie').value=this.value"><option value="todos">Todas</option></select></div>
+      <div class="fg"><label>Tripulante</label><select id="aTrip" onchange="document.getElementById('fTrip').value=this.value"><option value="todos">Todos</option></select></div>
+      <div class="fg"><label>Aeronave</label><select id="aAero" onchange="document.getElementById('fAero').value=this.value"><option value="todos">Todas</option></select></div>
+      <div class="fg"><label>Estado</label>
+        <select id="aStatus" onchange="document.getElementById('fStatus').value=this.value">
+          <option value="todos">Todos</option>
+          <option value="Concluída">✅ Concluída</option>
+          <option value="Planeada">📅 Planeada</option>
+          <option value="Em Curso">🔄 Em Curso</option>
+          <option value="Cancelada">❌ Cancelada</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:6px;align-items:flex-end">
+        <button class="btn btn-p btn-sm" onclick="A._syncAnaFilters();A.applyF();A.buildAnalysisCharts();A.renderTop();A.renderHorasTrip();">🔍 Filtrar</button>
+        <button class="btn btn-s btn-sm" onclick="A._clearAnaFilters()">⟲ Limpar</button>
+      </div>
+    </div>
+  </div>
   <div class="cgrid">
     <div class="card"><div class="card-hd"><h3>🕐 Distribuição Horária</h3></div><div class="card-bd"><div class="chart-box"><canvas id="cHor"></canvas></div></div></div>
     <div class="card"><div class="card-hd"><h3>👤 Funções a Bordo</h3></div><div class="card-bd"><div class="chart-box"><canvas id="cFunc"></canvas></div></div></div>
@@ -2006,6 +2029,16 @@ fillSelects(){
   // Aeronave filtro dashboard
   const fAero=document.getElementById('fAero');
   if(fAero) fAero.innerHTML='<option value="todos">Todas</option>'+this.allAeros().map(a=>`<option value="${this.esc(a)}">${this.esc(a)}</option>`).join('');
+  // Espelha selects na aba Análises
+  const aTipo=document.getElementById('aTipo');
+  if(aTipo) aTipo.innerHTML=fTipo?fTipo.innerHTML:'<option value="todos">Todos</option>'+this.C.tipos.map(t=>`<option value="${this.esc(t)}">${this.esc(t)}</option>`).join('');
+  const aTrip=document.getElementById('aTrip');
+  if(aTrip) aTrip.innerHTML=fTrip?fTrip.innerHTML:'<option value="todos">Todos</option>'+this.S.trips.map(t=>`<option value="${this.esc(t.nome)}">${this.esc(t.nome)}</option>`).join('');
+  const aAero=document.getElementById('aAero');
+  if(aAero) aAero.innerHTML=fAero?fAero.innerHTML:'<option value="todos">Todas</option>'+this.allAeros().map(a=>`<option value="${this.esc(a)}">${this.esc(a)}</option>`).join('');
+  const aSerie=document.getElementById('aSerie');
+  const fSerie=document.getElementById('fSerie');
+  if(aSerie&&fSerie) aSerie.innerHTML=fSerie.innerHTML;
   // Aeronave filtro missões
   const vFilterAero=document.getElementById('vFilterAero');
   if(vFilterAero) vFilterAero.innerHTML='<option value="todos">Todas aeronaves</option>'+this.allAeros().map(a=>`<option value="${this.esc(a)}">${this.esc(a)}</option>`).join('');
@@ -4049,10 +4082,24 @@ applyF(){
 clearF(){
   ['fInicio','fFim'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   ['fTipo','fSerie','fAero','fTrip','fStatus'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='todos';});
+  // Sincroniza selects da Análises
+  ['aInicio','aFim'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['aTipo','aSerie','aAero','aTrip','aStatus'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='todos';});
   this.S.filtered=[...this.S.missoes];
   this.renderAll();
   this.buildCharts();
   this.showNotif('✅ Filtros limpos');
+},
+// Sincroniza selects da Análises → Dashboard antes de aplicar filtro
+_syncAnaFilters(){
+  const map=[['aInicio','fInicio'],['aFim','fFim'],['aTipo','fTipo'],['aSerie','fSerie'],['aTrip','fTrip'],['aAero','fAero'],['aStatus','fStatus']];
+  map.forEach(([src,dst])=>{const s=document.getElementById(src),d=document.getElementById(dst);if(s&&d)d.value=s.value;});
+},
+// Limpa ambos os painéis de filtro
+_clearAnaFilters(){
+  ['aInicio','aFim'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['aTipo','aSerie','aAero','aTrip','aStatus'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='todos';});
+  this.clearF();
 },
 
 // ─── RENDER VOOS ──────────────────────────────────────────────
