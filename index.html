@@ -2601,32 +2601,30 @@ showHistoria(id){
   },
   // ─── BLOCO DE ASSINATURAS (helper partilhado por todos os PDFs) ──────────────
   _pdfSig(doc,lm,rm,pageH){
-    const isLand=pageH<240;
-    const sigY=isLand?170:252;
     const lastPg=doc.internal.getNumberOfPages();
     doc.setPage(lastPg);
+    const lastY=doc.lastAutoTable?doc.lastAutoTable.finalY:0;
+    const sigH=30;
+    let sigY;
+    if(lastY&&pageH-lastY<sigH+14){doc.addPage();sigY=22;}
+    else{sigY=lastY?lastY+14:(pageH<240?170:252);}
     const s=(rm-lm)/3;
     const c1=lm+s/2;const c2=lm+s+s/2;const c3=lm+2*s+s/2;
     const g=4;
-    // Linha divisória fina
     doc.setDrawColor(180,180,180);doc.setLineWidth(0.25);
     doc.line(lm,sigY-2,rm,sigY-2);
-    // Linhas de assinatura
     doc.setDrawColor(0,0,0);doc.setLineWidth(0.5);
     doc.line(lm+g,sigY+12,lm+s-g,sigY+12);
     doc.line(lm+s+g,sigY+12,lm+2*s-g,sigY+12);
     doc.line(lm+2*s+g,sigY+12,rm-g,sigY+12);
-    // "Assinatura"
     doc.setFont('helvetica','italic');doc.setFontSize(6.5);doc.setTextColor(140,140,140);
     doc.text('Assinatura',c1,sigY+6,{align:'center'});
     doc.text('Assinatura',c2,sigY+6,{align:'center'});
     doc.text('Assinatura',c3,sigY+6,{align:'center'});
-    // Cargos
     doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(30,30,30);
     doc.text('Oficial de Operações',c1,sigY+17,{align:'center'});
     doc.text('Chefe de Serviço de Operações',c2,sigY+17,{align:'center'});
     doc.text('Diretor de Operações Aereas',c3,sigY+17,{align:'center'});
-    // Data
     doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(100,100,100);
     doc.text('Data: ___/___/________',c1,sigY+22,{align:'center'});
     doc.text('Data: ___/___/________',c2,sigY+22,{align:'center'});
@@ -2634,10 +2632,15 @@ showHistoria(id){
   },
   // ─── BLOCO DE ASSINATURAS DO RECIBO (2 cargos) ───────────────
   _pdfSigRecibo(doc,lm,rm,pageH){
-    const isLand=pageH<240;
-    const sigY=isLand?170:252;
     const lastPg=doc.internal.getNumberOfPages();
     doc.setPage(lastPg);
+    const lastY=doc.lastAutoTable?doc.lastAutoTable.finalY:0;
+    const sigH=30;
+    let sigY;
+    if(lastY&&pageH-lastY<sigH+14){doc.addPage();sigY=22;}
+    else{sigY=lastY?lastY+14:(pageH<240?170:252);}
+    // (reassign lastPg reference after potential addPage)
+    doc.setPage(doc.internal.getNumberOfPages());
     const s=(rm-lm)/2;
     const c1=lm+s/2;const c2=lm+s+s/2;
     const g=6;
@@ -6708,6 +6711,32 @@ tripLogbookPDF(nome){
     doc.text(''+pdfMs.length+' missões   |   Flight time: '+fH(totFt)+'   |   Block time: '+fH(totBt),W-rm-4,y+4,{align:'right'});
     if(pdfMs.length){const y0=pdfMs[0]._dt.getFullYear(),y1=pdfMs[pdfMs.length-1]._dt.getFullYear();doc.setFont('helvetica','normal');doc.text('Período: '+(y0===y1?''+y0:y0+' — '+y1),W-rm-4,y+10,{align:'right'});}
     y+=22;
+    // Secção de Validades
+    const valItems=[];
+    if(t.valMed){const st=this.validityStatus(t.valMed);valItems.push(['\u2665 Medico Civil',t.valMed,st]);}
+    if(t.valLic){const st=this.validityStatus(t.valLic);valItems.push(['\u2708 Licenca',t.valLic,st]);}
+    (t.cursos||[]).forEach(c=>{if(c.val){const st=this.validityStatus(c.val);valItems.push(['\u25CF '+(c.nome||'Curso'),c.val,st]);}});
+    if(valItems.length){
+      const nPerRow=Math.min(valItems.length,Math.floor((W-lm-rm-22)/52));
+      const usedW=22+nPerRow*52;
+      const nRows=Math.ceil(valItems.length/nPerRow);
+      const rowH=13;
+      doc.setFillColor(248,255,248);doc.setDrawColor(200,230,201);doc.setLineWidth(0.3);
+      doc.roundedRect(lm,y,W-lm-rm,rowH*nRows,2,2,'FD');
+      doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(27,94,32);
+      doc.text('Validades',lm+2,y+5);
+      valItems.forEach(([tipo,date,st],i)=>{
+        const row=Math.floor(i/nPerRow),col=i%nPerRow;
+        const vx=lm+22+col*52,vy=y+row*rowH;
+        const cor=st.status==='expired'?[185,28,28]:(st.status==='soon'?[217,119,6]:[21,128,61]);
+        doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(50,50,50);
+        doc.text(tipo.length>15?tipo.slice(0,14)+'\u2026':tipo,vx,vy+5);
+        doc.setFont('helvetica','normal');doc.setTextColor(...cor);
+        doc.text(new Date(date).toLocaleDateString('pt-PT')+'  '+st.label,vx,vy+10.5);
+        doc.setTextColor(0,0,0);
+      });
+      y+=rowH*nRows+4;
+    }
     // Caixa de filtros activos (apenas quando há filtro)
     if(filterLabel){
       doc.setFillColor(240,250,240);doc.setDrawColor(46,125,50);doc.setLineWidth(0.4);doc.roundedRect(lm,y,W-lm-rm,9,2,2,'FD');
@@ -6751,24 +6780,23 @@ tripLogbookPDF(nome){
         },
         margin:{left:lm,right:rm}});
     }
-    // Assinaturas — nova página se não houver espaço (mínimo 55mm)
+    // Assinaturas — nova página se não houver espaço (mínimo 34mm)
     const lastY=doc.lastAutoTable?doc.lastAutoTable.finalY:60;
     let sigPage=doc.getNumberOfPages();
     let sigY;
-    if(pH-lastY<58){doc.addPage();sigPage=doc.getNumberOfPages();sigY=20;}
+    if(pH-lastY<38){doc.addPage();sigPage=doc.getNumberOfPages();sigY=20;}
     else{doc.setPage(sigPage);sigY=lastY+14;}
     const sigW=(W-lm-rm-20)/3;
-    const sigs=[['Tripulante',nome],['Comandante',''],['Oficial de Operacoes','']];
-    sigs.forEach(([label,pNome],i)=>{
+    const sigs=['Tripulante','Diretor de Operacoes Aereas','Comandante'];
+    sigs.forEach((label,i)=>{
       const sx=lm+i*(sigW+10);
-      doc.setDrawColor(46,125,50);doc.setLineWidth(0.3);
-      doc.line(sx,sigY+28,sx+sigW,sigY+28);
+      doc.setDrawColor(46,125,50);doc.setLineWidth(0.4);
+      doc.line(sx,sigY+20,sx+sigW,sigY+20);
       doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(27,94,32);
       doc.text(label,sx+sigW/2,sigY+5,{align:'center'});
-      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(0,0,0);
-      if(pNome){doc.text('Nome: '+pNome,sx,sigY+12);}else{doc.text('Nome: _________________________________',sx,sigY+12);}
-      doc.text('Posto/Funcao: _________________________',sx,sigY+19);
-      doc.text('Data: _____ / _____ / __________',sx,sigY+26);
+      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(100,100,100);
+      doc.text('Data: _____ / _____ / __________',sx+sigW/2,sigY+14,{align:'center'});
+      doc.setTextColor(0,0,0);
     });
     // Rodapé em todas as páginas
     const nPg=doc.getNumberOfPages();
