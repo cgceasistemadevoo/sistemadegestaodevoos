@@ -664,7 +664,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <button class="btn btn-ex btn-sm" onclick="A.toExcel()" title="Exportar Excel">📊 Excel</button>
     <button class="btn btn-pdf btn-sm" onclick="A.toPDF()" title="Exportar PDF">📄 PDF</button>
     <button class="btn btn-s btn-sm" onclick="A.showAuditLog()" title="Auditoria">📋</button>
-    <button class="btn btn-s btn-sm" id="btnChangePwd" onclick="A.openChangePwd()" title="Alterar palavra-passe" style="display:none;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0">🔑</button>
+    <button class="btn btn-s btn-sm admin-only" id="btnChangePwd" onclick="A.openChangePwd()" title="Alterar palavras-passe" style="display:none;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0">🔑</button>
     <button class="btn btn-s btn-sm" id="btnLogout" onclick="A.doLogout()" title="Terminar sessão" style="display:none;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5">↩ Sair</button>
     <button class="dark-toggle" onclick="A.toggleDark()" id="darkBtn" title="Modo escuro">🌙</button>
   </div>
@@ -755,7 +755,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
       <div style="display:flex;align-items:center;gap:14px;margin-left:auto;font-size:.78em;color:var(--ink3)">
         <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:12px;height:12px;background:#2E7D32;border-radius:3px"></span>Missões</span>
         <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:20px;height:2px;background:#1565c0;border-radius:2px;position:relative"><span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:6px;height:6px;background:#1565c0;border-radius:50%"></span></span>Block Time (h)</span>
-        <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:20px;height:2px;background:#b91c1c;border-radius:2px;position:relative"><span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:6px;height:6px;background:#b91c1c;border-radius:50%"></span></span>Flight Time (h)</span>
       </div>
     </div>
     <div class="card-bd"><div class="chart-box"><canvas id="cTemp"></canvas></div></div>
@@ -796,7 +795,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   </div>
 
   <div class="card" id="metasCard" style="margin-bottom:14px">
-    <div class="card-hd"><h3>🎯 Metas Operacionais</h3><button class="btn btn-s btn-sm admin-only" onclick="A.openSettings();setTimeout(()=>{const b=document.querySelector('[onclick*=cfgTabMetas]');if(b)b.click();},200)">⚙️ Definir</button></div>
+    <div class="card-hd"><h3>🎯 Metas Operacionais</h3><button class="btn btn-s btn-sm" onclick="A.openSettings();setTimeout(()=>{const b=document.querySelector('[onclick*=cfgTabMetas]');if(b)b.click();},200)">⚙️ Definir</button></div>
     <div id="tMetas" style="padding:8px 4px"></div>
   </div>
 
@@ -826,7 +825,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="card-hd">
       <h3>📋 Lista de Tripulantes</h3>
       <div style="display:flex;align-items:center;gap:6px;font-size:.82em">
-        <div class="admin-only" style="display:flex;align-items:center;gap:6px">
         <label style="color:var(--ink3);font-weight:600">⏱️ Limite h/mês:</label>
         <input type="number" id="hrLimit" value="80" min="10" max="300"
           style="width:58px;padding:4px 7px;border:1.5px solid var(--border2);border-radius:6px;font-size:.9em;font-family:var(--mono);background:var(--white);color:var(--ink);outline:none"
@@ -835,7 +833,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
         <input type="number" id="hrLimitYear" value="800" min="50" max="2000"
           style="width:68px;padding:4px 7px;border:1.5px solid var(--border2);border-radius:6px;font-size:.9em;font-family:var(--mono);background:var(--white);color:var(--ink);outline:none"
           oninput="A.setHrLimitYear(this.value)">
-        </div>
       </div>
     </div>
     <div class="tscroll" id="tTrip"></div>
@@ -852,11 +849,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
       <div class="fg"><label>NIF * (9 dígitos)</label><input id="iNIF" placeholder="123456789" maxlength="9" inputmode="numeric"></div>
       <div class="fg"><label>📋 Validade Médico</label><input type="date" id="iValMed"></div>
       <div class="fg"><label>🎫 Validade Licença</label><input type="date" id="iValLic"></div>
-      <div class="fg" style="grid-column:1/-1">
-        <label>🎓 Cursos e Validades <span style="font-weight:400;color:var(--ink3);font-size:.85em">— adicione quantos necessitar</span></label>
-        <div id="iCursosList" style="display:flex;flex-direction:column;gap:5px;margin-top:4px"></div>
-        <button type="button" class="btn btn-s btn-sm" style="margin-top:6px;font-size:.8em" onclick="A._addCursoRow('iCursosList')">➕ Adicionar Curso</button>
-      </div>
+      <div class="fg"><label>🎓 Validade Curso</label><input type="date" id="iValCur"></div>
     </div>
     <button class="btn btn-p admin-only" onclick="A.addTrip()">✅ Adicionar Tripulante</button>
   </div>
@@ -933,7 +926,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   <div class="card" id="seriesMgr">
     <div class="card-hd" style="flex-wrap:wrap;gap:8px">
       <h3>🎯 Gestão de Séries <span id="seriesCount" style="font-weight:400;color:var(--ink3)"></span></h3>
-      <div class="admin-only" style="display:flex;gap:6px;align-items:center;margin-left:auto">
+      <div style="display:flex;gap:6px;align-items:center;margin-left:auto">
         <input id="newSerieInp" placeholder="Nome (ex: CONDOR)" maxlength="20" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85em;text-transform:uppercase;width:160px">
         <button class="btn btn-p btn-sm" onclick="A.addSerie()">➕ Adicionar</button>
       </div>
@@ -1011,7 +1004,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     </div>
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
       <button class="btn btn-ex btn-sm" onclick="A.pagExcel()">📊 Excel Pagamentos</button>
-      <button class="btn btn-ex btn-sm" style="background:#166534;border-color:#166534" onclick="A.openRelatorioExcel()">📊 Relatório Excel</button>
+      <button class="btn btn-ex btn-sm" style="background:#166534;border-color:#166534" onclick="A.exportExcelCompleto()">📥 Excel Completo</button>
       <button class="btn btn-pdf btn-sm" onclick="A.pagPDF()">📄 PDF</button>
     </div>
   </div>
@@ -1044,29 +1037,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
      ANÁLISES
 ══════════════════════════════════════════ -->
 <div id="page-analises" class="page hide">
-  <div class="fsection" style="margin-bottom:12px">
-    <div class="fgrid">
-      <div class="fg"><label>Data Início</label><input type="date" id="aInicio" onchange="document.getElementById('fInicio').value=this.value"></div>
-      <div class="fg"><label>Data Fim</label><input type="date" id="aFim" onchange="document.getElementById('fFim').value=this.value"></div>
-      <div class="fg"><label>Tipo</label><select id="aTipo" onchange="document.getElementById('fTipo').value=this.value"><option value="todos">Todos</option></select></div>
-      <div class="fg"><label>Série</label><select id="aSerie" onchange="document.getElementById('fSerie').value=this.value"><option value="todos">Todas</option></select></div>
-      <div class="fg"><label>Tripulante</label><select id="aTrip" onchange="document.getElementById('fTrip').value=this.value"><option value="todos">Todos</option></select></div>
-      <div class="fg"><label>Aeronave</label><select id="aAero" onchange="document.getElementById('fAero').value=this.value"><option value="todos">Todas</option></select></div>
-      <div class="fg"><label>Estado</label>
-        <select id="aStatus" onchange="document.getElementById('fStatus').value=this.value">
-          <option value="todos">Todos</option>
-          <option value="Concluída">✅ Concluída</option>
-          <option value="Planeada">📅 Planeada</option>
-          <option value="Em Curso">🔄 Em Curso</option>
-          <option value="Cancelada">❌ Cancelada</option>
-        </select>
-      </div>
-      <div style="display:flex;gap:6px;align-items:flex-end">
-        <button class="btn btn-p btn-sm" onclick="A._syncAnaFilters();A.applyF();A.buildAnalysisCharts();A.renderTop();A.renderHorasTrip();">🔍 Filtrar</button>
-        <button class="btn btn-s btn-sm" onclick="A._clearAnaFilters()">⟲ Limpar</button>
-      </div>
-    </div>
-  </div>
   <div class="cgrid">
     <div class="card"><div class="card-hd"><h3>🕐 Distribuição Horária</h3></div><div class="card-bd"><div class="chart-box"><canvas id="cHor"></canvas></div></div></div>
     <div class="card"><div class="card-hd"><h3>👤 Funções a Bordo</h3></div><div class="card-bd"><div class="chart-box"><canvas id="cFunc"></canvas></div></div></div>
@@ -1160,7 +1130,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="tscroll" id="tAeros"></div>
   </div>
 
-  <div class="form-sec admin-only">
+  <div class="form-sec">
     <h3>➕ Adicionar Aeronave</h3>
     <div class="fgrid2">
       <div class="fg"><label>Designação / Matrícula *</label><input id="iAeroNome" placeholder="Ex: KING AIR 360ER"></div>
@@ -1451,7 +1421,7 @@ async loadFromCloud(){
     // Suporte a respostas embrulhadas {ok:true,data:{...}} e resposta directa {missoes:[...]}
     const d=(_raw&&_raw.missoes)?_raw:(_raw&&_raw.data&&_raw.data.missoes?_raw.data:_raw);
     if(d&&d.missoes){
-      this.S.trips=(d.trips?.length?d.trips:JSON.parse(JSON.stringify(this.C.defTrips))).map(t=>{if(t.valCur!==undefined&&!t.cursos){t.cursos=t.valCur?[{nome:'Curso',val:t.valCur}]:[];delete t.valCur;}else if(!t.cursos)t.cursos=[];return t;});
+      this.S.trips=d.trips?.length?d.trips:JSON.parse(JSON.stringify(this.C.defTrips));
       this.S.missoes=(d.missoes||[]).map(m=>({...m,dt:new Date(m.dt),status:m.status||'Concluída',serie:m.serie||'CGC-EA',history:m.history||[],tags:m.tags||[],origem:m.origem||'',destino:m.destino||'',perna:m.perna||'',catering:m.catering||false,obs:m.obs||'',fuelAdd:m.fuelAdd??null,fuelUse:m.fuelUse??null}));
       this.S.series=d.series||[];
       this.S.colocacoes=d.colocacoes||[];
@@ -1503,7 +1473,6 @@ async reloadCloud(){
 
 // ─── CONFIGURAÇÕES (tabbed) ───────────────────────────────────
 openSettings(){
-  if(!this.isAdmin()){this.showNotif('❌ Sem permissão — apenas administradores podem aceder às configurações','err');return;}
   const cur=getApiUrl();
   const rates=this.getVPF();
   const meals=this.getMealVals();
@@ -1681,32 +1650,26 @@ _cfgTab(btn,panelId){
 },
 async _loadUsersTab(){
   const list=document.getElementById('cfgUserList');if(!list)return;
-  list.innerHTML='<div style="color:var(--ink3);font-size:.85em;padding:10px">⏳ A carregar utilizadores do servidor...</div>';
-  let users={};let gasOk=false;let gasError='';
+  list.innerHTML='<div style="color:var(--ink3);font-size:.85em;padding:10px">⏳ A carregar utilizadores...</div>';
+  let users={};
   try{
     const res=await this._authPost({action:'getUsers',token:this.S.sessionToken||''});
     if(res&&res.ok){
       res.users.forEach(u=>{if(u.username!=='admin')users[u.username]={role:u.role};});
-      this.S.usersCache=users;
-      gasOk=true;
-    }else{
-      gasError=res?.error||'Resposta inválida do servidor';
+      this.S.usersCache=users; // guardar cache em memória
     }
-  }catch(e){
-    gasError=e.message==='no-url'?'URL do Google Script não configurado':('Sem ligação ao servidor GAS — '+(e.message||'erro de rede'));
-    // Usar cache em memória se disponível
-    if(this.S.usersCache){users=this.S.usersCache;}
+  }catch(_){
+    // Usar cache em memória se disponível, depois defaults
+    if(this.S.usersCache){
+      users=this.S.usersCache;
+    }else{
+      const CREDS=this._loadCreds();
+      Object.keys(CREDS).filter(u=>u!=='admin').forEach(u=>{users[u]={role:CREDS[u].role||'guest'};});
+    }
   }
-  // Banner de estado da ligação
-  const banner=gasOk
-    ?'<div style="margin-bottom:8px;padding:6px 10px;background:#dcfce7;border:1px solid #86efac;border-radius:7px;font-size:.78rem;color:#166534">✅ Lista carregada do Google Drive</div>'
-    :'<div style="margin-bottom:8px;padding:6px 10px;background:#fef9c3;border:1px solid #fde047;border-radius:7px;font-size:.78rem;color:#854d0e">⚠️ '+this.esc(gasError)+(Object.keys(users).length?' — a mostrar dados em cache':'')+'</div>';
   const keys=Object.keys(users);
-  if(!keys.length){
-    list.innerHTML=banner+'<div style="color:var(--ink3);font-size:.85em;padding:10px">Nenhum utilizador encontrado.'+(gasOk?'':' Verifique o URL do Google Script.')+'</div>';
-    return;
-  }
-  list.innerHTML=banner+keys.map(u=>{
+  if(!keys.length){list.innerHTML='<div style="color:var(--ink3);font-size:.85em;padding:10px">Nenhum utilizador encontrado.</div>';return;}
+  list.innerHTML=keys.map(u=>{
     const role=users[u].role||'guest';
     return `<div class="cfg-user-row" data-old="${this.esc(u)}" style="display:grid;grid-template-columns:1fr 150px 80px 34px;gap:6px;align-items:center;margin-bottom:2px">
       <input class="cfg-user-name" value="${this.esc(u)}" placeholder="nome de utilizador" style="padding:8px 10px;border:1.5px solid var(--border2);border-radius:8px;font-size:.88rem;font-family:inherit;outline:none;background:var(--white);color:var(--ink)">
@@ -1815,7 +1778,7 @@ _addUserRow(){
       <option value="guest" selected>👁 Consulta</option>
       <option value="gestor">✏️ Gestor</option>
     </select>
-    <span style="padding:0 6px;height:36px;display:flex;align-items:center;justify-content:center;font-size:.72rem;color:var(--ink3);white-space:nowrap;border:1.5px solid var(--border2);border-radius:8px" title="Senha inicial atribuída automaticamente">cgcea2024</span>
+    <span style="padding:0 6px;height:36px;display:flex;align-items:center;justify-content:center;font-size:.72rem;color:var(--ink3);white-space:nowrap;border:1.5px solid var(--border2);border-radius:8px">cgc2024</span>
     <button onclick="this.closest('.cfg-user-row').remove()" title="Apagar" style="width:34px;height:36px;border:1.5px solid #fca5a5;border-radius:8px;background:#fee2e2;color:#991b1b;font-size:1.1rem;cursor:pointer">×</button>`;
   list.appendChild(row);row.querySelector('input').focus();
 },
@@ -1844,17 +1807,16 @@ async saveCfgUsers(){
     const newCache={};
     entries.forEach(e=>{newCache[e.username]={role:e.role};});
     this.S.usersCache=newCache;
+    this.closeInfoModal();
     const nG=entries.filter(e=>e.role==='gestor').length;
     const nC=entries.filter(e=>e.role==='guest').length;
-    this.showNotif('✅ Utilizadores guardados — '+nG+' gestor(es), '+nC+' consulta','ok');
-    // Recarregar lista no painel para confirmar visualmente o que foi guardado
-    await this._loadUsersTab();
+    this.showNotif('Utilizadores guardados — '+nG+' gestor(es), '+nC+' consulta','ok');
   }
 },
 async _resetUserPwd(user){
   try{
     const res=await this._authPost({action:'resetPassword',token:this.S.sessionToken||'',targetUser:user});
-    if(res&&res.ok){this.showNotif('✅ Senha de "'+user+'" reposta para cgcea2024','ok');return;}
+    if(res&&res.ok){this.showNotif('Senha de "'+user+'" reposta para cgc2024','ok');return;}
     this.showNotif('❌ '+(res?.error||'Erro ao repor senha'),'err');
   }catch(_){
     this.showNotif('❌ Sem ligação ao servidor. Não foi possível repor a senha.','err');
@@ -2029,16 +1991,6 @@ fillSelects(){
   // Aeronave filtro dashboard
   const fAero=document.getElementById('fAero');
   if(fAero) fAero.innerHTML='<option value="todos">Todas</option>'+this.allAeros().map(a=>`<option value="${this.esc(a)}">${this.esc(a)}</option>`).join('');
-  // Espelha selects na aba Análises
-  const aTipo=document.getElementById('aTipo');
-  if(aTipo) aTipo.innerHTML=fTipo?fTipo.innerHTML:'<option value="todos">Todos</option>'+this.C.tipos.map(t=>`<option value="${this.esc(t)}">${this.esc(t)}</option>`).join('');
-  const aTrip=document.getElementById('aTrip');
-  if(aTrip) aTrip.innerHTML=fTrip?fTrip.innerHTML:'<option value="todos">Todos</option>'+this.S.trips.map(t=>`<option value="${this.esc(t.nome)}">${this.esc(t.nome)}</option>`).join('');
-  const aAero=document.getElementById('aAero');
-  if(aAero) aAero.innerHTML=fAero?fAero.innerHTML:'<option value="todos">Todas</option>'+this.allAeros().map(a=>`<option value="${this.esc(a)}">${this.esc(a)}</option>`).join('');
-  const aSerie=document.getElementById('aSerie');
-  const fSerie=document.getElementById('fSerie');
-  if(aSerie&&fSerie) aSerie.innerHTML=fSerie.innerHTML;
   // Aeronave filtro missões
   const vFilterAero=document.getElementById('vFilterAero');
   if(vFilterAero) vFilterAero.innerHTML='<option value="todos">Todas aeronaves</option>'+this.allAeros().map(a=>`<option value="${this.esc(a)}">${this.esc(a)}</option>`).join('');
@@ -2611,7 +2563,7 @@ showHistoria(id){
   },
   buildAlerts(){
     const out=[];
-    const types=[['valMed','📋 Médico'],['valLic','🎫 Licença']];
+    const types=[['valMed','📋 Médico'],['valLic','🎫 Licença'],['valCur','🎓 Curso']];
     this.S.trips.forEach(t=>{
       types.forEach(([k,lab])=>{
         const v=t[k];
@@ -2621,75 +2573,38 @@ showHistoria(id){
           out.push({nome:t.nome,posto:t.posto,tipo:lab,date:v,...st});
         }
       });
-      (t.cursos||[]).forEach(c=>{
-        if(!c.val)return;
-        const st=this.validityStatus(c.val);
-        if(st.status==='expired'||st.status==='soon'){
-          out.push({nome:t.nome,posto:t.posto,tipo:'🎓 '+(c.nome||'Curso'),date:c.val,...st});
-        }
-      });
     });
     out.sort((a,b)=>(a.days||0)-(b.days||0));
     return out;
   },
   // ─── BLOCO DE ASSINATURAS (helper partilhado por todos os PDFs) ──────────────
-  _pdfSig(doc,lm,rm,pageH,startY){
+  _pdfSig(doc,lm,rm,pageH){
+    const isLand=pageH<240;
+    const sigY=isLand?170:252;
     const lastPg=doc.internal.getNumberOfPages();
     doc.setPage(lastPg);
-    const lastY=startY||(doc.lastAutoTable?doc.lastAutoTable.finalY:0);
-    const sigH=30;
-    let sigY;
-    if(lastY&&pageH-lastY<sigH+14){doc.addPage();sigY=22;}
-    else{sigY=lastY?lastY+14:(pageH<240?170:252);}
-    const s=(rm-lm)/3;
-    const c1=lm+s/2;const c2=lm+s+s/2;const c3=lm+2*s+s/2;
-    const g=4;
+    const mid=(lm+rm)/2;const gap=10;
+    const lCtr=lm+(mid-gap-lm)/2;
+    const rCtr=mid+gap+(rm-mid-gap)/2;
+    // Linha divisória fina
     doc.setDrawColor(180,180,180);doc.setLineWidth(0.25);
     doc.line(lm,sigY-2,rm,sigY-2);
+    // Linhas de assinatura
     doc.setDrawColor(0,0,0);doc.setLineWidth(0.5);
-    doc.line(lm+g,sigY+12,lm+s-g,sigY+12);
-    doc.line(lm+s+g,sigY+12,lm+2*s-g,sigY+12);
-    doc.line(lm+2*s+g,sigY+12,rm-g,sigY+12);
+    doc.line(lm+4,sigY+12,mid-gap-4,sigY+12);
+    doc.line(mid+gap+4,sigY+12,rm-4,sigY+12);
+    // "Assinatura"
     doc.setFont('helvetica','italic');doc.setFontSize(6.5);doc.setTextColor(140,140,140);
-    doc.text('Assinatura',c1,sigY+6,{align:'center'});
-    doc.text('Assinatura',c2,sigY+6,{align:'center'});
-    doc.text('Assinatura',c3,sigY+6,{align:'center'});
-    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(30,30,30);
-    doc.text('Oficial de Operações',c1,sigY+17,{align:'center'});
-    doc.text('Chefe de Serviço de Operações',c2,sigY+17,{align:'center'});
-    doc.text('Diretor de Operações Aereas',c3,sigY+17,{align:'center'});
-    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(100,100,100);
-    doc.text('Data: ___/___/________',c1,sigY+22,{align:'center'});
-    doc.text('Data: ___/___/________',c2,sigY+22,{align:'center'});
-    doc.text('Data: ___/___/________',c3,sigY+22,{align:'center'});
-  },
-  // ─── BLOCO DE ASSINATURAS DO RECIBO (2 cargos) ───────────────
-  _pdfSigRecibo(doc,lm,rm,pageH,startY){
-    const lastPg=doc.internal.getNumberOfPages();
-    doc.setPage(lastPg);
-    const lastY=startY||(doc.lastAutoTable?doc.lastAutoTable.finalY:0);
-    const sigH=30;
-    let sigY;
-    if(lastY&&pageH-lastY<sigH+14){doc.addPage();sigY=22;}
-    else{sigY=lastY?lastY+14:(pageH<240?170:252);}
-    doc.setPage(doc.internal.getNumberOfPages());
-    const s=(rm-lm)/2;
-    const c1=lm+s/2;const c2=lm+s+s/2;
-    const g=6;
-    doc.setDrawColor(180,180,180);doc.setLineWidth(0.25);
-    doc.line(lm,sigY-2,rm,sigY-2);
-    doc.setDrawColor(0,0,0);doc.setLineWidth(0.5);
-    doc.line(lm+g,sigY+12,lm+s-g,sigY+12);
-    doc.line(lm+s+g,sigY+12,rm-g,sigY+12);
-    doc.setFont('helvetica','italic');doc.setFontSize(6.5);doc.setTextColor(140,140,140);
-    doc.text('Assinatura',c1,sigY+6,{align:'center'});
-    doc.text('Assinatura',c2,sigY+6,{align:'center'});
-    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(30,30,30);
-    doc.text('Chefe de Serviço de Logística',c1,sigY+17,{align:'center'});
-    doc.text('Comandante da Esquadrilha Aérea',c2,sigY+17,{align:'center'});
-    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(100,100,100);
-    doc.text('Data: ___/___/________',c1,sigY+22,{align:'center'});
-    doc.text('Data: ___/___/________',c2,sigY+22,{align:'center'});
+    doc.text('Assinatura',lCtr,sigY+6,{align:'center'});
+    doc.text('Assinatura',rCtr,sigY+6,{align:'center'});
+    // Cargos
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(30,30,30);
+    doc.text('Oficial de Operações',lCtr,sigY+17,{align:'center'});
+    doc.text('Diretor de Operações Aereas',rCtr,sigY+17,{align:'center'});
+    // Data
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(100,100,100);
+    doc.text('Data: _____ / _____ / ________',lCtr,sigY+22,{align:'center'});
+    doc.text('Data: _____ / _____ / ________',rCtr,sigY+22,{align:'center'});
   },
   alertsPDF(){
     try{
@@ -2706,17 +2621,12 @@ showHistoria(id){
 
       // ── TRIPULANTES ─────────────────────────────────────────────
       const crewAll=[];
-      const types=[['valMed','Médico'],['valLic','Licença']];
+      const types=[['valMed','Médico'],['valLic','Licença'],['valCur','Curso']];
       this.S.trips.forEach(t=>{
         types.forEach(([k,lab])=>{
           if(!t[k])return;
           const st=this.validityStatus(t[k]);
           crewAll.push({nome:t.nome,posto:t.posto||'',col:t.col||'',tipo:lab,date:t[k],status:st.status,label:st.label,days:st.days});
-        });
-        (t.cursos||[]).forEach(c=>{
-          if(!c.val)return;
-          const st=this.validityStatus(c.val);
-          crewAll.push({nome:t.nome,posto:t.posto||'',col:t.col||'',tipo:c.nome||'Curso',date:c.val,status:st.status,label:st.label,days:st.days});
         });
       });
       const crewExp=crewAll.filter(a=>a.status==='expired').sort((a,b)=>a.days-b.days);
@@ -2883,13 +2793,7 @@ showHistoria(id){
         <div class="fg"><label>NIF</label><input id="etNif" value="${this.esc(t.nif||'')}" maxlength="9"></div>
         <div class="fg"><label>📋 Validade Médico</label><input type="date" id="etValMed" value="${t.valMed||''}"></div>
         <div class="fg"><label>🎫 Validade Licença</label><input type="date" id="etValLic" value="${t.valLic||''}"></div>
-        <div class="fg" style="grid-column:1/-1">
-          <label>🎓 Cursos e Validades</label>
-          <div id="etCursosList" style="display:flex;flex-direction:column;gap:5px;margin-top:4px">
-            ${(t.cursos||[]).map(c=>`<div class="curso-row" style="display:grid;grid-template-columns:1fr 150px 34px;gap:6px;align-items:center"><input class="curso-nome" placeholder="Nome do curso" value="${this.esc(c.nome||'')}" style="padding:7px 10px;border:1.5px solid var(--border2);border-radius:8px;font-size:.85em;font-family:inherit;background:var(--white);color:var(--ink);outline:none"><input type="date" class="curso-val" value="${c.val||''}" style="padding:7px 8px;border:1.5px solid var(--border2);border-radius:8px;font-size:.85em;font-family:inherit;background:var(--white);color:var(--ink);outline:none"><button onclick="this.closest('.curso-row').remove()" title="Remover" style="width:34px;height:36px;border:1.5px solid #fca5a5;border-radius:8px;background:#fee2e2;color:#991b1b;font-size:1.1rem;cursor:pointer;line-height:1">×</button></div>`).join('')}
-          </div>
-          <button type="button" class="btn btn-s btn-sm" style="margin-top:6px;font-size:.8em" onclick="A._addCursoRow('etCursosList')">➕ Adicionar Curso</button>
-        </div>
+        <div class="fg"><label>🎓 Validade Curso</label><input type="date" id="etValCur" value="${t.valCur||''}"></div>
       </div>
       <div style="display:flex;gap:8px;margin-top:14px">
         <button class="btn btn-p" onclick="A.saveEditTrip('${nome.replace(/'/g,"\\'")}')">💾 Guardar</button>
@@ -2916,7 +2820,7 @@ showHistoria(id){
     t.nome=n;t.posto=p;t.col=c;t.nif=nif;
     t.valMed=document.getElementById('etValMed')?.value||'';
     t.valLic=document.getElementById('etValLic')?.value||'';
-    t.cursos=this._getCursosList('etCursosList');
+    t.valCur=document.getElementById('etValCur')?.value||'';
     this.markDirty();
     this.fillSelects();
     this.renderAll();
@@ -3120,8 +3024,8 @@ showHistoria(id){
       +'<div class="no-print" style="margin-bottom:14px"><button class="btn" onclick="window.print()">🖨️ Imprimir</button><button class="btn" style="background:#666" onclick="window.close()">Fechar</button></div>'
       +'<div class="hdr"><div><h1>FOLHA DE SERVIÇO DIÁRIA</h1><h2>CGC - EA - Sistema de Gestão de Voo</h2></div><div class="meta"><b>Data:</b> '+dateStr+'<br><b>Emitida:</b> '+new Date().toLocaleString('pt-PT')+'</div></div>'
       +'<div class="totals"><div><b>'+dayMs.length+'</b>Missões</div><div><b>'+totH+'</b>Total horas voo</div><div><b>'+(new Set(dayMs.flatMap(m=>(m.crew||[]).map(c=>c.nome)))).size+'</b>Tripulantes</div><div><b>'+(new Set(dayMs.map(m=>m.aero))).size+'</b>Aeronaves</div></div>'
-      +'<table><thead><tr><th>#</th><th>Missão</th><th>Tipo</th><th>Aeronave</th><th>Horários</th><th>FLIGHT TIME</th><th>Tripulação</th><th>Estado</th><th>Visto</th></tr></thead><tbody>'+rows+'</tbody></table>'
-      +'<div class="sig"><div>Oficial de Operações<br><span style="font-size:9px;color:#999">Data: ___/___/________</span></div><div>Chefe de Serviço de Operações<br><span style="font-size:9px;color:#999">Data: ___/___/________</span></div><div>Diretor de Operações Aereas<br><span style="font-size:9px;color:#999">Data: ___/___/________</span></div></div>'
+      +'<table><thead><tr><th>#</th><th>Missão</th><th>Tipo</th><th>Aeronave</th><th>Horários</th><th>Duração</th><th>Tripulação</th><th>Estado</th><th>Visto</th></tr></thead><tbody>'+rows+'</tbody></table>'
+      +'<div class="sig"><div>Oficial de Operações<br><span style="font-size:9px;color:#999">Data: _____ / _____ / ________</span></div><div>Diretor de Operações Aereas<br><span style="font-size:9px;color:#999">Data: _____ / _____ / ________</span></div></div>'
       +'<div class="foot">CGC - EA - Sistema de Gestão de Voo — Documento gerado automaticamente</div>'
       +'</body></html>';
     w.document.write(html);
@@ -3260,7 +3164,7 @@ showHistoria(id){
   },
 
   // ─── LIMITE HORAS ANUAL ────────────────────────────────────────
-  setHrLimitYear(v){if(!this.isAdmin())return;this.S.hrLimitYear=Math.max(50,Math.min(2000,parseInt(v)||800));this.renderTrips();},
+  setHrLimitYear(v){this.S.hrLimitYear=Math.max(50,Math.min(2000,parseInt(v)||800));this.renderTrips();},
 
   // ─── COMPARATIVO MENSAL ────────────────────────────────────────
   renderComparison(){
@@ -3341,7 +3245,7 @@ showHistoria(id){
       // Horas por mês
       const monthRows=Object.entries(months).sort().map(([k,v])=>[k,(v.dur/60).toFixed(2)+'h',Math.floor(v.bt/60)+'h '+(v.bt%60<10?'0':'')+(v.bt%60)+'m']);
       if(monthRows.length){
-        doc.autoTable({startY:y,head:[['Mês','FLIGHT TIME','Block Time']],body:monthRows,
+        doc.autoTable({startY:y,head:[['Mês','Duração','Block Time']],body:monthRows,
           styles:{fontSize:8,cellPadding:2.5,valign:'middle'},
           headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold',halign:'center'},
           columnStyles:{0:{cellWidth:30},1:{cellWidth:28,halign:'right'},2:{cellWidth:28,halign:'right'}},
@@ -3352,7 +3256,7 @@ showHistoria(id){
       // Lista missões
       if(ms.length){
         const rows=ms.slice(0,80).map(m=>{const d=m.dt instanceof Date?m.dt:new Date(m.dt);const fn=(m.crew||[]).find(c=>c.nome===nome)?.fn||'';const btS=this.calcBT(m.boff,m.bon);return[d.toLocaleDateString('pt-PT'),m.num,m.tipo,m.aero,m.dur?.slice(0,5)||'—',btS,fn,m.status||'Concluída'];});
-        doc.autoTable({startY:y,head:[['Data','Nº Missão','Tipo','Aeronave','FLIGHT TIME','BT','Função','Estado']],body:rows,
+        doc.autoTable({startY:y,head:[['Data','Nº Missão','Tipo','Aeronave','Duração','BT','Função','Estado']],body:rows,
           styles:{fontSize:7.5,cellPadding:2,valign:'middle'},
           headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold',halign:'center'},
           alternateRowStyles:{fillColor:[245,245,245]},
@@ -3607,8 +3511,8 @@ renderFutureKpis(){
     if(d>=today&&d<=in7)n7++;
   });
   let nVal=0;
-  const types=['valMed','valLic'];
-  this.S.trips.forEach(t=>{types.forEach(k=>{if(!t[k])return;const st=this.validityStatus(t[k]);if(st.status==='expired'||st.status==='soon')nVal++;});(t.cursos||[]).forEach(c=>{if(!c.val)return;const st=this.validityStatus(c.val);if(st.status==='expired'||st.status==='soon')nVal++;});});
+  const types=['valMed','valLic','valCur'];
+  this.S.trips.forEach(t=>types.forEach(k=>{if(!t[k])return;const st=this.validityStatus(t[k]);if(st.status==='expired'||st.status==='soon')nVal++;}));
   nVal+=this.buildMaintAlerts().length;
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
   set('mHoje',nHoje);set('mSem',nSem);set('m7d',n7);set('mVal',nVal);
@@ -3674,7 +3578,7 @@ renderTopTrip(){
     const pctLim=Math.round(min/(lim*60)*100);
     const cor=pctLim>=100?'#dc2626':(pctLim>=85?'#f59e0b':'#10b981');
     const ne=this.esc(nome).replace(/'/g,"\\'");
-    h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--g0);border-radius:7px;cursor:pointer" onclick="A.tripLogbook(\''+ne+'\')" title="Ver caderneta">'+
+    h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--g0);border-radius:7px;cursor:pointer" onclick="A.tripPerfil(\''+ne+'\')" title="Ver perfil">'+
       (medals[i]?'<span style="font-size:1em;min-width:18px">'+medals[i]+'</span>':'')+
       '<div style="flex:1;min-width:0">'+
         '<div style="font-weight:600;font-size:.84em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+this.esc(nome)+'</div>'+
@@ -3718,8 +3622,8 @@ saveTemplateFromMission(id){
     const tomorrowMs=this.S.missoes.filter(m=>{const d=m.dt instanceof Date?m.dt:new Date(m.dt);d.setHours(0,0,0,0);return d.getTime()===tomorrow.getTime()&&(m.status||'Concluída')!=='Cancelada';});
 
     const expSoon=[];
-    const types=[['valMed','📋 Médico'],['valLic','🎫 Licença']];
-    this.S.trips.forEach(t=>{types.forEach(([k,lab])=>{if(!t[k])return;const st=this.validityStatus(t[k]);if(st.status==='expired'||(st.status==='soon'&&st.days<=7))expSoon.push({nome:t.nome,tipo:lab,...st});});(t.cursos||[]).forEach(c=>{if(!c.val)return;const st=this.validityStatus(c.val);if(st.status==='expired'||(st.status==='soon'&&st.days<=7))expSoon.push({nome:t.nome,tipo:'🎓 '+(c.nome||'Curso'),...st});});});
+    const types=[['valMed','📋 Médico'],['valLic','🎫 Licença'],['valCur','🎓 Curso']];
+    this.S.trips.forEach(t=>{types.forEach(([k,lab])=>{if(!t[k])return;const st=this.validityStatus(t[k]);if(st.status==='expired'||(st.status==='soon'&&st.days<=7))expSoon.push({nome:t.nome,tipo:lab,...st});});});
     const maint=this.buildMaintAlerts().filter(a=>a.status==='expired'||(a.status==='soon'&&(a.days==null||a.days<=7)));
 
     if(!todayMs.length&&!tomorrowMs.length&&!expSoon.length&&!maint.length)return;
@@ -3746,7 +3650,7 @@ saveTemplateFromMission(id){
   },
 
   // ─── TRIPULANTES ──────────────────────────────────────────────
-setHrLimit(v){ if(!this.isAdmin())return; this.S.hrLimit=Math.max(10,Math.min(300,parseInt(v)||80)); this.renderTrips(); },
+setHrLimit(v){ this.S.hrLimit=Math.max(10,Math.min(300,parseInt(v)||80)); this.renderTrips(); },
 addTrip(){
   if(!this.isAdmin()){this.showNotif('❌ Sem permissão — apenas administradores podem adicionar tripulantes','err');return;}
   const FIDS=['iNome','iPosto','iCol','iNIF'];
@@ -3764,16 +3668,15 @@ addTrip(){
   if(this._firstInvalid){this._focusInvalid();this.showNotif('❌ Corrija os campos destacados','err');return;}
   const valMed=document.getElementById('iValMed')?.value||'';
     const valLic=document.getElementById('iValLic')?.value||'';
-    const cursos=this._getCursosList('iCursosList');
-    this.S.trips.push({nome:n,posto:p,col:c,nif,valMed,valLic,cursos});
+    const valCur=document.getElementById('iValCur')?.value||'';
+    this.S.trips.push({nome:n,posto:p,col:c,nif,valMed,valLic,valCur});
   this.markDirty();
   this.fillSelects();
   this.renderAll();
   this.addAudit('Tripulante adicionado',n);
   this.showNotif('✅ '+n+' adicionado');
-  ['iNome','iPosto','iNIF','iValMed','iValLic'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['iNome','iPosto','iNIF','iValMed','iValLic','iValCur'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('iCol').value='';
-  const cl=document.getElementById('iCursosList');if(cl)cl.innerHTML='';
 },
 delTrip(nome){
   if(!this.isAdmin()){this.showNotif('❌ Sem permissão — apenas administradores podem eliminar','err');return;}
@@ -3956,31 +3859,16 @@ _anoCell(t,now){
     const bCls=pY>=100?'warn':pY>=85?'caution':'';
     return '<td class="'+wCls+'">'+hY+'h'+(pY>=85?' ⚠️':'')+'<span class="hr-bar-wrap"><span class="hr-bar '+bCls+'" style="width:'+pY+'%"></span></span></td>';
   },
-  _addCursoRow(listId,nome='',val=''){
-    const list=document.getElementById(listId);if(!list)return;
-    const row=document.createElement('div');row.className='curso-row';
-    row.style.cssText='display:grid;grid-template-columns:1fr 150px 34px;gap:6px;align-items:center';
-    row.innerHTML='<input class="curso-nome" placeholder="Nome do curso (ex: SAR, CRM, Mergulho…)" value="'+this.esc(nome)+'" style="padding:7px 10px;border:1.5px solid var(--border2);border-radius:8px;font-size:.85em;font-family:inherit;background:var(--white);color:var(--ink);outline:none">'
-      +'<input type="date" class="curso-val" value="'+val+'" style="padding:7px 8px;border:1.5px solid var(--border2);border-radius:8px;font-size:.85em;font-family:inherit;background:var(--white);color:var(--ink);outline:none">'
-      +'<button onclick="this.closest(\'.curso-row\').remove()" title="Remover" style="width:34px;height:36px;border:1.5px solid #fca5a5;border-radius:8px;background:#fee2e2;color:#991b1b;font-size:1.1rem;cursor:pointer;line-height:1">×</button>';
-    list.appendChild(row);row.querySelector('.curso-nome').focus();
-  },
-  _getCursosList(listId){
-    return[...document.querySelectorAll('#'+listId+' .curso-row')].map(r=>({
-      nome:(r.querySelector('.curso-nome')?.value||'').trim(),
-      val:r.querySelector('.curso-val')?.value||''
-    })).filter(c=>c.nome||c.val);
-  },
   _validityCell(t){
-    const colors={expired:'#dc2626',soon:'#f59e0b',ok:'#10b981'};
-    const mk=(ic,v)=>{
+    const types=[['valMed','📋'],['valLic','🎫'],['valCur','🎓']];
+    const parts=types.map(([k,ic])=>{
+      const v=t[k];
       if(!v)return '<span style="color:var(--ink3);font-size:.85em" title="Sem registo">'+ic+' —</span>';
-      const st=this.validityStatus(v);const c=colors[st.status]||'var(--ink3)';
-      return '<span style="color:'+c+';font-size:.85em;white-space:nowrap" title="'+ic+' '+st.label+'">'+ic+' '+st.label+'</span>';
-    };
-    const parts=[mk('📋',t.valMed),mk('🎫',t.valLic)];
-    if(t.cursos&&t.cursos.length){t.cursos.forEach(c=>parts.push(mk('🎓 '+this.esc(c.nome||'Curso'),c.val)));}
-    else parts.push('<span style="color:var(--ink3);font-size:.85em">🎓 —</span>');
+      const st=this.validityStatus(v);
+      const colors={expired:'#dc2626',soon:'#f59e0b',ok:'#10b981',none:'var(--ink3)'};
+      const c=colors[st.status]||'var(--ink3)';
+      return '<span style="color:'+c+';font-size:.85em;white-space:nowrap" title="'+ic+' '+st.label+'">'+ic+' '+(st.status==='ok'?st.label:st.label)+'</span>';
+    });
     return parts.join(' &nbsp; ');
   },
   renderTrips(){
@@ -4008,7 +3896,7 @@ _anoCell(t,now){
       '<td class="'+wCls+'">'+hrMes+'h'+(pct>=85?' ⚠️':'')+
         '<span class="hr-bar-wrap"><span class="hr-bar '+bCls+'" style="width:'+pct+'%"></span></span></td>'+
       this._anoCell(t,_now)+
-      '<td>'+this._validityCell(t)+'</td>'+'<td style="white-space:nowrap"><button class="btn btn-xs btn-p" onclick="A.tripLogbook(\''+ne+'\')" title="Perfil / Caderneta">👤</button> <button class="btn btn-xs btn-edit admin-only" onclick="A.editTrip(\''+ne+'\')">✏️</button> <button class="btn btn-xs btn-del admin-only" onclick="A.delTrip(\''+ne+'\')">🗑️</button></td>'+
+      '<td>'+this._validityCell(t)+'</td>'+'<td style="white-space:nowrap"><button class="btn btn-xs btn-p" onclick="A.tripPerfil(\''+ne+'\')" title="Perfil completo">👤</button> <button class="btn btn-xs" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd" onclick="A.tripStats(\''+ne+'\')" title="Estatísticas avançadas">📊</button> <button class="btn btn-xs btn-edit admin-only" onclick="A.editTrip(\''+ne+'\')">✏️</button> <button class="btn btn-xs btn-pdf" onclick="A.tripPDF(\''+ne+'\')" title="Relatório PDF">📄</button> <button class="btn btn-xs btn-del admin-only" onclick="A.delTrip(\''+ne+'\')">🗑️</button></td>'+
       '</tr>';
   });
   el.innerHTML=h+'</tbody></table>';
@@ -4019,7 +3907,7 @@ renderUltimos(){
   if(!el)return;
   const r=[...this.S.filtered].sort((a,b)=>b.dt-a.dt).slice(0,10);
   if(!r.length){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--ink3)">Nenhuma missão</div>';return;}
-  let h='<table><thead><tr><th>Série</th><th>Missão</th><th>Data</th><th>Tipo</th><th>Aeronave</th><th>FLIGHT TIME</th><th>Tripulação</th></tr></thead><tbody>';
+  let h='<table><thead><tr><th>Série</th><th>Missão</th><th>Data</th><th>Tipo</th><th>Aeronave</th><th>Duração</th><th>Tripulação</th></tr></thead><tbody>';
   r.forEach(m=>{
     const bc=this.C.bdgTipo[m.tipo]||'bdg-log';
     const crew=(m.crew||[]).slice(0,3).map(c=>(n=>{const p=n.trim().split(/\s+/);return p.length>1?p[0][0].toUpperCase()+'. '+p[p.length-1]:n;})(c.nome)).join(', ')+(m.crew?.length>3?'…':'');
@@ -4082,24 +3970,10 @@ applyF(){
 clearF(){
   ['fInicio','fFim'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   ['fTipo','fSerie','fAero','fTrip','fStatus'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='todos';});
-  // Sincroniza selects da Análises
-  ['aInicio','aFim'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-  ['aTipo','aSerie','aAero','aTrip','aStatus'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='todos';});
   this.S.filtered=[...this.S.missoes];
   this.renderAll();
   this.buildCharts();
   this.showNotif('✅ Filtros limpos');
-},
-// Sincroniza selects da Análises → Dashboard antes de aplicar filtro
-_syncAnaFilters(){
-  const map=[['aInicio','fInicio'],['aFim','fFim'],['aTipo','fTipo'],['aSerie','fSerie'],['aTrip','fTrip'],['aAero','fAero'],['aStatus','fStatus']];
-  map.forEach(([src,dst])=>{const s=document.getElementById(src),d=document.getElementById(dst);if(s&&d)d.value=s.value;});
-},
-// Limpa ambos os painéis de filtro
-_clearAnaFilters(){
-  ['aInicio','aFim'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-  ['aTipo','aSerie','aAero','aTrip','aStatus'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='todos';});
-  this.clearF();
 },
 
 // ─── RENDER VOOS ──────────────────────────────────────────────
@@ -4114,7 +3988,7 @@ renderVoos(list){
   if(!el)return;
   if(!list.length){el.innerHTML='<div style="padding:24px;text-align:center;color:var(--ink3)">Nenhuma missão encontrada</div>';return;}
   const sorted=[...list].sort((a,b)=>b.dt-a.dt);
-  let h='<div class="tscroll"><table style="min-width:1100px"><thead><tr><th>Série</th><th>Nº Missão</th><th>Data</th><th>Estado</th><th>Tipo</th><th>Aeronave</th><th>Origem</th><th>Destino</th><th>FLIGHT TIME</th><th>Block Time</th><th>Tripulação</th><th>Obs.</th><th>Ações</th></tr></thead><tbody>';
+  let h='<div class="tscroll"><table style="min-width:1100px"><thead><tr><th>Série</th><th>Nº Missão</th><th>Data</th><th>Estado</th><th>Tipo</th><th>Aeronave</th><th>Origem</th><th>Destino</th><th>Block Time</th><th>Duração</th><th>Tripulação</th><th>Obs.</th><th>Ações</th></tr></thead><tbody>';
   sorted.forEach(m=>{
     const bc=this.C.bdgTipo[m.tipo]||'bdg-log';
     const sc=this.C.bdgStatus[m.status||'Concluída']||'bdg-done';
@@ -4129,8 +4003,8 @@ renderVoos(list){
       '<td>'+this.esc(m.aero)+'</td>'+
       '<td>'+this.esc(m.origem||'—')+'</td>'+
       '<td>'+this.esc(m.destino||'—')+'</td>'+
-      '<td><strong>'+this.esc(m.dur?.slice(0,5)||'—')+'</strong></td>'+
       '<td><strong style="color:var(--g8)">'+this.calcBT(m.boff,m.bon)+'</strong></td>'+
+      '<td><strong>'+this.esc(m.dur?.slice(0,5)||'—')+'</strong></td>'+
       '<td><span class="cbadge">'+((m.crew||[]).length)+'</span> '+crewHtml+'</td>'+
       '<td>'+(m.obs?'<span title="'+this.esc(m.obs)+'" style="cursor:help;color:var(--ink3);font-size:.78em">📝 '+this.esc(m.obs.length>30?m.obs.slice(0,28)+'…':m.obs)+'</span>':'')+'</td>'+
       '<td style="white-space:nowrap">'+
@@ -4163,8 +4037,8 @@ _renderCards(list){
         '<div class="voo-card-field"><span class="lbl">Tipo</span><span class="bdg '+bc+'" style="font-size:.76em">'+this.esc(m.tipo)+'</span></div>'+
         '<div class="voo-card-field"><span class="lbl">Aeronave</span><span>'+this.esc(m.aero)+'</span></div>'+
         '<div class="voo-card-field"><span class="lbl">Série</span><span class="bdg bdg-log">'+this.esc(m.serie)+'</span></div>'+
-        '<div class="voo-card-field"><span class="lbl">FLIGHT TIME</span><strong>'+this.esc(m.dur?.slice(0,5)||'—')+'</strong></div>'+
         '<div class="voo-card-field"><span class="lbl">Block Time</span><strong style="color:var(--g8)">'+this.calcBT(m.boff,m.bon)+'</strong></div>'+
+        '<div class="voo-card-field"><span class="lbl">Duração</span><strong>'+this.esc(m.dur?.slice(0,5)||'—')+'</strong></div>'+
         '<div class="voo-card-field"><span class="lbl">Take Off</span><span>'+(m.toff||'—').slice(0,5)+'</span></div>'+
         '<div class="voo-card-field"><span class="lbl">Landing</span><span>'+(m.land||'—').slice(0,5)+'</span></div>'+
         '<div class="voo-card-field"><span class="lbl">Origem</span><span>'+this.esc(m.origem||'—')+'</span></div>'+
@@ -4222,7 +4096,7 @@ renderHorasTrip(){
   if(!lista.length){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--ink3)">Sem dados</div>';return;}
   const fmtM=m=>Math.floor(m/60)+'h '+(m%60<10?'0':'')+(m%60)+'m';
   const R='text-align:right';
-  let h='<table><thead><tr><th>#</th><th>Tripulante</th><th style="'+R+'">Mis.</th><th style="'+R+'">FLIGHT TIME</th><th style="'+R+'">Block Time</th><th style="min-width:120px">BT vs Limite ('+lim+'h)</th></tr></thead><tbody>';
+  let h='<table><thead><tr><th>#</th><th>Tripulante</th><th style="'+R+'">Mis.</th><th style="'+R+'">Block Time</th><th style="'+R+'">Duração</th><th style="min-width:120px">BT vs Limite ('+lim+'h)</th></tr></thead><tbody>';
   lista.forEach((x,i)=>{
     const pctLim=Math.min(100,Math.round(x.btMin/(lim*60)*100));
     const cor=pctLim>=100?'#dc2626':(pctLim>=85?'#f59e0b':'var(--g7)');
@@ -4230,8 +4104,8 @@ renderHorasTrip(){
       '<td style="color:var(--ink3)">'+(i+1)+'</td>'+
       '<td><strong>'+this.esc(x.nome)+'</strong></td>'+
       '<td style="'+R+'">'+x.mis+'</td>'+
-      '<td style="'+R+';font-family:var(--mono);color:var(--ink3)">'+fmtM(x.durMin)+'</td>'+
       '<td style="'+R+';font-family:var(--mono);color:var(--g8);font-weight:700">'+fmtM(x.btMin)+'</td>'+
+      '<td style="'+R+';font-family:var(--mono);color:var(--ink3)">'+fmtM(x.durMin)+'</td>'+
       '<td><div style="display:flex;align-items:center;gap:6px">'+
         '<div class="pbar-track" style="flex:1"><div class="pbar-fill" style="width:'+pctLim+'%;background:'+cor+'"></div></div>'+
         '<span class="pbar-lbl" style="color:'+cor+'">'+pctLim+'%</span>'+
@@ -4402,7 +4276,7 @@ gerarRecibo(nome){
     totMin+=effMs;totVH+=vH;totVR+=vR;totBTMin+=btMs;
     const _dm=m.dt instanceof Date?m.dt:new Date(m.dt);
     const durR=(m.toff&&m.land)?this.calcDur(m.toff.slice(0,5),m.land.slice(0,5)).slice(0,5):(m.dur?.slice(0,5)||'—');
-    return[m.num,_dm.toLocaleDateString('pt-PT'),m.tipo,crewM?.fn||'—',m.aero,durR,bt,this.cve(vH),hasPA?this.cve(_mv.pa):'',hasA?this.cve(_mv.al):'',hasJ?this.cve(_mv.jn):'',this.cve(vR),this.cve(vH+vR)];
+    return[m.num,_dm.toLocaleDateString('pt-PT'),m.tipo,crewM?.fn||'—',m.aero,bt,durR,this.cve(vH),hasPA?this.cve(_mv.pa):'',hasA?this.cve(_mv.al):'',hasJ?this.cve(_mv.jn):'',this.cve(vR),this.cve(vH+vR)];
   });
   try{
     const{jsPDF}=window.jspdf;
@@ -4430,7 +4304,7 @@ gerarRecibo(nome){
     y+=24;
     doc.autoTable({
       startY:y,
-      head:[['Missão','Data','Tipo','Função','Aeronave','FLIGHT TIME','BLOCK TIME','Val/Hora','PA','Alm','Jan','Refeições','Total']],
+      head:[['Missão','Data','Tipo','Função','Aeronave','BT','Duração','Val/Hora','PA','Alm','Jan','Refeições','Total']],
       body:rows,
       styles:{fontSize:7,cellPadding:2,valign:'middle'},
       headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold',fontSize:7,halign:'center'},
@@ -4469,7 +4343,7 @@ gerarRecibo(nome){
     doc.setFontSize(7.5);doc.setTextColor(120,120,120);doc.setFont('helvetica','normal');
     doc.text('Documento gerado em: '+new Date().toLocaleString('pt-PT'),14,y);
     doc.text('CGC - EA — Sistema de Gestão de Voo',148,y,{align:'center'});
-    this._pdfSigRecibo(doc,10,287,210,y+6);
+    this._pdfSig(doc,10,287,210);
     savePDF(doc,'Recibo_'+nome.split(' ')[0]+'_'+mesNome+'_'+ano+'.pdf');
     this.showNotif('📄 Recibo exportado!');
   }catch(e){this.showNotif('❌ Erro ao gerar PDF: '+e.message,'err');}
@@ -4481,8 +4355,8 @@ toExcel(){
   try{
     const wb=XLSX.utils.book_new();
     // Sheet 1: Missões
-    const rows=[['Nº Missão','Perna','Série','Data','Estado','Tipo','Aeronave','Origem','Destino','Blocks Off','Take Off','Landing','Blocks On','FLIGHT TIME','Block Time','Tripulação','Funções']];
-    this.S.filtered.forEach(m=>rows.push([m.num+(m.perna||''),m.perna||'',m.serie,m.dt.toLocaleDateString('pt-PT'),m.status||'Concluída',m.tipo,m.aero,m.origem||'',m.destino||'',(m.boff||'').slice(0,5),(m.toff||'').slice(0,5),(m.land||'').slice(0,5),(m.bon||'').slice(0,5),m.dur?.slice(0,5)||'—',this.calcBT(m.boff,m.bon),(m.crew||[]).map(c=>c.nome).join('; '),(m.crew||[]).map(c=>c.fn).join('; ')]));
+    const rows=[['Nº Missão','Perna','Série','Data','Estado','Tipo','Aeronave','Origem','Destino','Blocks Off','Take Off','Landing','Blocks On','Block Time','Duração','Tripulação','Funções']];
+    this.S.filtered.forEach(m=>rows.push([m.num+(m.perna||''),m.perna||'',m.serie,m.dt.toLocaleDateString('pt-PT'),m.status||'Concluída',m.tipo,m.aero,m.origem||'',m.destino||'',(m.boff||'').slice(0,5),(m.toff||'').slice(0,5),(m.land||'').slice(0,5),(m.bon||'').slice(0,5),this.calcBT(m.boff,m.bon),m.dur?.slice(0,5)||'—',(m.crew||[]).map(c=>c.nome).join('; '),(m.crew||[]).map(c=>c.fn).join('; ')]));
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Missões');
     // Sheet 2: Tripulantes
     const tr=[['Nome','Posto','Colocação','NIF','Total Missões']];
@@ -4505,43 +4379,28 @@ toPDF(){
     doc.setFontSize(9);doc.setFont('helvetica','normal');
     doc.text('Gerado em: '+new Date().toLocaleString('pt-PT')+'   |   Total: '+this.S.filtered.length+' missões',148,17,{align:'center'});
     doc.setTextColor(0,0,0);
-    // Caixa de filtros activos
-    const _fv=(id,d)=>{const v=document.getElementById(id)?.value||'';return(v&&v!==d)?v:'';};
-    const fParts=[];
-    if(_fv('fTipo','todos'))fParts.push('Tipo: '+_fv('fTipo','todos'));
-    if(_fv('fSerie','todos'))fParts.push('Serie: '+_fv('fSerie','todos'));
-    if(_fv('fTrip','todos'))fParts.push('Tripulante: '+_fv('fTrip','todos'));
-    if(_fv('fAero','todos'))fParts.push('Aeronave: '+_fv('fAero','todos'));
-    if(_fv('fStatus','todos'))fParts.push('Estado: '+_fv('fStatus','todos'));
-    const fIniV=document.getElementById('fInicio')?.value||'';if(fIniV)fParts.push('De: '+fIniV);
-    const fFimV=document.getElementById('fFim')?.value||'';if(fFimV)fParts.push('Ate: '+fFimV);
-    let sy=26;
-    if(fParts.length){
-      doc.setFillColor(240,250,240);doc.setDrawColor(46,125,50);doc.setLineWidth(0.4);doc.roundedRect(10,sy,277,9,2,2,'FD');
-      doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(27,94,32);doc.text('Filtros aplicados:',14,sy+5.8);
-      doc.setFont('helvetica','normal');doc.text(fParts.join('  |  '),55,sy+5.8,{maxWidth:228});
-      doc.setTextColor(0,0,0);sy+=12;
-    }
     const rows=this.S.filtered.slice().sort((a,b)=>b.dt-a.dt).map(m=>[
-      m.num,m.serie,m.dt.toLocaleDateString('pt-PT'),m.status||'Concluída',m.tipo.slice(0,20),m.aero,m.dur?.slice(0,5)||'—',this.calcBT(m.boff,m.bon),(m.crew||[]).map(c=>(n=>{const p=n.trim().split(/\s+/);return p.length>1?p[0][0].toUpperCase()+'. '+p[p.length-1]:n;})(c.nome)+' ('+c.fn+')').join('\n')
+      m.num,m.serie,m.dt.toLocaleDateString('pt-PT'),m.status||'Concluída',m.tipo.slice(0,20),m.aero,m.origem||'—',m.destino||'—',this.calcBT(m.boff,m.bon),m.dur?.slice(0,5)||'—',(m.crew||[]).map(c=>(n=>{const p=n.trim().split(/\s+/);return p.length>1?p[0][0].toUpperCase()+'. '+p[p.length-1]:n;})(c.nome)+' ('+c.fn+')').join('\n')
     ]);
     doc.autoTable({
-      startY:sy,
-      head:[['Nº Missão','Série','Data','Estado','Tipo','Aeronave','FLIGHT TIME','BT','Tripulação']],
+      startY:26,
+      head:[['Nº Missão','Série','Data','Estado','Tipo','Aeronave','Origem','Destino','BT','Duração','Tripulação']],
       body:rows,
-      styles:{fontSize:7.5,cellPadding:2.5,valign:'middle',overflow:'linebreak'},
+      styles:{fontSize:7,cellPadding:2,valign:'middle',overflow:'linebreak'},
       headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold',halign:'center'},
       alternateRowStyles:{fillColor:[232,245,233]},
       columnStyles:{
-        0:{cellWidth:28,halign:'left'},
-        1:{cellWidth:20,halign:'center'},
-        2:{cellWidth:22,halign:'center'},
-        3:{cellWidth:20,halign:'center'},
-        4:{cellWidth:48,halign:'left'},
-        5:{cellWidth:24,halign:'center'},
-        6:{cellWidth:16,halign:'center'},
-        7:{cellWidth:16,halign:'center'},
-        8:{cellWidth:83,halign:'left'},
+        0:{cellWidth:25,halign:'left'},
+        1:{cellWidth:15,halign:'center'},
+        2:{cellWidth:20,halign:'center'},
+        3:{cellWidth:18,halign:'center'},
+        4:{cellWidth:38,halign:'left'},
+        5:{cellWidth:20,halign:'center'},
+        6:{cellWidth:18,halign:'center'},
+        7:{cellWidth:18,halign:'center'},
+        8:{cellWidth:14,halign:'center'},
+        9:{cellWidth:14,halign:'center'},
+        10:{cellWidth:77,halign:'left'},
       },
       margin:{left:10,right:10},
     });
@@ -4577,7 +4436,7 @@ pagExcel(){
     const tMin=this.t2m((m.toff||'00:00').slice(0,5));const dMin=this.dur2m(m.dur);
     const pxBtStr=this.calcBT(m.boff,m.bon);const pxBtMins=pxBtStr!=='—'?(()=>{const[bh,bm]=pxBtStr.split(':').map(Number);return bh*60+(bm||0);})():0;
     const pxEff=pxBtMins||dMin;
-    const hasPA=!m.catering&&this.overlaps(tMin,pxEff,0,8);const hasA=!m.catering&&this.overlaps(tMin,pxEff,12,14);const hasJ=!m.catering&&this.overlaps(tMin,pxEff,19,24);
+    const hasPA=this.overlaps(tMin,pxEff,0,8);const hasA=this.overlaps(tMin,pxEff,12,14);const hasJ=this.overlaps(tMin,pxEff,19,24);
     (m.crew||[]).forEach(c=>{
       if(!pag[c.nome])pag[c.nome]={nome:c.nome,fn:c.fn,mis:0,min:0,vH:0,pa:0,al:0,jn:0,vR:0};
       const p=pag[c.nome];p.mis++;
@@ -4639,7 +4498,7 @@ pagPDF(){
     const tMin=this.t2m((m.toff||'00:00').slice(0,5));const dMin=this.dur2m(m.dur);
     const ppBtStr=this.calcBT(m.boff,m.bon);const ppBtMins=ppBtStr!=='—'?(()=>{const[bh,bm]=ppBtStr.split(':').map(Number);return bh*60+(bm||0);})():0;
     const ppEff=ppBtMins||dMin;
-    const hasPA=!m.catering&&this.overlaps(tMin,ppEff,0,8);const hasA=!m.catering&&this.overlaps(tMin,ppEff,12,14);const hasJ=!m.catering&&this.overlaps(tMin,ppEff,19,24);
+    const hasPA=this.overlaps(tMin,ppEff,0,8);const hasA=this.overlaps(tMin,ppEff,12,14);const hasJ=this.overlaps(tMin,ppEff,19,24);
     (m.crew||[]).forEach(c=>{
       if(!pag[c.nome])pag[c.nome]={nome:c.nome,fn:c.fn,mis:0,min:0,vH:0,pa:0,al:0,jn:0,vR:0};
       const p=pag[c.nome];p.mis++;
@@ -4655,7 +4514,7 @@ pagPDF(){
     const btStr=this.calcBT(m.boff,m.bon);const btMins=btStr!=='—'?(()=>{const[bh,bm]=btStr.split(':').map(Number);return bh*60+(bm||0);})():0;
     const tMin=this.t2m((m.toff||'00:00').slice(0,5));const dMin=this.dur2m(m.dur);
     const effMins=btMins||dMin;
-    const mR=m.catering?0:(this.overlaps(tMin,effMins,0,8)?ppMV.pa:0)+(this.overlaps(tMin,effMins,12,14)?ppMV.al:0)+(this.overlaps(tMin,effMins,19,24)?ppMV.jn:0);
+    const mR=(this.overlaps(tMin,effMins,0,8)?ppMV.pa:0)+(this.overlaps(tMin,effMins,12,14)?ppMV.al:0)+(this.overlaps(tMin,effMins,19,24)?ppMV.jn:0);
     const mCVE=(m.crew||[]).reduce((s,c)=>s+(ppVPF[c.fn]||1500)*(effMins/60)+mR,0);
     const sk=m.serie||'—';if(!ppBySerie[sk])ppBySerie[sk]={mis:0,min:0,cveTot:0};ppBySerie[sk].mis++;ppBySerie[sk].min+=effMins;ppBySerie[sk].cveTot+=mCVE;
     const ak=m.aero||'—';if(!ppByAero[ak])ppByAero[ak]={mis:0,min:0};ppByAero[ak].mis++;ppByAero[ak].min+=effMins;
@@ -4670,19 +4529,9 @@ pagPDF(){
     doc.setFontSize(9);doc.setFont('helvetica','normal');
     doc.text('Guarda Costeira de Cabo Verde   |   Total: '+this.cve(totVal),148,18,{align:'center'});
     doc.setTextColor(0,0,0);
-    // Caixa de filtros activos
-    const pFParts=['Periodo: '+mesNome+' '+ano];
-    if(pTp)pFParts.push('Tipo: '+pTp);
-    if(pSr)pFParts.push('Serie: '+pSr);
-    if(pAr)pFParts.push('Aeronave: '+pAr);
-    if(pMis)pFParts.push('Missao: '+pMis);
-    doc.setFillColor(240,250,240);doc.setDrawColor(46,125,50);doc.setLineWidth(0.4);doc.roundedRect(10,26,277,9,2,2,'FD');
-    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(27,94,32);doc.text('Filtros aplicados:',14,31.8);
-    doc.setFont('helvetica','normal');doc.text(pFParts.join('  |  '),55,31.8,{maxWidth:228});
-    doc.setTextColor(0,0,0);
     doc.autoTable({
-      startY:38,
-      head:[['Tripulante','Funcao','Mis.','Block Time','Val/BT','PA','Alm.','Jan.','Refeicoes','Total']],
+      startY:26,
+      head:[['Tripulante','Função','Mis.','Block Time','Val/BT','PA','Alm.','Jan.','Refeições','Total']],
       body:lista.map(p=>[p.nome,p.fn,p.mis,(p.min/60).toFixed(2)+'h',this.cve(p.vH),p.pa,p.al,p.jn,this.cve(p.vR),this.cve(p.vH+p.vR)]),
       styles:{fontSize:8,cellPadding:2.5,valign:'middle'},
       headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold',halign:'center'},
@@ -4837,7 +4686,7 @@ _buildCombinedChart(){
   this._destroyCharts('cTemp');
   const ctx=document.getElementById('cTemp')?.getContext('2d');if(!ctx)return;
   const mis=this.S.filtered;
-  const now=new Date(),months=[],counts=[],btHours=[],ftHours=[];
+  const now=new Date(),months=[],counts=[],btHours=[];
   const MLBL=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   for(let i=11;i>=0;i--){
     const d=new Date(now.getFullYear(),now.getMonth()-i,1);
@@ -4845,33 +4694,24 @@ _buildCombinedChart(){
     months.push(MLBL[mo]+' '+String(y).slice(2));
     const inMonth=mis.filter(m=>{const dt=m.dt instanceof Date?m.dt:new Date(m.dt);return dt.getFullYear()===y&&dt.getMonth()===mo;});
     const _snCB=new Set();counts.push(inMonth.filter(m=>!_snCB.has(m.num)&&_snCB.add(m.num)).length);
-    let btMin=0,ftMin=0;
-    inMonth.forEach(m=>{
-      const btStr=this.calcBT(m.boff,m.bon);if(btStr!=='—'){const[bh,bm]=btStr.split(':').map(Number);btMin+=bh*60+(bm||0);}
-      const p=String(m.dur||'0:0').split(':').map(Number);ftMin+=(p[0]||0)*60+(p[1]||0);
-    });
+    let btMin=0;
+    inMonth.forEach(m=>{const btStr=this.calcBT(m.boff,m.bon);if(btStr!=='—'){const[bh,bm]=btStr.split(':').map(Number);btMin+=bh*60+(bm||0);}});
     btHours.push(+(btMin/60).toFixed(1));
-    ftHours.push(+(ftMin/60).toFixed(1));
   }
   const gc=this._gridColor(),tc=this._textColor();
   this.S.charts['cTemp']=new Chart(ctx,{
     type:'bar',
     data:{labels:months,datasets:[
-      {type:'bar',label:'Missões',data:counts,backgroundColor:'#2E7D32cc',borderRadius:5,yAxisID:'yMis',order:3},
-      {type:'line',label:'Block Time (h)',data:btHours,borderColor:'#1565c0',backgroundColor:'#1565c015',fill:false,tension:.35,pointRadius:4,pointHoverRadius:7,borderWidth:3,pointBackgroundColor:'#1565c0',pointBorderColor:'#fff',pointBorderWidth:2,yAxisID:'yHr',order:1},
-      {type:'line',label:'Flight Time (h)',data:ftHours,borderColor:'#b91c1c',backgroundColor:'#b91c1c15',fill:false,tension:.35,pointRadius:4,pointHoverRadius:7,borderWidth:3,pointBackgroundColor:'#b91c1c',pointBorderColor:'#fff',pointBorderWidth:2,yAxisID:'yHr',order:2}
+      {type:'bar',label:'Missões',data:counts,backgroundColor:'#2E7D32cc',borderRadius:5,yAxisID:'yMis',order:2},
+      {type:'line',label:'Block Time (h)',data:btHours,borderColor:'#1565c0',backgroundColor:'#1565c022',fill:true,tension:.35,pointRadius:5,pointHoverRadius:8,borderWidth:3.5,pointBackgroundColor:'#1565c0',pointBorderColor:'#fff',pointBorderWidth:2,yAxisID:'yBT',order:1}
     ]},
     options:{responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx2=>{
-        if(ctx2.datasetIndex===0)return ' '+ctx2.raw+' missões';
-        if(ctx2.datasetIndex===1)return ' '+ctx2.raw+'h BT';
-        return ' '+ctx2.raw+'h FT';
-      }}}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx2=>ctx2.datasetIndex===0?ctx2.raw+' missões':ctx2.raw+'h BT'}}},
       scales:{
         x:{grid:{color:gc},ticks:{color:tc,font:{size:10}}},
         yMis:{position:'left',beginAtZero:true,grid:{color:gc},ticks:{color:'#2E7D32',stepSize:1,font:{size:10}},title:{display:true,text:'Missões',color:'#2E7D32',font:{size:10}}},
-        yHr:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},ticks:{color:tc,font:{size:10},callback:v=>v+'h'},title:{display:true,text:'Horas',color:tc,font:{size:10}}}
+        yBT:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},ticks:{color:'#1565c0',font:{size:10},callback:v=>v+'h'},title:{display:true,text:'Block Time',color:'#1565c0',font:{size:10}}}
       }
     }
   });
@@ -5043,7 +4883,6 @@ renderRankBT(mis){
 
 // ─── AERONAVES ────────────────────────────────────────────────
 addAero(){
-  if(!this.isAdmin()){this.showNotif('❌ Sem permissão — apenas administradores podem adicionar aeronaves','err');return;}
   const nome=(document.getElementById('iAeroNome')?.value||'').trim();
   const tipo=document.getElementById('iAeroTipo')?.value;
   const reg=(document.getElementById('iAeroReg')?.value||'').trim();
@@ -5248,7 +5087,6 @@ toggleNav(){
     el.innerHTML=h;
   },
   addSerie(){
-    if(!this.isAdmin()){this.showNotif('❌ Sem permissão — apenas administradores podem criar séries','err');return;}
     const inp=document.getElementById('newSerieInp');if(!inp)return;
     const v=(inp.value||'').trim().toUpperCase();
     if(!v){this.showNotif('Digite um nome para a série','warn');return;}
@@ -6248,7 +6086,7 @@ importBackup(ev){
     try{
       const data=JSON.parse(e.target.result);
       if(!data.trips||!Array.isArray(data.missoes))throw new Error('Formato inválido');
-      this.S.trips=(data.trips||[]).map(t=>{if(t.valCur!==undefined&&!t.cursos){t.cursos=t.valCur?[{nome:'Curso',val:t.valCur}]:[];delete t.valCur;}else if(!t.cursos)t.cursos=[];return t;});
+      this.S.trips=data.trips||[];
       this.S.missoes=(data.missoes||[]).map(m=>({...m,dt:new Date(m.dt),status:m.status||'Concluída',serie:m.serie||'CGC-EA',history:m.history||[],tags:m.tags||[],origem:m.origem||'',destino:m.destino||'',perna:m.perna||'',obs:m.obs||'',fuelAdd:m.fuelAdd??null,fuelUse:m.fuelUse??null}));
       this.S.series=data.series||[];
       this.S.colocacoes=data.colocacoes||this.S.colocacoes;
@@ -6283,106 +6121,67 @@ importBackup(ev){
   ev.target.value='';
 },
 
-// ─── T003: EXCEL COMPLETO (5 folhas) ──────────────────────────
-openRelatorioExcel(){
-  const now=new Date();const mo=now.getMonth()+1;const yr=now.getFullYear();
-  const mOpts=this.C.NM.map((n,i)=>`<option value="${i+1}"${i+1===mo?'selected':''}>${n}</option>`).join('');
-  const html='<h3 style="margin-bottom:14px">📊 Relatório Excel — 5 Folhas</h3>'
-    +'<p style="color:var(--ink3);font-size:.88em;margin-bottom:16px">Selecione o período para filtrar as missões e horas. Tripulantes, validades e manutenção são sempre exportados na totalidade.</p>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px">'
-    +'<div class="fg"><label>Mês (opcional)</label><select id="relMes" style="padding:9px 10px;border:1.5px solid var(--border2);border-radius:8px;background:var(--white);color:var(--ink);font-size:.9em;width:100%"><option value="">— Todos os meses —</option>'+mOpts+'</select></div>'
-    +'<div class="fg"><label>Ano</label><input type="number" id="relAno" value="'+yr+'" min="2020" max="2035" style="padding:9px 10px;border:1.5px solid var(--border2);border-radius:8px;background:var(--white);color:var(--ink);font-size:.9em;width:100%;box-sizing:border-box"></div>'
-    +'</div>'
-    +'<p style="color:var(--ink3);font-size:.8em;margin-bottom:16px">Deixe o mês em branco para exportar todo o ano.</p>'
-    +'<div style="display:flex;gap:8px">'
-    +'<button class="btn btn-p" onclick="A.exportExcelCompleto(document.getElementById(\'relMes\')?.value,document.getElementById(\'relAno\')?.value);A.closeInfoModal()">📥 Exportar Excel</button>'
-    +'<button class="btn btn-s" onclick="A.closeInfoModal()">Cancelar</button>'
-    +'</div>';
-  this.openInfoModal(html);
-},
-exportExcelCompleto(mes,ano){
+// ─── T003: EXCEL COMPLETO (3 folhas) ──────────────────────────
+exportExcelCompleto(){
   if(typeof XLSX==='undefined'){this.showNotif('❌ XLSX.js não disponível','err');return;}
   const wb=XLSX.utils.book_new();
-  const mesN=mes?parseInt(mes):0;const anoN=ano?parseInt(ano):0;
-  const periodLabel=mesN&&anoN?String(this.C.NM[mesN-1])+'_'+anoN:(anoN?String(anoN):'total');
-  const filterPeriod=m=>{
-    if(!mesN&&!anoN)return true;
+  // ── Folha 1: Missões ──
+  const misRows=[['Nº Missão','Série','Data','Estado','Tipo','Aeronave','Blocks Off','Take Off','Landing','Blocks On','Block Time','Duração','Origem','Destino','Perna','Tripulantes','Comb.Adicionado(L)','Comb.Consumido(L)','Tags','Observações']];
+  this.S.missoes.forEach(m=>{
     const dt=m.dt instanceof Date?m.dt:new Date(m.dt);
-    if(anoN&&dt.getFullYear()!==anoN)return false;
-    if(mesN&&dt.getMonth()+1!==mesN)return false;
-    return true;
-  };
-  // ── Folha 1: Missões (período) ──
-  const misRows=[['Nº Missão','Série','Data','Estado','Tipo','Aeronave','Origem','Destino','Blocks Off','Take Off','Landing','Blocks On','FLIGHT TIME','Block Time','Perna','Tripulantes e Funções','Comb.Abast.(L)','Comb.Cons.(L)','Tags','Observações']];
-  const misFilt=this.S.missoes.filter(filterPeriod).slice().sort((a,b)=>(a.dt instanceof Date?a.dt:new Date(a.dt))-(b.dt instanceof Date?b.dt:new Date(b.dt)));
-  misFilt.forEach(m=>{
-    const dt=m.dt instanceof Date?m.dt:new Date(m.dt);
-    misRows.push([m.num||'',m.serie||'',dt.toLocaleDateString('pt-PT'),m.status||'',m.tipo||'',m.aero||'',m.origem||'',m.destino||'',(m.boff||'').slice(0,5),(m.toff||'').slice(0,5),(m.land||'').slice(0,5),(m.bon||'').slice(0,5),m.dur?.slice(0,5)||'—',this.calcBT(m.boff,m.bon),m.perna||'',(m.crew||[]).map(c=>c.nome+' ('+c.fn+')').join('; '),m.fuelAdd!=null?m.fuelAdd:'',m.fuelUse!=null?m.fuelUse:'',(m.tags||[]).join(', '),m.obs||'']);
+    misRows.push([
+      m.num||'',m.serie||'',dt.toLocaleDateString('pt-PT'),m.status||'',m.tipo||'',m.aero||'',
+      m.boff||'',m.toff||'',m.land||'',m.bon||'',this.calcBT(m.boff,m.bon),m.dur||'',
+      m.origem||'',m.destino||'',m.perna||'',
+      (m.crew||[]).map(c=>c.nome+'('+c.fn+')').join('; '),
+      m.fuelAdd!=null?m.fuelAdd:'',m.fuelUse!=null?m.fuelUse:'',
+      (m.tags||[]).join(', '),m.obs||''
+    ]);
   });
   const wsMis=XLSX.utils.aoa_to_sheet(misRows);
-  wsMis['!cols']=[{wch:18},{wch:10},{wch:14},{wch:12},{wch:18},{wch:14},{wch:12},{wch:12},{wch:10},{wch:10},{wch:10},{wch:10},{wch:12},{wch:12},{wch:6},{wch:36},{wch:14},{wch:14},{wch:20},{wch:40}];
+  wsMis['!cols']=[{wch:16},{wch:10},{wch:14},{wch:12},{wch:14},{wch:12},{wch:10},{wch:10},{wch:10},{wch:10},{wch:12},{wch:10},{wch:12},{wch:12},{wch:6},{wch:30},{wch:14},{wch:14},{wch:20},{wch:40}];
   XLSX.utils.book_append_sheet(wb,wsMis,'Missões');
-  // ── Folha 2: Horas por Tripulante (período) ──
-  const tipos=[...new Set(misFilt.map(m=>m.tipo||'Outro'))].sort();
-  const hrRows=[['Nome','Posto','Colocação','Nº Missões','Block Time (h)','Horas Voo (h)',...tipos.map(t=>'BT '+t+' (h)')]];
+  // ── Folha 2: Tripulantes ──
+  const tripRows=[['Nome','Posto','Colocação','NIF','Val.Médico','Val.Licença','Val.Curso','Missões','Block Time Total (h)']];
   this.S.trips.forEach(t=>{
-    const myMis=misFilt.filter(m=>(m.crew||[]).some(c=>c.nome===t.nome));
-    if(!myMis.length)return;
-    let btTot=0,durTot=0;const tipoMap={};tipos.forEach(tp=>tipoMap[tp]=0);const seen=new Set();
-    myMis.forEach(m=>{
-      if(seen.has(m.num))return;seen.add(m.num);
-      const bt=this.calcBT(m.boff,m.bon);
-      if(bt&&bt!=='—'){const[bh,bm]=bt.split(':').map(Number);const mins=bh*60+(bm||0);btTot+=mins;tipoMap[m.tipo||'Outro']=(tipoMap[m.tipo||'Outro']||0)+mins;}
-      const d=String(m.dur||'0:0').split(':').map(Number);durTot+=(d[0]||0)*60+(d[1]||0);
-    });
-    hrRows.push([t.nome,t.posto||'',t.col||'',myMis.length,+(btTot/60).toFixed(2),+(durTot/60).toFixed(2),...tipos.map(tp=>+((tipoMap[tp]||0)/60).toFixed(2))]);
-  });
-  const wsHr=XLSX.utils.aoa_to_sheet(hrRows);
-  wsHr['!cols']=[{wch:26},{wch:14},{wch:12},{wch:10},{wch:14},{wch:14},...tipos.map(()=>({wch:14}))];
-  XLSX.utils.book_append_sheet(wb,wsHr,'Horas por Tripulante');
-  // ── Folha 3: Tripulantes (todos) ──
-  const allCursoNames=[...new Set(this.S.trips.flatMap(t=>(t.cursos||[]).map(c=>c.nome||'Curso')))];
-  const tripRows=[['Nome','Posto','Colocação','NIF','Val. Médico','Val. Licença',...allCursoNames.map(n=>n+' (Validade)'),'Total Missões','Block Time Total (h)']];
-  this.S.trips.forEach(t=>{
-    let btTot=0;const seen=new Set();
-    this.S.missoes.filter(m=>(m.crew||[]).some(c=>c.nome===t.nome)).forEach(m=>{
-      if(seen.has(m.num))return;seen.add(m.num);
+    let btTot=0;
+    this.S.missoes.filter(m=>m.status==='Concluída'&&(m.crew||[]).some(c=>c.nome===t.nome)).forEach(m=>{
       const bt=this.calcBT(m.boff,m.bon);if(bt&&bt!=='—'){const[bh,bm]=bt.split(':').map(Number);btTot+=bh*60+(bm||0);}
     });
     const nm=this.S.missoes.filter(m=>(m.crew||[]).some(c=>c.nome===t.nome)).length;
-    const cursoVals=allCursoNames.map(cn=>{const c=(t.cursos||[]).find(x=>(x.nome||'Curso')===cn);return c?.val||'';});
-    tripRows.push([t.nome,t.posto||'',t.col||'',t.nif||'',t.valMed||'',t.valLic||'',...cursoVals,nm,+(btTot/60).toFixed(2)]);
+    tripRows.push([t.nome,t.posto||'',t.col||'',t.nif||'',t.valMed||'',t.valLic||'',t.valCur||'',nm,+(btTot/60).toFixed(2)]);
   });
   const wsTrip=XLSX.utils.aoa_to_sheet(tripRows);
-  wsTrip['!cols']=[{wch:26},{wch:14},{wch:12},{wch:12},{wch:14},{wch:14},...allCursoNames.map(()=>({wch:18})),{wch:10},{wch:16}];
+  wsTrip['!cols']=[{wch:26},{wch:14},{wch:10},{wch:12},{wch:12},{wch:12},{wch:12},{wch:8},{wch:14}];
   XLSX.utils.book_append_sheet(wb,wsTrip,'Tripulantes');
-  // ── Folha 4: Validades a Tratar ──
-  const valRows=[['Nome','Posto','Colocação','Tipo','Data Validade','Estado','Dias']];
-  this.S.trips.forEach(t=>{
-    const chk=(tipo,val)=>{if(!val)return;const st=this.validityStatus(val);if(st.status==='expired'||st.status==='soon')valRows.push([t.nome,t.posto||'',t.col||'',tipo,val,st.status==='expired'?'Expirado':'A Expirar',st.days]);};
-    chk('Médico',t.valMed);chk('Licença',t.valLic);
-    (t.cursos||[]).forEach(c=>chk(c.nome||'Curso',c.val));
+  // ── Folha 3: Pagamentos (período seleccionado) ──
+  const mes=document.getElementById('selMes')?.value||'';
+  const ano=document.getElementById('selAno')?.value||'';
+  const vPF=this.getVPF();const mv=this.getMealVals();
+  let pagMs=this.S.missoes.filter(m=>m.status==='Concluída');
+  if(mes&&ano){pagMs=pagMs.filter(m=>{const dt=m.dt instanceof Date?m.dt:new Date(m.dt);return dt.getMonth()+1===parseInt(mes)&&dt.getFullYear()===parseInt(ano);});}
+  const pagRows=[['Tripulante','Missão','Data','Aeronave','Block Time','Horas (h)','Tarifa/h (CVE)','Honorários (CVE)','P.Almoço','Almoço','Jantar','Total Refeições (CVE)','Total (CVE)']];
+  pagMs.forEach(m=>{
+    const btStr=this.calcBT(m.boff,m.bon);
+    const btMins=btStr&&btStr!=='—'?(()=>{const[bh,bm]=btStr.split(':').map(Number);return bh*60+(bm||0);})():0;
+    const tMin=this.t2m((m.toff||'00:00').slice(0,5));const effMins=btMins||this.dur2m(m.dur);
+    const pa=this.overlaps(tMin,effMins,0,8)?mv.pa:0;
+    const al=this.overlaps(tMin,effMins,12,14)?mv.al:0;
+    const jn=this.overlaps(tMin,effMins,19,24)?mv.jn:0;
+    const mR=pa+al+jn;
+    const dt=m.dt instanceof Date?m.dt:new Date(m.dt);
+    (m.crew||[]).forEach(c=>{
+      const rate=vPF[c.fn]||1500;const hon=+(rate*(effMins/60)).toFixed(0);
+      pagRows.push([c.nome,m.num,dt.toLocaleDateString('pt-PT'),m.aero||'',btStr,+(effMins/60).toFixed(2),rate,hon,pa?mv.pa:0,al?mv.al:0,jn?mv.jn:0,mR,hon+mR]);
+    });
   });
-  (this.S.aeros||[]).forEach(a=>{if(a.inspDate){const st=this.validityStatus(a.inspDate);if(st.status==='expired'||st.status==='soon')valRows.push([a.nome||'','—','—','Inspeção',a.inspDate,st.status==='expired'?'Expirado':'A Expirar',st.days]);}});
-  if(valRows.length===1)valRows.push(['Sem validades em alerta','','','','','','']);
-  const wsVal=XLSX.utils.aoa_to_sheet(valRows);
-  wsVal['!cols']=[{wch:26},{wch:14},{wch:12},{wch:18},{wch:14},{wch:14},{wch:8}];
-  XLSX.utils.book_append_sheet(wb,wsVal,'Validades a Tratar');
-  // ── Folha 5: Manutenção ──
-  const maintRows=[['Aeronave','Tipo Alerta','Data Insp. Prevista','Horas Limite','Horas Actuais','Horas Restantes','Estado','Detalhe']];
-  (this.S.aeros||[]).forEach(a=>{
-    if(a.inspDate){const st=this.validityStatus(a.inspDate);maintRows.push([a.nome||'','Inspeção por Data',a.inspDate,'—','—','—',st.status==='expired'?'Expirado':st.status==='soon'?'Em breve':'OK',st.label]);}
-    if(a.inspHr!=null&&a.hrAtual!=null){const rem=a.inspHr-a.hrAtual;maintRows.push([a.nome||'','Inspeção por Horas','—',a.inspHr,a.hrAtual,rem,rem<=0?'Excedido':rem<=50?'Em breve':'OK',rem<=0?'Excedido em '+Math.abs(rem)+'h':'Faltam '+rem+'h']);}
-    if(!a.inspDate&&(a.inspHr==null||a.hrAtual==null)){maintRows.push([a.nome||'','Sem dados de manutenção','—','—','—','—','—','—']);}
-  });
-  if(!(this.S.aeros||[]).length)maintRows.push(['Sem aeronaves registadas','','','','','','','']);
-  const wsMaint=XLSX.utils.aoa_to_sheet(maintRows);
-  wsMaint['!cols']=[{wch:18},{wch:20},{wch:18},{wch:14},{wch:14},{wch:14},{wch:12},{wch:24}];
-  XLSX.utils.book_append_sheet(wb,wsMaint,'Manutenção');
-  // Guardar
-  const fn='cgcea_relatorio_'+periodLabel+'_'+new Date().toISOString().slice(0,10)+'.xlsx';
+  const wsPag=XLSX.utils.aoa_to_sheet(pagRows);
+  wsPag['!cols']=[{wch:24},{wch:16},{wch:12},{wch:12},{wch:12},{wch:8},{wch:12},{wch:14},{wch:10},{wch:10},{wch:10},{wch:16},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,wsPag,'Pagamentos');
+  // Save
+  const fn='cgcea_completo_'+(mes&&ano?mes+'-'+ano:new Date().toISOString().slice(0,10))+'.xlsx';
   XLSX.writeFile(wb,fn);
-  this.showNotif('✅ Relatório Excel exportado! (5 folhas)');
+  this.showNotif('✅ Excel completo exportado!');
 },
 
 // ─── T007: METAS OPERACIONAIS ─────────────────────────────────
@@ -6417,7 +6216,7 @@ renderMetas(){
   const totHr=totBtMin/60;
   // If no metas set
   if(!m.mis&&!m.hr&&!m.fuel&&!m.cve){
-    el.innerHTML='<div style="color:var(--ink3);font-size:.85em;padding:6px 0">Nenhuma meta definida.'+(this.isAdmin()?'<button class="btn btn-s btn-sm" onclick="A.openSettings();setTimeout(()=>{const b=document.querySelector(\'[onclick*=cfgTabMetas]\');if(b)b.click();},200)">⚙️ Definir Metas</button>':'')+'</div>';
+    el.innerHTML='<div style="color:var(--ink3);font-size:.85em;padding:6px 0">Nenhuma meta definida. <button class="btn btn-s btn-sm" onclick="A.openSettings();setTimeout(()=>{const b=document.querySelector(\'[onclick*=cfgTabMetas]\');if(b)b.click();},200)">⚙️ Definir Metas</button></div>';
     return;
   }
   const _bar=(label,val,meta,fmt)=>{
@@ -6514,354 +6313,6 @@ tripStats(nome){
   }
   h+='<div style="text-align:right;margin-top:14px"><button class="btn btn-p btn-sm" onclick="A.closeInfoModal()">Fechar</button></div>';
   this.openInfoModal(h);
-},
-
-// ─── CADERNETA DE VOO INDIVIDUAL ──────────────────────────────
-tripLogbook(nome){
-  const t=this.S.trips.find(x=>x.nome===nome);
-  if(!t){this.showNotif('❌ Tripulante não encontrado','err');return;}
-  const allMs=this.S.missoes
-    .filter(m=>(m.crew||[]).some(c=>c.nome===nome))
-    .map(m=>({...m,_dt:m.dt instanceof Date?m.dt:new Date(m.dt)}))
-    .sort((a,b)=>b._dt-a._dt);
-  this._lbCache={nome,ms:allMs,t};
-  const yrs=[...new Set(allMs.map(m=>m._dt.getFullYear()))].sort((a,b)=>b-a);
-  const yrOpts=yrs.map(y=>`<option value="${y}">${y}</option>`).join('');
-  const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  const moOpts=MESES.map((n,i)=>`<option value="${i+1}">${n}</option>`).join('');
-  const ss='padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface);color:var(--ink);font-size:.82em;cursor:pointer';
-  const ne=nome.replace(/'/g,"\\'");
-  let h=`<div class="modal-hd"><h3>📓 Caderneta de Voo</h3><span class="modal-x" onclick="A.closeInfoModal()">×</span></div>`;
-  h+=`<div style="font-size:.87em;color:var(--ink3);margin-bottom:8px;padding:8px 10px;background:var(--g0);border-radius:7px"><b>${this.esc(nome)}</b> &nbsp;·&nbsp; ${this.esc(t.posto||'—')} &nbsp;·&nbsp; ${this.esc(t.col||'—')} &nbsp;·&nbsp; NIF: ${t.nif?t.nif.slice(0,3)+'****'+t.nif.slice(-3):'—'}</div>`;
-  h+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;padding:7px 10px;background:var(--g0);border-radius:7px">
-    <span style="font-size:.8em;color:var(--ink3);font-weight:600">Filtrar:</span>
-    <select id="lbFYear" onchange="A._lbFilter()" style="${ss}"><option value="">Todos os anos</option>${yrOpts}</select>
-    <select id="lbFMonth" onchange="A._lbFilter()" style="${ss}"><option value="">Todos os meses</option>${moOpts}</select>
-    <button onclick="document.getElementById('lbFYear').value='';document.getElementById('lbFMonth').value='';A._lbFilter()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface);color:var(--ink3);font-size:.78em;cursor:pointer">✕ Limpar</button>
-    <span id="lbFCount" style="margin-left:auto;font-size:.78em;color:var(--ink3)"></span>
-  </div>`;
-  h+=`<div style="display:flex;gap:6px;margin-bottom:12px">
-    <button id="lbT1" onclick="A._lbTab(1)" style="padding:5px 16px;border-radius:20px;border:1.5px solid var(--g6);background:var(--g6);color:#fff;font-size:.82em;font-weight:700;cursor:pointer">📊 Resumo</button>
-    <button id="lbT2" onclick="A._lbTab(2)" style="padding:5px 16px;border-radius:20px;border:1.5px solid var(--border2);background:var(--surface);color:var(--ink1);font-size:.82em;font-weight:600;cursor:pointer">📋 Registo (${allMs.length})</button>
-  </div>`;
-  h+=`<div id="lbP1"></div><div id="lbP2" style="display:none"></div>`;
-  h+=`<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
-    <button class="btn btn-pdf btn-sm" onclick="A.tripLogbookPDF('${ne}')">📄 PDF Caderneta</button>
-    <button class="btn btn-s btn-sm" onclick="A.closeInfoModal()">Fechar</button>
-  </div>`;
-  this.openInfoModal(h);
-  setTimeout(()=>this._lbRender('',''),0);
-},
-
-_lbFilter(){
-  const yr=document.getElementById('lbFYear')?.value||'';
-  const mo=document.getElementById('lbFMonth')?.value||'';
-  this._lbRender(yr,mo);
-},
-
-_lbRender(yr,mo){
-  const c=this._lbCache;if(!c)return;
-  const {nome,ms,t}=c;
-  const now=new Date();
-  const lim=this.S.hrLimit||80,limY=this.S.hrLimitYear||800;
-  const _ftMin=m=>{const p=String(m.dur||'0:0').split(':').map(Number);return(p[0]||0)*60+(p[1]||0);};
-  const _btMin=m=>{const s=this.calcBT(m.boff,m.bon);if(!s||s==='—')return 0;const[bh,bm]=s.split(':').map(Number);return bh*60+(bm||0);};
-  const fH=min=>Math.floor(min/60)+'h '+(min%60<10?'0':'')+(min%60)+'m';
-  const fD=min=>(min/60).toFixed(1)+'h';
-  // Filtered subset
-  const filtered=ms.filter(m=>{
-    if(yr&&m._dt.getFullYear()!==Number(yr))return false;
-    if(mo&&(m._dt.getMonth()+1)!==Number(mo))return false;
-    return true;
-  });
-  // Aggregate filtered
-  let totFt=0,totBt=0;
-  const byFn={},byAero={},byTipo={},byYear={};
-  filtered.forEach(m=>{
-    const fn=(m.crew||[]).find(cx=>cx.nome===nome)?.fn||'—';
-    const ft=_ftMin(m),bt=_btMin(m);
-    totFt+=ft;totBt+=bt;
-    if(!byFn[fn])byFn[fn]={mis:0,ft:0,bt:0};byFn[fn].mis++;byFn[fn].ft+=ft;byFn[fn].bt+=bt;
-    const ae=m.aero||'—';if(!byAero[ae])byAero[ae]={mis:0,ft:0};byAero[ae].mis++;byAero[ae].ft+=ft;
-    const tp=m.tipo||'—';if(!byTipo[tp])byTipo[tp]={mis:0,ft:0};byTipo[tp].mis++;byTipo[tp].ft+=ft;
-    const y2=m._dt.getFullYear();if(!byYear[y2])byYear[y2]={mis:0,ft:0,bt:0};byYear[y2].mis++;byYear[y2].ft+=ft;byYear[y2].bt+=bt;
-  });
-  // Pay (filtered)
-  const vPF=this.getVPF();const mv=this.getMealVals();
-  let totPay=0;
-  filtered.filter(m=>m.status==='Concluída').forEach(m=>{
-    const cr=(m.crew||[]).find(cx=>cx.nome===nome);if(!cr)return;
-    const bt=this.calcBT(m.boff,m.bon);let btMin=0;if(bt&&bt!=='—'){const[bh,bm]=bt.split(':').map(Number);btMin=bh*60+(bm||0);}
-    const effMins=btMin||this.dur2m(m.dur);
-    const tMin=this.t2m((m.toff||'00:00').slice(0,5));
-    const mR=(this.overlaps(tMin,effMins,0,8)?mv.pa:0)+(this.overlaps(tMin,effMins,12,14)?mv.al:0)+(this.overlaps(tMin,effMins,19,24)?mv.jn:0);
-    totPay+=(vPF[cr.fn]||1500)*(effMins/60)+mR;
-  });
-  // Full-dataset stats for limits + bar chart (always current, regardless of filter)
-  const minPorMes={};let totAno=0;
-  ms.forEach(m=>{
-    const ft=_ftMin(m);
-    if(m._dt.getFullYear()===now.getFullYear())totAno+=ft;
-    const k=m._dt.getFullYear()+'-'+String(m._dt.getMonth()+1).padStart(2,'0');
-    minPorMes[k]=(minPorMes[k]||0)+ft;
-  });
-  const mAtual=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-  const minMes=minPorMes[mAtual]||0;
-  const pctM=Math.min(100,Math.round(minMes/(lim*60)*100));
-  const pctA=Math.min(100,Math.round(totAno/(limY*60)*100));
-  const meses6=Object.keys(minPorMes).sort().slice(-6);
-  // ── Pane 1: Resumo ──
-  const kp=(lbl,val,cor)=>`<div style="padding:10px;background:var(--g0);border-radius:8px;border-left:3px solid ${cor}"><div style="font-size:.7em;color:var(--ink3);text-transform:uppercase;margin-bottom:2px">${lbl}</div><div style="font-size:1.3em;font-weight:800">${val}</div></div>`;
-  let p1=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:10px;margin-bottom:12px">`;
-  p1+=kp('Missões',''+filtered.length,'#6366f1');
-  p1+=kp('Flight time',fH(totFt),'#3b82f6');
-  p1+=kp('Block time',fH(totBt),'#10b981');
-  if(filtered.length){const ds=filtered.map(m=>m._dt);const y0=Math.min(...ds.map(d=>d.getFullYear())),y1=Math.max(...ds.map(d=>d.getFullYear()));p1+=kp('Período',y0===y1?''+y0:y0+'–'+y1,'#f59e0b');}
-  if(totPay>0)p1+=kp('Remuneração est.',this.cve(Math.round(totPay)),'#a855f7');
-  p1+=`</div>`;
-  // Barras de progresso h/mês e h/ano (sempre dados reais, não filtrados)
-  p1+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">`;
-  p1+=`<div style="padding:10px;background:var(--g0);border-radius:8px;border-left:3px solid ${pctM>=85?'#dc2626':'#f59e0b'}"><div style="font-size:.7em;color:var(--ink3);text-transform:uppercase;margin-bottom:3px">Mês actual (real)</div><div style="font-size:1.05em;font-weight:700">${(minMes/60).toFixed(1)}h <span style="font-size:.65em;color:var(--ink3)">/ ${lim}h</span></div><div style="height:5px;background:var(--g1);border-radius:3px;margin-top:5px"><div style="height:100%;width:${pctM}%;background:${pctM>=85?'#dc2626':'#10b981'};border-radius:3px"></div></div></div>`;
-  p1+=`<div style="padding:10px;background:var(--g0);border-radius:8px;border-left:3px solid ${pctA>=85?'#dc2626':'#6366f1'}"><div style="font-size:.7em;color:var(--ink3);text-transform:uppercase;margin-bottom:3px">Ano actual (real)</div><div style="font-size:1.05em;font-weight:700">${(totAno/60).toFixed(1)}h <span style="font-size:.65em;color:var(--ink3)">/ ${limY}h</span></div><div style="height:5px;background:var(--g1);border-radius:3px;margin-top:5px"><div style="height:100%;width:${pctA}%;background:${pctA>=85?'#dc2626':'#6366f1'};border-radius:3px"></div></div></div>`;
-  p1+=`</div>`;
-  // Gráfico de barras últimos 6 meses (dados reais)
-  if(meses6.length){
-    const maxV=Math.max(...meses6.map(k=>minPorMes[k]||0))||1;
-    p1+=`<div style="font-weight:700;font-size:.85em;color:var(--g8);margin:8px 0 5px">📈 Últimos 6 meses</div>`;
-    p1+=`<div style="display:flex;align-items:flex-end;gap:6px;height:90px;background:var(--g0);padding:10px;border-radius:8px;margin-bottom:12px">`;
-    meses6.forEach(k=>{const v=minPorMes[k]||0;const hp=Math.round(v/maxV*100);p1+=`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="font-size:.67em;font-weight:700">${(v/60).toFixed(1)}h</div><div style="width:100%;background:${k===mAtual?'#10b981':'#3b82f6'};border-radius:3px 3px 0 0;height:${hp}%;min-height:3px"></div><div style="font-size:.63em;color:var(--ink3)">${k.slice(2)}</div></div>`;});
-    p1+=`</div>`;
-  }
-  // Por função
-  const fns=Object.entries(byFn).sort((a,b)=>b[1].ft-a[1].ft);
-  if(fns.length){
-    p1+=`<div style="font-weight:700;font-size:.85em;color:var(--g8);margin:8px 0 5px">✈️ Por função</div>`;
-    p1+=`<table style="width:100%;border-collapse:collapse;font-size:.83em;margin-bottom:12px"><thead><tr style="background:var(--g1)"><th style="padding:5px 8px">Função</th><th style="padding:5px 8px;text-align:right">Missões</th><th style="padding:5px 8px;text-align:right">Flight time</th><th style="padding:5px 8px;text-align:right">Block time</th></tr></thead><tbody>`;
-    fns.forEach(([fn,v])=>{p1+=`<tr style="border-top:1px solid var(--g1)"><td style="padding:5px 8px;font-weight:600">${this.esc(fn)}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono)">${v.mis}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono);color:var(--g8)">${fD(v.ft)}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono)">${fD(v.bt)}</td></tr>`;});
-    p1+=`</tbody></table>`;
-  }
-  // Por aeronave
-  const aeros=Object.entries(byAero).sort((a,b)=>b[1].ft-a[1].ft);
-  if(aeros.length){
-    p1+=`<div style="font-weight:700;font-size:.85em;color:var(--g8);margin:8px 0 5px">🛩️ Por aeronave</div>`;
-    p1+=`<table style="width:100%;border-collapse:collapse;font-size:.83em;margin-bottom:12px"><thead><tr style="background:var(--g1)"><th style="padding:5px 8px">Aeronave</th><th style="padding:5px 8px;text-align:right">Missões</th><th style="padding:5px 8px;text-align:right">Flight time</th></tr></thead><tbody>`;
-    aeros.forEach(([a,v])=>{p1+=`<tr style="border-top:1px solid var(--g1)"><td style="padding:5px 8px">${this.esc(a)}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono)">${v.mis}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono);color:var(--g8)">${fD(v.ft)}</td></tr>`;});
-    p1+=`</tbody></table>`;
-  }
-  // Por tipo
-  const tipos=Object.entries(byTipo).sort((a,b)=>b[1].ft-a[1].ft);
-  if(tipos.length){
-    p1+=`<div style="font-weight:700;font-size:.85em;color:var(--g8);margin:8px 0 5px">🎯 Por tipo de missão</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">`;
-    tipos.forEach(([tp,v])=>{const bc=this.C.bdgTipo[tp]||'bdg-log';p1+=`<span class="bdg ${bc}">${this.esc(tp)}: <b>${v.mis}</b> · ${fD(v.ft)}</span>`;});
-    p1+=`</div>`;
-  }
-  // Por ano (só quando sem filtro de ano)
-  if(!yr){
-    const years=Object.entries(byYear).sort((a,b)=>Number(b[0])-Number(a[0]));
-    if(years.length){
-      p1+=`<div style="font-weight:700;font-size:.85em;color:var(--g8);margin:8px 0 5px">📅 Por ano</div>`;
-      p1+=`<table style="width:100%;border-collapse:collapse;font-size:.83em;margin-bottom:12px"><thead><tr style="background:var(--g1)"><th style="padding:5px 8px">Ano</th><th style="padding:5px 8px;text-align:right">Missões</th><th style="padding:5px 8px;text-align:right">Flight time</th><th style="padding:5px 8px;text-align:right">Block time</th></tr></thead><tbody>`;
-      years.forEach(([yrk,v])=>{p1+=`<tr style="border-top:1px solid var(--g1)"><td style="padding:5px 8px;font-weight:600">${yrk}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono)">${v.mis}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono);color:var(--g8)">${fD(v.ft)}</td><td style="padding:5px 8px;text-align:right;font-family:var(--mono)">${fD(v.bt)}</td></tr>`;});
-      p1+=`</tbody></table>`;
-    }
-  }
-  // Validades (sempre dados reais)
-  const valIds=[['valMed','📋 Médico'],['valLic','🎫 Licença'],['valCur','🎓 Curso']];
-  const vRows=valIds.filter(([k])=>t[k]).map(([k,lab])=>{const st=this.validityStatus(t[k]);const cor=st.status==='expired'?'#dc2626':(st.status==='soon'?'#f59e0b':'#10b981');return `<div style="display:flex;justify-content:space-between;padding:6px 10px;background:var(--g0);border-radius:6px;border-left:3px solid ${cor}"><span>${lab}</span><span style="color:${cor};font-weight:700">${st.label}</span></div>`;});
-  if(vRows.length){p1+=`<div style="font-weight:700;font-size:.85em;color:var(--g8);margin:8px 0 5px">📋 Validades</div><div style="display:grid;gap:4px;margin-bottom:4px">${vRows.join('')}</div>`;}
-  // ── Pane 2: Registo ──
-  let p2=`<div style="max-height:420px;overflow-y:auto;border:1px solid var(--border2);border-radius:8px">`;
-  if(!filtered.length){p2+=`<div style="color:var(--ink3);padding:20px;text-align:center">Sem missões para o filtro seleccionado.</div>`;}
-  else{
-    p2+=`<table style="width:100%;border-collapse:collapse;font-size:.79em"><thead style="position:sticky;top:0;z-index:1"><tr style="background:var(--g2)"><th style="padding:5px 7px;text-align:center">Data</th><th style="padding:5px 7px;text-align:left">Missão</th><th style="padding:5px 7px;text-align:left">Tipo</th><th style="padding:5px 7px;text-align:center">Aeronave</th><th style="padding:5px 7px;text-align:center">Função</th><th style="padding:5px 7px;text-align:right">Flight time</th><th style="padding:5px 7px;text-align:right">Block time</th><th style="padding:5px 7px;text-align:center">Estado</th></tr></thead><tbody>`;
-    filtered.forEach((m,i)=>{
-      const fn=(m.crew||[]).find(cx=>cx.nome===nome)?.fn||'—';
-      const btS=this.calcBT(m.boff,m.bon);
-      const sc=this.C.bdgStatus[m.status||'Concluída']||'bdg-done';
-      const bg=i%2===0?'background:var(--g0)':'';
-      p2+=`<tr style="${bg};border-top:1px solid var(--g1)"><td style="padding:4px 7px;text-align:center;white-space:nowrap">${m._dt.toLocaleDateString('pt-PT')}</td><td style="padding:4px 7px;font-family:var(--mono);font-size:.78em">${this.esc(m.num)}</td><td style="padding:4px 7px">${this.esc(m.tipo||'—')}</td><td style="padding:4px 7px;text-align:center">${this.esc(m.aero||'—')}</td><td style="padding:4px 7px;text-align:center;font-size:.78em">${this.esc(fn)}</td><td style="padding:4px 7px;text-align:right;font-family:var(--mono);color:var(--g8)">${(m.dur||'').slice(0,5)||'—'}</td><td style="padding:4px 7px;text-align:right;font-family:var(--mono)">${btS}</td><td style="padding:4px 7px;text-align:center"><span class="bdg ${sc}" style="font-size:.68em">${m.status||'—'}</span></td></tr>`;
-    });
-    p2+=`</tbody></table>`;
-  }
-  p2+=`</div>`;
-  // Actualizar DOM
-  const p1el=document.getElementById('lbP1'),p2el=document.getElementById('lbP2');
-  if(p1el)p1el.innerHTML=p1;
-  if(p2el)p2el.innerHTML=p2;
-  const t2el=document.getElementById('lbT2');
-  if(t2el)t2el.textContent=`📋 Registo (${filtered.length})`;
-  const fc=document.getElementById('lbFCount');
-  if(fc)fc.textContent=(yr||mo)?`${filtered.length} de ${ms.length} missões`:'';
-},
-
-_lbTab(n){
-  const p1=document.getElementById('lbP1'),p2=document.getElementById('lbP2');
-  const t1=document.getElementById('lbT1'),t2=document.getElementById('lbT2');
-  if(p1)p1.style.display=n===1?'':'none';
-  if(p2)p2.style.display=n===2?'':'none';
-  if(t1){t1.style.background=n===1?'var(--g6)':'var(--surface)';t1.style.color=n===1?'#fff':'var(--ink1)';t1.style.borderColor=n===1?'var(--g6)':'var(--border2)';}
-  if(t2){t2.style.background=n===2?'var(--g6)':'var(--surface)';t2.style.color=n===2?'#fff':'var(--ink1)';t2.style.borderColor=n===2?'var(--g6)':'var(--border2)';}
-},
-
-tripLogbookPDF(nome){
-  try{
-    if(!window.jspdf){this.showNotif('❌ Biblioteca PDF não carregada','err');return;}
-    const t=this.S.trips.find(x=>x.nome===nome);
-    if(!t){this.showNotif('❌ Tripulante não encontrado','err');return;}
-    const _ftMin=m=>{const p=String(m.dur||'0:0').split(':').map(Number);return(p[0]||0)*60+(p[1]||0);};
-    const _btMin=m=>{const s=this.calcBT(m.boff,m.bon);if(!s||s==='—')return 0;const[bh,bm]=s.split(':').map(Number);return bh*60+(bm||0);};
-    // Oldest first for logbook chronology
-    const allMs=this.S.missoes
-      .filter(m=>(m.crew||[]).some(c=>c.nome===nome))
-      .map(m=>({...m,_dt:m.dt instanceof Date?m.dt:new Date(m.dt)}))
-      .sort((a,b)=>a._dt-b._dt);
-    // Apply active modal filter if present
-    const _fYr=document.getElementById('lbFYear')?.value||'';
-    const _fMo=document.getElementById('lbFMonth')?.value||'';
-    const MESES_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-    const pdfMs=(_fYr||_fMo)?allMs.filter(m=>{
-      if(_fYr&&m._dt.getFullYear()!==Number(_fYr))return false;
-      if(_fMo&&(m._dt.getMonth()+1)!==Number(_fMo))return false;
-      return true;
-    }):allMs;
-    const filterLabel=_fYr||_fMo?'Filtro: '+(_fMo?MESES_PT[Number(_fMo)-1]+' ':'')+(_fYr||''):'';
-    let totFt=0,totBt=0;
-    const byFn={},byAero={},byYear={};
-    pdfMs.forEach(m=>{
-      const fn=(m.crew||[]).find(c=>c.nome===nome)?.fn||'—';
-      const ft=_ftMin(m),bt=_btMin(m);
-      totFt+=ft;totBt+=bt;
-      if(!byFn[fn])byFn[fn]={mis:0,ft:0,bt:0};byFn[fn].mis++;byFn[fn].ft+=ft;byFn[fn].bt+=bt;
-      const ae=m.aero||'—';if(!byAero[ae])byAero[ae]={mis:0,ft:0};byAero[ae].mis++;byAero[ae].ft+=ft;
-      const yr=m._dt.getFullYear();if(!byYear[yr])byYear[yr]={mis:0,ft:0,bt:0};byYear[yr].mis++;byYear[yr].ft+=ft;byYear[yr].bt+=bt;
-    });
-    const fH=min=>Math.floor(min/60)+'h '+(min%60<10?'0':'')+(min%60)+'m';
-    const fD=min=>(min/60).toFixed(2)+'h';
-    const {jsPDF}=window.jspdf;
-    const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-    const W=297,lm=10,rm=10,pH=210;
-    // Cabeçalho verde
-    doc.setFillColor(46,125,50);doc.rect(0,0,W,20,'F');
-    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(12);
-    doc.text('CADERNETA DE VOO INDIVIDUAL — GUARDA COSTEIRA DE CABO VERDE · ESQUADRILHA AÉREA',W/2,9,{align:'center'});
-    doc.setFontSize(8);doc.setFont('helvetica','normal');
-    doc.text('Gerado em: '+new Date().toLocaleString('pt-PT')+(filterLabel?' · '+filterLabel:''),W/2,16,{align:'center'});
-    doc.setTextColor(0,0,0);
-    let y=26;
-    // Caixa de identificação
-    doc.setFillColor(240,250,240);doc.roundedRect(lm,y-2,W-lm-rm,16,2,2,'FD');
-    doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text(nome,lm+4,y+4);
-    doc.setFont('helvetica','normal');doc.setFontSize(8.5);
-    doc.text('Posto: '+(t.posto||'—')+'   |   Colocação: '+(t.col||'—')+'   |   NIF: '+(t.nif||'—'),lm+4,y+10);
-    doc.setFont('helvetica','bold');
-    doc.text(''+pdfMs.length+' missões   |   Flight time: '+fH(totFt)+'   |   Block time: '+fH(totBt),W-rm-4,y+4,{align:'right'});
-    if(pdfMs.length){const y0=pdfMs[0]._dt.getFullYear(),y1=pdfMs[pdfMs.length-1]._dt.getFullYear();doc.setFont('helvetica','normal');doc.text('Período: '+(y0===y1?''+y0:y0+' — '+y1),W-rm-4,y+10,{align:'right'});}
-    y+=22;
-    // Secção de Validades
-    const valItems=[];
-    if(t.valMed){const st=this.validityStatus(t.valMed);valItems.push(['\u2665 Medico Civil',t.valMed,st]);}
-    if(t.valLic){const st=this.validityStatus(t.valLic);valItems.push(['\u2708 Licenca',t.valLic,st]);}
-    (t.cursos||[]).forEach(c=>{if(c.val){const st=this.validityStatus(c.val);valItems.push(['\u25CF '+(c.nome||'Curso'),c.val,st]);}});
-    if(valItems.length){
-      const nPerRow=Math.min(valItems.length,Math.floor((W-lm-rm-22)/52));
-      const usedW=22+nPerRow*52;
-      const nRows=Math.ceil(valItems.length/nPerRow);
-      const rowH=13;
-      doc.setFillColor(248,255,248);doc.setDrawColor(200,230,201);doc.setLineWidth(0.3);
-      doc.roundedRect(lm,y,W-lm-rm,rowH*nRows,2,2,'FD');
-      doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(27,94,32);
-      doc.text('Validades',lm+2,y+5);
-      valItems.forEach(([tipo,date,st],i)=>{
-        const row=Math.floor(i/nPerRow),col=i%nPerRow;
-        const vx=lm+22+col*52,vy=y+row*rowH;
-        const cor=st.status==='expired'?[185,28,28]:(st.status==='soon'?[217,119,6]:[21,128,61]);
-        doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(50,50,50);
-        doc.text(tipo.length>15?tipo.slice(0,14)+'\u2026':tipo,vx,vy+5);
-        doc.setFont('helvetica','normal');doc.setTextColor(...cor);
-        doc.text(new Date(date).toLocaleDateString('pt-PT')+'  '+st.label,vx,vy+10.5);
-        doc.setTextColor(0,0,0);
-      });
-      y+=rowH*nRows+4;
-    }
-    // Caixa de filtros activos (apenas quando há filtro)
-    if(filterLabel){
-      doc.setFillColor(240,250,240);doc.setDrawColor(46,125,50);doc.setLineWidth(0.4);doc.roundedRect(lm,y,W-lm-rm,9,2,2,'FD');
-      doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(27,94,32);doc.text('Filtros aplicados:',lm+3,y+5.8);
-      doc.setFont('helvetica','normal');doc.text(filterLabel,lm+40,y+5.8,{maxWidth:W-lm-rm-44});
-      doc.setTextColor(0,0,0);y+=12;
-    }
-    // Tabelas de resumo lado a lado
-    const fnsRows=Object.entries(byFn).sort((a,b)=>b[1].ft-a[1].ft).map(([fn,v])=>[fn,''+v.mis,fD(v.ft),fD(v.bt)]);
-    const aeroRows=Object.entries(byAero).sort((a,b)=>b[1].ft-a[1].ft).map(([a,v])=>[a,''+v.mis,fD(v.ft)]);
-    const yearRows=Object.entries(byYear).sort((a,b)=>Number(a[0])-Number(b[0])).map(([yr,v])=>[''+yr,''+v.mis,fD(v.ft),fD(v.bt)]);
-    const hs={fillColor:[46,125,50],textColor:255,fontStyle:'bold'};
-    const cs={fontSize:7.5,cellPadding:2};
-    doc.autoTable({startY:y,head:[['Função','Mis.','Flight time','Block time']],body:fnsRows.length?fnsRows:[['—','—','—','—']],styles:cs,headStyles:hs,tableWidth:82,margin:{left:lm,right:W-lm-82},didDrawPage:()=>{}});
-    const yFn=doc.lastAutoTable.finalY;
-    doc.autoTable({startY:y,head:[['Aeronave','Mis.','Flight time']],body:aeroRows.length?aeroRows:[['—','—','—']],styles:cs,headStyles:hs,tableWidth:74,margin:{left:lm+86,right:W-lm-86-74},didDrawPage:()=>{}});
-    const yAe=doc.lastAutoTable.finalY;
-    doc.autoTable({startY:y,head:[['Ano','Mis.','Flight time','Block time']],body:yearRows.length?yearRows:[['—','—','—','—']],styles:cs,headStyles:hs,tableWidth:60,margin:{left:lm+166,right:rm},didDrawPage:()=>{}});
-    y=Math.max(yFn,yAe,doc.lastAutoTable.finalY)+8;
-    // Registo de voos (ordenado por data, mais antigo primeiro — formato caderneta)
-    if(pdfMs.length){
-      let cumFt=0,cumBt=0;
-      const rows=pdfMs.map(m=>{
-        const fn=(m.crew||[]).find(c=>c.nome===nome)?.fn||'—';
-        const ft=_ftMin(m),bt=_btMin(m);
-        cumFt+=ft;cumBt+=bt;
-        const btS=this.calcBT(m.boff,m.bon);
-        return[m._dt.toLocaleDateString('pt-PT'),m.num||'—',m.serie||'—',m.tipo||'—',m.aero||'—',fn,(m.dur||'').slice(0,5)||'—',btS==='—'?'—':btS,(cumFt/60).toFixed(2),(cumBt/60).toFixed(2)];
-      });
-      doc.autoTable({startY:y,
-        head:[['Data','Nº missão','Série','Tipo de missão','Aeronave','Função','Flight time','Block time','Flight time acum.','Block time acum.']],
-        body:rows,
-        styles:{fontSize:7,cellPadding:1.8,valign:'middle'},
-        headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold',halign:'center'},
-        alternateRowStyles:{fillColor:[243,249,243]},
-        columnStyles:{
-          0:{cellWidth:22,halign:'center'},1:{cellWidth:30},2:{cellWidth:16,halign:'center'},
-          3:{cellWidth:55},4:{cellWidth:24,halign:'center'},5:{cellWidth:30,halign:'center'},
-          6:{cellWidth:20,halign:'center'},7:{cellWidth:20,halign:'center'},
-          8:{cellWidth:30,halign:'right'},9:{cellWidth:30,halign:'right'},
-        },
-        margin:{left:lm,right:rm}});
-    }
-    // Assinaturas — nova página se não houver espaço (mínimo 34mm)
-    const lastY=doc.lastAutoTable?doc.lastAutoTable.finalY:60;
-    let sigPage=doc.getNumberOfPages();
-    let sigY;
-    if(pH-lastY<38){doc.addPage();sigPage=doc.getNumberOfPages();sigY=20;}
-    else{doc.setPage(sigPage);sigY=lastY+14;}
-    const sigW=(W-lm-rm-20)/3;
-    const g=4;
-    const sigs=['Tripulante','Diretor de Operacoes Aereas','Comandante'];
-    doc.setDrawColor(180,180,180);doc.setLineWidth(0.25);
-    doc.line(lm,sigY-2,W-rm,sigY-2);
-    sigs.forEach((label,i)=>{
-      const sx=lm+i*(sigW+10);
-      const cx=sx+sigW/2;
-      doc.setFont('helvetica','italic');doc.setFontSize(6.5);doc.setTextColor(140,140,140);
-      doc.text('Assinatura',cx,sigY+6,{align:'center'});
-      doc.setDrawColor(0,0,0);doc.setLineWidth(0.5);
-      doc.line(sx+g,sigY+12,sx+sigW-g,sigY+12);
-      doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(30,30,30);
-      doc.text(label,cx,sigY+18,{align:'center'});
-      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(100,100,100);
-      doc.text('Data: ___/___/________',cx,sigY+23,{align:'center'});
-      doc.setTextColor(0,0,0);
-    });
-    // Rodapé em todas as páginas
-    const nPg=doc.getNumberOfPages();
-    for(let i=1;i<=nPg;i++){
-      doc.setPage(i);
-      doc.setFontSize(7);doc.setTextColor(160,160,160);
-      doc.text('CGC — Esquadrilha Aérea  ·  Caderneta de Voo  ·  '+nome+(filterLabel?' · '+filterLabel:''),lm,pH-3);
-      doc.text('Pág. '+i+'/'+nPg,W-rm,pH-3,{align:'right'});
-      doc.setTextColor(0,0,0);
-    }
-    doc.save('Caderneta_'+nome.replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.pdf');
-    this.showNotif('✅ Caderneta PDF gerada','ok');
-  }catch(ex){this.showNotif('❌ Erro ao gerar PDF: '+ex.message,'err');}
 },
 
 };// end A
