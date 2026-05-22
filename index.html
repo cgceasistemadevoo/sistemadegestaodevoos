@@ -3090,14 +3090,16 @@ showHistoria(id){
         +'<td>'+this.esc(m.aero)+'</td>'
         +'<td style="font-family:monospace">BOff: '+(m.boff||'').slice(0,5)+'<br>TOff: '+(m.toff||'').slice(0,5)+'<br>Land: '+(m.land||'').slice(0,5)+'<br>BOn: '+(m.bon||'').slice(0,5)+'</td>'
         +'<td style="font-family:monospace;text-align:center;font-weight:700">'+(m.dur||'—').slice(0,5)+'</td>'
+        +'<td style="font-family:monospace;text-align:center;font-weight:700">'+(this.calcBT(m.boff,m.bon)||'—')+'</td>'
         +'<td>'+crew+'</td>'
         +'<td style="text-align:center"><span style="padding:2px 8px;border-radius:10px;font-size:10px;background:'+({'Concluída':'#d1fae5','Planeada':'#dbeafe','Em Curso':'#fef3c7','Cancelada':'#fee2e2'}[m.status||'Concluída'])+'">'+(m.status||'Concluída')+'</span></td>'
         +'<td style="border:1px solid #999;width:60px"></td>'
         +'</tr>';
     });
     // Total horas dia
-    let totMin=0;dayMs.forEach(m=>{const p=String(m.dur||'0:0').split(':').map(Number);totMin+=(p[0]||0)*60+(p[1]||0);});
+    let totMin=0,totBtMin=0;dayMs.forEach(m=>{const p=String(m.dur||'0:0').split(':').map(Number);totMin+=(p[0]||0)*60+(p[1]||0);const bt=this.calcBT(m.boff,m.bon);if(bt&&bt!=='—'){const[bh,bm]=bt.split(':').map(Number);totBtMin+=bh*60+(bm||0);}});
     const totH=Math.floor(totMin/60)+'h'+String(totMin%60).padStart(2,'0');
+    const totBtH=Math.floor(totBtMin/60)+'h'+String(totBtMin%60).padStart(2,'0');
     const html='<!DOCTYPE html><html lang="pt"><head><meta charset="utf-8"><title>Folha de Serviço — '+dateStr+'</title><style>'
       +'body{font-family:Arial,sans-serif;margin:20px;color:#000;font-size:12px}'
       +'h1{margin:0 0 4px;font-size:20px;color:#2e7d32}'
@@ -3119,8 +3121,8 @@ showHistoria(id){
       +'</style></head><body>'
       +'<div class="no-print" style="margin-bottom:14px"><button class="btn" onclick="window.print()">🖨️ Imprimir</button><button class="btn" style="background:#666" onclick="window.close()">Fechar</button></div>'
       +'<div class="hdr"><div><h1>FOLHA DE SERVIÇO DIÁRIA</h1><h2>CGC - EA - Sistema de Gestão de Voo</h2></div><div class="meta"><b>Data:</b> '+dateStr+'<br><b>Emitida:</b> '+new Date().toLocaleString('pt-PT')+'</div></div>'
-      +'<div class="totals"><div><b>'+dayMs.length+'</b>Missões</div><div><b>'+totH+'</b>Total horas voo</div><div><b>'+(new Set(dayMs.flatMap(m=>(m.crew||[]).map(c=>c.nome)))).size+'</b>Tripulantes</div><div><b>'+(new Set(dayMs.map(m=>m.aero))).size+'</b>Aeronaves</div></div>'
-      +'<table><thead><tr><th>#</th><th>Missão</th><th>Tipo</th><th>Aeronave</th><th>Horários</th><th>FLIGHT TIME</th><th>Tripulação</th><th>Estado</th><th>Visto</th></tr></thead><tbody>'+rows+'</tbody></table>'
+      +'<div class="totals"><div><b>'+dayMs.length+'</b>Missões</div><div><b>'+totH+'</b>Total Flight Time</div><div><b>'+totBtH+'</b>Total Block Time</div><div><b>'+(new Set(dayMs.flatMap(m=>(m.crew||[]).map(c=>c.nome)))).size+'</b>Tripulantes</div><div><b>'+(new Set(dayMs.map(m=>m.aero))).size+'</b>Aeronaves</div></div>'
+      +'<table><thead><tr><th>#</th><th>Missão</th><th>Tipo</th><th>Aeronave</th><th>Horários</th><th>FLIGHT TIME</th><th>BLOCK TIME</th><th>Tripulação</th><th>Estado</th><th>Visto</th></tr></thead><tbody>'+rows+'</tbody></table>'
       +'<div class="sig"><div>Oficial de Operações<br><span style="font-size:9px;color:#999">Data: ___/___/________</span></div><div>Chefe de Serviço de Operações<br><span style="font-size:9px;color:#999">Data: ___/___/________</span></div><div>Diretor de Operações Aereas<br><span style="font-size:9px;color:#999">Data: ___/___/________</span></div></div>'
       +'<div class="foot">CGC - EA - Sistema de Gestão de Voo — Documento gerado automaticamente</div>'
       +'</body></html>';
