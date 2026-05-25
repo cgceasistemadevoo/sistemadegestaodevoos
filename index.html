@@ -2786,7 +2786,7 @@ showHistoria(id){
       // ── SECÇÃO TRIPULANTES ───────────────────────────────────────
       if(crewAll.length){
         doc.setFontSize(11);doc.setFont('helvetica','bold');
-        doc.setTextColor(46,125,50);doc.text('👤 TRIPULANTES',10,y);
+        doc.setTextColor(46,125,50);doc.text('TRIPULANTES',10,y);
         doc.setTextColor(0,0,0);y+=5;
         renderCrewSection('❌ EXPIRADOS',crewExp,[220,38,38]);
         renderCrewSection('⚠️ A EXPIRAR (próximos 30 dias)',crewSoon,[245,158,11]);
@@ -2800,7 +2800,7 @@ showHistoria(id){
       // ── SECÇÃO AERONAVES ─────────────────────────────────────────
       if(y>250){doc.addPage();y=15;}
       doc.setFontSize(11);doc.setFont('helvetica','bold');
-      doc.setTextColor(30,64,175);doc.text('✈️ AERONAVES',10,y);
+      doc.setTextColor(30,64,175);doc.text('️ AERONAVES',10,y);
       doc.setTextColor(0,0,0);y+=5;
       if(aeroAll2.length){
         renderAeroSection('❌ EXPIRADOS / EXCEDIDOS',aeroExp,[220,38,38]);
@@ -5584,7 +5584,7 @@ relatorioMensalPDF(){
   const aeroKeys=Object.keys(byAero).sort();
   if(aeroKeys.length){
     doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(22,101,52);
-    doc.text('✈ Block Time por Aeronave',lm,y);y+=5;
+    doc.text('Block Time por Aeronave',lm,y);y+=5;
     doc.setTextColor(0,0,0);
     doc.autoTable({startY:y,head:[['Aeronave','Missões','Block Time','% do Total']],
       body:aeroKeys.map(k=>[k,byAero[k].mis,fmtM(byAero[k].btMin),totBT?Math.round(byAero[k].btMin/totBT*100)+'%':'—']),
@@ -5598,7 +5598,7 @@ relatorioMensalPDF(){
   const tipoKeys=Object.keys(byTipo).sort((a,b)=>byTipo[b].mis-byTipo[a].mis);
   if(tipoKeys.length){
     doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(22,101,52);
-    doc.text('📊 Missões por Tipo',lm,y);y+=5;
+    doc.text('Missões por Tipo',lm,y);y+=5;
     doc.setTextColor(0,0,0);
     doc.autoTable({startY:y,head:[['Tipo de Missão','Missões','%']],
       body:tipoKeys.map(k=>[k,byTipo[k].mis,ms.length?Math.round(byTipo[k].mis/ms.length*100)+'%':'—']),
@@ -5613,7 +5613,7 @@ relatorioMensalPDF(){
   if(tripLista.length){
     if(y>230){doc.addPage();y=20;}
     doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(22,101,52);
-    doc.text('👥 Tripulantes do Mês',lm,y);y+=5;
+    doc.text('Tripulantes do Mês',lm,y);y+=5;
     doc.setTextColor(0,0,0);
     doc.autoTable({startY:y,head:[['Tripulante','Função','Missões','Block Time','Pagto de Subsídio']],
       body:tripLista.map(p=>[p.nome,p.fn,p.mis,fmtM(p.btMin),this.cve(Math.round(p.cve))]),
@@ -5627,7 +5627,7 @@ relatorioMensalPDF(){
   if(ms.length){
     if(y>220){doc.addPage();y=20;}
     doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(22,101,52);
-    doc.text('📋 Lista de Missões — '+mesNome+' '+ano,lm,y);y+=5;
+    doc.text('Lista de Missões — '+mesNome+' '+ano,lm,y);y+=5;
     doc.setTextColor(0,0,0);
     doc.autoTable({startY:y,
       head:[['Nº Missão','Data','Estado','Tipo','Aeronave','Block Time','Tripulação']],
@@ -5711,7 +5711,7 @@ relatorioAnualPDF(){
   y+=26;
   // Tabela mensal
   doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(22,101,52);
-  doc.text('📅 Resumo Mensal',lm,y);y+=4;doc.setTextColor(0,0,0);
+  doc.text('Resumo Mensal',lm,y);y+=4;doc.setTextColor(0,0,0);
   doc.autoTable({startY:y,head:[['Mês','Missões','Concluídas','Canceladas','Block Time','Comb.Usado','Custo Est.']],
     body:byMes.filter(b=>b.mis>0).map(b=>[b.nome+' '+ano,b.mis,b.concl,b.cancel,fmtM(b.btMin),b.fuel?b.fuel+'L':'—',b.cve>0?this.cve(Math.round(b.cve)):'—']),
     styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold',halign:'center'},
@@ -5729,7 +5729,7 @@ relatorioAnualPDF(){
   // Aeronave (coluna esquerda: lm → lm+130)
   if(aeroKeys.length){
     doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(22,101,52);
-    doc.text('✈ Por Aeronave',lm,ySubLbl);doc.setTextColor(0,0,0);
+    doc.text('Por Aeronave',lm,ySubLbl);doc.setTextColor(0,0,0);
     doc.autoTable({startY:ySubTbl,
       head:[['Aeronave','Missões','Block Time']],
       body:aeroKeys.map(k=>[k,byAero[k].mis,fmtM(byAero[k].btMin)]),
@@ -5744,7 +5744,7 @@ relatorioAnualPDF(){
   // Tipo (coluna direita: 148 → rm)
   if(tipoKeys.length){
     doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(22,101,52);
-    doc.text('📊 Por Tipo de Missão',148,ySubLbl);doc.setTextColor(0,0,0);
+    doc.text('Por Tipo de Missão',148,ySubLbl);doc.setTextColor(0,0,0);
     doc.autoTable({startY:ySubTbl,
       head:[['Tipo de Missão','Qtd','%']],
       body:tipoKeys.map(k=>[k,byTipo[k].mis,ms.length?Math.round(byTipo[k].mis/ms.length*100)+'%':'—']),
@@ -5762,7 +5762,7 @@ relatorioAnualPDF(){
   if(tripLista.length){
     if(y>160){doc.addPage();y=16;}
     doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(22,101,52);
-    doc.text('🏆 Top Tripulantes do Ano',lm,y);doc.setTextColor(0,0,0);y+=3;
+    doc.text('Top Tripulantes do Ano',lm,y);doc.setTextColor(0,0,0);y+=3;
     doc.autoTable({startY:y,head:[['#','Tripulante','Função','Missões','Block Time','Pagto de Subsídio']],
       body:tripLista.map((p,i)=>[i+1,p.nome,p.fn,p.mis,fmtM(p.btMin),this.cve(Math.round(p.cve))]),
       styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold'},
