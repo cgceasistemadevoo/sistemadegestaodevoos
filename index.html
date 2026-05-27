@@ -41,27 +41,27 @@ body{font-family:var(--font);background:var(--surface);color:var(--ink);font-siz
    DARK MODE
 ═══════════════════════════════════════════════════════ */
 body.dark{
-  --g9:#90caf9;--g8:#64b5f6;--g7:#42a5f5;--g6:#2196f3;
-  --g2:#0d2035;--g1:#071628;--g0:#040f1e;
-  --ink:#dce8f5;--ink2:#90caf9;--ink3:#5b8db8;
-  --surface:#050d18;--white:#0c1a2b;
-  --border:#112240;--border2:#1a3254;
-  --shadow:0 1px 4px rgba(0,0,0,.6);--shadow-md:0 4px 16px rgba(0,0,0,.7);--shadow-lg:0 8px 32px rgba(0,0,0,.8);
-  --red:#ef9a9a;--amber:#ffcc80;--blue:#90caf9;
+  --g9:#4ade80;--g8:#22c55e;--g7:#16a34a;--g6:#15803d;
+  --g2:#2a2d2e;--g1:#222426;--g0:#1c1e1f;
+  --ink:#e8eaed;--ink2:#bdc1c6;--ink3:#80868b;
+  --surface:#1a1c1e;--white:#242628;
+  --border:#3c3f41;--border2:#4a4d4f;
+  --shadow:0 1px 4px rgba(0,0,0,.5);--shadow-md:0 4px 16px rgba(0,0,0,.6);--shadow-lg:0 8px 32px rgba(0,0,0,.7);
+  --red:#f28b82;--amber:#fdd663;--blue:#8ab4f8;--purple:#c58af9;--teal:#78d9ec;
 }
 body.dark .modal-box{background:var(--white);border:1px solid var(--border)}
-body.dark .sync-pill.offline{background:#1a1a1a;border-color:#333}
-body.dark .hdr{background:var(--surface);background-image:none;}
-body.dark .bdg-plan{background:#01304a;color:#80cbc4}
-body.dark .bdg-done{background:#0a2035;color:#64b5f6}
-body.dark .bdg-cancel{background:#3e0b18;color:#f48fb1}
-body.dark .bdg-inprog{background:#3e2200;color:#ffcc80}
+body.dark .sync-pill.offline{background:#1c1e1f;border-color:#3c3f41}
+body.dark .hdr{background:#1a1c1e;background-image:none;border-bottom:1px solid #3c3f41;}
+body.dark .bdg-plan{background:#1a2d45;color:#8ab4f8}
+body.dark .bdg-done{background:#1a2e1c;color:#4ade80}
+body.dark .bdg-cancel{background:#3e1515;color:#f28b82}
+body.dark .bdg-inprog{background:#3e2c00;color:#fdd663}
 
 /* ═══════════════════════════════════════════════════════
    LAYOUT
 ═══════════════════════════════════════════════════════ */
 #loading{position:fixed;inset:0;background:rgba(255,255,255,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:14px}
-body.dark #loading{background:rgba(8,14,9,.97)}
+body.dark #loading{background:rgba(26,28,30,.97)}
 #loading.hide{display:none}
 .spin{width:40px;height:40px;border:4px solid var(--g2);border-top-color:var(--g8);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -685,6 +685,9 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   <div class="ntab" data-p="analises">📈 Análises</div>
   <div class="ntab" data-p="calendario">📅 Calendário</div>
   <div class="ntab" data-p="aeronaves">🛩️ Aeronaves</div>
+  <div class="ntab" data-p="quadro">📋 Quadro Ops</div>
+  <div class="ntab" data-p="mapa">🗺️ Mapa</div>
+  <div class="ntab" data-p="incidentes">⚠️ Incidentes</div>
 </nav>
 <!-- NAV TOGGLE TAB -->
 <button class="nav-toggle" id="navToggle" onclick="A.toggleNav()">☰</button>
@@ -850,6 +853,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
         <select id="iCol"><option value="">— Selecione —</option></select>
       </div>
       <div class="fg"><label>NIF * (9 dígitos)</label><input id="iNIF" placeholder="123456789" maxlength="9" inputmode="numeric"></div>
+      <div class="fg"><label>✉️ Email</label><input type="email" id="iEmail" placeholder="nome@exemplo.com" inputmode="email"></div>
       <div class="fg"><label>📋 Validade Médico</label><input type="date" id="iValMed"></div>
       <div class="fg"><label>🎫 Validade Licença</label><input type="date" id="iValLic"></div>
       <div class="fg" style="grid-column:1/-1">
@@ -1155,7 +1159,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 
   <div class="card">
     <div class="card-hd">
-      <h3>🛩️ Lista de Aeronaves</h3>
+      <h3>🛩️ Frota de Aeronaves</h3>
     </div>
     <div class="tscroll" id="tAeros"></div>
   </div>
@@ -1220,6 +1224,109 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 <div class="footer">2026 &nbsp;|&nbsp; Comando da Guarda Costeira de Cabo Verde</div>
 
 <!-- SCRIPTS -->
+
+<!-- ══════════════════════════════════════════
+     QUADRO OPERACIONAL
+════════════════════════════════════════════ -->
+<div id="page-quadro" class="page hide">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+    <div>
+      <div id="qdClock" style="font-family:var(--mono);font-size:1.8em;font-weight:700;color:var(--g9);letter-spacing:2px"></div>
+      <div id="qdDate" style="font-size:.8em;color:var(--ink3);margin-top:2px"></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <select id="qdFilter" onchange="A.renderQuadro()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85em;background:var(--white);color:var(--ink);outline:none">
+        <option value="hoje">Hoje</option>
+        <option value="semana">Esta semana</option>
+        <option value="todas">Todas activas</option>
+      </select>
+      <button class="btn btn-p btn-sm" onclick="A._quadroFullscreen()">Ecrã Completo</button>
+    </div>
+  </div>
+  <div id="qdMissoes" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px"></div>
+  <div id="qdVazio" class="hide" style="text-align:center;padding:60px 20px;color:var(--ink3)">
+    <div style="font-size:3em;margin-bottom:12px">📋</div>
+    <div style="font-size:1.1em;font-weight:600">Sem missões para o período seleccionado</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MAPA DE ROTAS
+════════════════════════════════════════════ -->
+<div id="page-mapa" class="page hide">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+    <select id="mapaMonth" onchange="A.renderMapa()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85em;background:var(--white);color:var(--ink);outline:none"></select>
+    <select id="mapaYear" onchange="A.renderMapa()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85em;background:var(--white);color:var(--ink);outline:none"></select>
+    <button class="btn btn-sm" onclick="document.getElementById('mapaMonth').value='0';A.renderMapa()" style="font-size:.82em">Todos os meses</button>
+  </div>
+  <div class="card" style="padding:16px">
+    <div style="overflow-x:auto">
+      <div id="mapaContainer" style="min-width:600px;position:relative">
+        <svg id="mapaSvg" viewBox="0 0 700 520" style="width:100%;max-width:700px;display:block;margin:0 auto"></svg>
+      </div>
+    </div>
+    <div id="mapaLegenda" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:.78em;color:var(--ink3)"></div>
+  </div>
+  <div id="mapaRotas" style="margin-top:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px"></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     INCIDENTES
+════════════════════════════════════════════ -->
+<div id="page-incidentes" class="page hide">
+  <div class="mgrid" style="margin-bottom:16px">
+    <div class="mcard" data-ic="⚠️"><div class="mcard-lbl">Total</div><div class="mcard-val" id="incTot">0</div><div class="mcard-sub">registados</div></div>
+    <div class="mcard" data-ic="🔴"><div class="mcard-lbl">Abertos</div><div class="mcard-val" id="incOpen" style="color:#dc2626">0</div><div class="mcard-sub">por resolver</div></div>
+    <div class="mcard" data-ic="🟡"><div class="mcard-lbl">Em análise</div><div class="mcard-val" id="incInvest" style="color:#d97706">0</div><div class="mcard-sub">a investigar</div></div>
+    <div class="mcard" data-ic="✅"><div class="mcard-lbl">Encerrados</div><div class="mcard-val" id="incClosed" style="color:#16a34a">0</div><div class="mcard-sub">resolvidos</div></div>
+  </div>
+
+  <div class="form-sec admin-only">
+    <h3>➕ Registar Incidente</h3>
+    <div class="fgrid2">
+      <div class="fg"><label>Data *</label><input type="date" id="iIncData"></div>
+      <div class="fg"><label>Aeronave</label><select id="iIncAero"></select></div>
+      <div class="fg"><label>Tipo de Incidente *</label>
+        <select id="iIncTipo">
+          <option value="">— Selecione —</option>
+          <option value="Falha Técnica">Falha Técnica</option>
+          <option value="Incidente de Voo">Incidente de Voo</option>
+          <option value="Condições Meteorológicas">Condições Meteorológicas</option>
+          <option value="Falha de Comunicação">Falha de Comunicação</option>
+          <option value="Incidente de Solo">Incidente de Solo</option>
+          <option value="Desvio de Procedimento">Desvio de Procedimento</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+      <div class="fg"><label>Severidade *</label>
+        <select id="iIncSev">
+          <option value="">— Selecione —</option>
+          <option value="Baixa">Baixa — sem consequências operacionais</option>
+          <option value="Média">Média — impacto limitado</option>
+          <option value="Alta">Alta — impacto significativo</option>
+          <option value="Crítica">Crítica — risco para a segurança</option>
+        </select>
+      </div>
+      <div class="fg" style="grid-column:1/-1"><label>Descrição *</label>
+        <textarea id="iIncDesc" rows="3" placeholder="Descreva o incidente em detalhe..." style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.87em;font-family:var(--font);resize:vertical;background:var(--white);color:var(--ink)"></textarea>
+      </div>
+      <div class="fg"><label>Missão relacionada (nº)</label><input id="iIncMissao" placeholder="Ex: CGC-001"></div>
+      <div class="fg"><label>Estado inicial</label>
+        <select id="iIncStatus">
+          <option value="Aberto">Aberto</option>
+          <option value="Em Análise">Em Análise</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-p" onclick="A.addIncidente()">✅ Registar Incidente</button>
+  </div>
+
+  <div class="card">
+    <div class="card-hd"><h3>⚠️ Registo de Incidentes</h3></div>
+    <div id="tIncidentes" style="padding:4px 0"></div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1249,7 +1356,7 @@ const A = {
 // ─── ESTADO ───────────────────────────────────────────────────
 S:{
   trips:[], missoes:[], filtered:[], series:[],
-  aeros:[],
+  aeros:[], incidentes:[],
   auditLog:[], templates:[], charts:{}, viewMode:'table', hrLimit:80, hrLimitYear:800, dirty:false,
   lastSave:null, role:null, currentUser:null, sessionToken:null, usersCache:null,
 },
@@ -1410,6 +1517,7 @@ async saveToCloud(){
       colocacoes:this.S.colocacoes,
       aeros:this.S.aeros,
       auditLog:this.S.auditLog,
+      incidentes:this.S.incidentes,
       config:{
         funcoes:this.C.funcoes,
         fnRates:this.C.vPF,
@@ -1457,6 +1565,7 @@ async loadFromCloud(){
       this.S.colocacoes=d.colocacoes||[];
       this.S.aeros=d.aeros||[];
       this.S.auditLog=d.auditLog||[];
+      this.S.incidentes=d.incidentes||[];
       // ── Restaurar configurações guardadas no Drive ──
       if(d.config){
         const cfg=d.config;
@@ -2192,6 +2301,9 @@ navTo(p){
   if(p==='tripulantes')this._fillColSelect();
   if(p==='calendario')this.renderCalendar();
   if(p==='analises'){this.renderTop();this.renderHorasTrip();this.buildAnalysisCharts();this.renderDashSelectors();}
+  if(p==='quadro'){this.renderQuadro();if(!this._quadroTimer)this._quadroTimer=setInterval(()=>{if(!document.getElementById('page-quadro').classList.contains('hide'))this.renderQuadro();},30000);}
+  if(p==='mapa')this.renderMapa();
+  if(p==='incidentes')this.renderIncidentes();
   // Fechar hamburger
   const ar=document.getElementById('abarRight');
   if(ar)ar.classList.remove('open');
@@ -2881,6 +2993,7 @@ showHistoria(id){
           <select id="etCol">${this.getColocacoes().map(c=>`<option value="${this.esc(c)}"${t.col===c?' selected':''}>${this.esc(c)}</option>`).join('')}</select>
         </div>
         <div class="fg"><label>NIF</label><input id="etNif" value="${this.esc(t.nif||'')}" maxlength="9"></div>
+        <div class="fg"><label>✉️ Email</label><input type="email" id="etEmail" value="${this.esc(t.email||'')}" placeholder="nome@exemplo.com"></div>
         <div class="fg"><label>📋 Validade Médico</label><input type="date" id="etValMed" value="${t.valMed||''}"></div>
         <div class="fg"><label>🎫 Validade Licença</label><input type="date" id="etValLic" value="${t.valLic||''}"></div>
         <div class="fg" style="grid-column:1/-1">
@@ -2914,6 +3027,7 @@ showHistoria(id){
       this.S.missoes.forEach(m=>{(m.crew||[]).forEach(cr=>{if(cr.nome===oldName)cr.nome=n;});});
     }
     t.nome=n;t.posto=p;t.col=c;t.nif=nif;
+    t.email=(document.getElementById('etEmail')?.value||'').trim().toLowerCase();
     t.valMed=document.getElementById('etValMed')?.value||'';
     t.valLic=document.getElementById('etValLic')?.value||'';
     t.cursos=this._getCursosList('etCursosList');
@@ -3767,13 +3881,14 @@ addTrip(){
   const valMed=document.getElementById('iValMed')?.value||'';
     const valLic=document.getElementById('iValLic')?.value||'';
     const cursos=this._getCursosList('iCursosList');
-    this.S.trips.push({nome:n,posto:p,col:c,nif,valMed,valLic,cursos});
+    const email=(document.getElementById('iEmail')?.value||'').trim().toLowerCase();
+    this.S.trips.push({nome:n,posto:p,col:c,nif,email,valMed,valLic,cursos});
   this.markDirty();
   this.fillSelects();
   this.renderAll();
   this.addAudit('Tripulante adicionado',n);
   this.showNotif('✅ '+n+' adicionado');
-  ['iNome','iPosto','iNIF','iValMed','iValLic'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['iNome','iPosto','iNIF','iEmail','iValMed','iValLic'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('iCol').value='';
   const cl=document.getElementById('iCursosList');if(cl)cl.innerHTML='';
 },
@@ -3808,6 +3923,7 @@ renderAll(){
   this.renderHorasTrip();
   this.renderAeros();
   this.renderMetas();
+  this.renderIncidentes();
 },
 
 // ─── DASHBOARD: Custo acumulado mês atual ─────────────────────
@@ -4340,7 +4456,7 @@ calcPag(){
       '<td style="'+C+'">'+p.pa+'</td><td style="'+C+'">'+p.al+'</td><td style="'+C+'">'+p.jn+'</td>'+
       '<td style="'+R+';font-size:.86em">'+this.cve(p.vR)+'</td>'+
       '<td style="'+R+'"><strong style="color:var(--g8)">'+this.cve(p.tot)+'</strong></td>'+
-      '<td><button class="btn btn-xs" style="background:#e3f2fd;border:1.5px solid #90caf9;color:#01579b" onclick="A.gerarRecibo(\''+p.nome.replace(/'/g,"\\'")+'\')" title="Recibo PDF">📄</button></td>'+
+      '<td style="white-space:nowrap"><button class="btn btn-xs" style="background:#e3f2fd;border:1.5px solid #90caf9;color:#01579b" onclick="A.gerarRecibo(\''+p.nome.replace(/'/g,"\\'")+'\')" title="Recibo PDF">📄</button>'+(this.isAdmin()||this.isGestor()?` <button class="btn btn-xs" style="background:#e8f5e9;border:1.5px solid #4ade80;color:#166534" onclick="A.enviarReciboEmail('${p.nome.replace(/'/g,"\\'")}\')" title="Enviar por email">✉️</button>`:'')+'</td>'+
       '</tr>';
   });
   h+='<tr style="background:var(--g0);font-weight:700"><td colspan="9" style="text-align:right;padding-right:16px">TOTAL GERAL</td><td style="'+R+';color:var(--g8)">'+this.cve(totVal)+'</td><td></td></tr></tbody></table>';
@@ -4475,6 +4591,138 @@ gerarRecibo(nome){
     savePDF(doc,'Recibo_'+nome.split(' ')[0]+'_'+mesNome+'_'+ano+'.pdf');
     this.showNotif('📄 Recibo exportado!');
   }catch(e){this.showNotif('❌ Erro ao gerar PDF: '+e.message,'err');}
+},
+
+// ─── ENVIAR RECIBO POR EMAIL ──────────────────────────────────
+async enviarReciboEmail(nome){
+  if(!this.isAdmin()&&!this.isGestor()){this.showNotif('❌ Sem permissão','err');return;}
+  const trip=this.S.trips.find(t=>t.nome===nome);
+  if(!trip){this.showNotif('❌ Tripulante não encontrado','err');return;}
+  const emailDest=trip.email||'';
+  // Modal de confirmação com campo de email
+  const html=`<h3 style="margin-bottom:12px">✉️ Enviar Recibo por Email</h3>
+    <p style="color:var(--ink2);font-size:.9em;margin-bottom:14px">Tripulante: <strong>${this.esc(nome)}</strong></p>
+    <div class="fg" style="margin-bottom:12px">
+      <label>Email do destinatário</label>
+      <input type="email" id="emailDestInput" value="${this.esc(emailDest)}" placeholder="nome@exemplo.com" style="width:100%">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button class="btn btn-p" id="btnConfirmEmail">📤 Enviar</button>
+      <button class="btn btn-s" onclick="A.closeInfoModal()">Cancelar</button>
+    </div>`;
+  this.openInfoModal(html);
+  document.getElementById('btnConfirmEmail').onclick=async()=>{
+    const dest=(document.getElementById('emailDestInput')?.value||'').trim();
+    if(!dest||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dest)){this.showNotif('❌ Email inválido','err');return;}
+    // Actualizar email no tripulante se mudou
+    if(dest!==trip.email){trip.email=dest;this.markDirty();}
+    this.closeInfoModal();
+    this.showNotif('⏳ A gerar PDF e enviar…');
+    // Gerar PDF como base64
+    try{
+      const selMes=document.getElementById('selMes');
+      const selAnoR=document.getElementById('selAno');
+      if(!selMes?.value||!selAnoR?.value){this.showNotif('❌ Selecione ano e mês primeiro','err');return;}
+      const ano=Number(selAnoR.value);
+      const mo=Number(selMes.value);
+      const mesNome=this.C.NM[mo-1]||'';
+      const selTp=document.getElementById('selPagTipo')?.value||'';
+      const selSr=document.getElementById('selPagSerie')?.value||'';
+      const selAr=document.getElementById('selPagAero')?.value||'';
+      const selMis=document.getElementById('selPagMissao')?.value||'';
+      const mMes=this.S.missoes.filter(m=>{
+        const _d=m.dt instanceof Date?m.dt:new Date(m.dt);
+        if(_d.getFullYear()!==ano||_d.getMonth()+1!==mo||m.status!=='Concluída')return false;
+        if(!(m.crew||[]).some(c=>c.nome===nome))return false;
+        if(selTp&&m.tipo!==selTp)return false;
+        if(selSr&&m.serie!==selSr)return false;
+        if(selAr&&m.aero!==selAr)return false;
+        if(selMis&&m.num!==selMis)return false;
+        return true;
+      });
+      if(!mMes.length){this.showNotif('❌ Sem missões para este tripulante com os filtros activos','err');return;}
+      const filtrosActivos=[selTp&&'Tipo: '+selTp,selSr&&'Série: '+selSr,selAr&&'Aeronave: '+selAr,selMis&&'Missão: '+selMis].filter(Boolean).join('  |  ');
+      let totMin=0,totVH=0,totVR=0,pa=0,al=0,jn=0,totBTMin=0;
+      const rows=mMes.map(m=>{
+        const crewM=m.crew.find(c=>c.nome===nome);
+        const _vPF=this.getVPF();const _mv=this.getMealVals();
+        const bt=this.calcBT(m.boff,m.bon);
+        const btMs=bt!=='—'?(()=>{const[bh,bm]=bt.split(':').map(Number);return bh*60+(bm||0);})():0;
+        const dMin=this.dur2m(m.dur);const effMs=btMs||dMin;
+        const vhP=(_vPF[crewM?.fn]||1500);const vH=vhP*(effMs/60);
+        const tMin=this.t2m((m.toff||'00:00').slice(0,5));
+        const hasPA=!m.catering&&this.overlaps(tMin,effMs,0,8);
+        const hasA=!m.catering&&this.overlaps(tMin,effMs,12,14);
+        const hasJ=!m.catering&&this.overlaps(tMin,effMs,19,24);
+        let vR=0;
+        if(hasPA){pa++;vR+=_mv.pa;}
+        if(hasA){al++;vR+=_mv.al;}
+        if(hasJ){jn++;vR+=_mv.jn;}
+        totMin+=effMs;totVH+=vH;totVR+=vR;totBTMin+=btMs;
+        const _dm=m.dt instanceof Date?m.dt:new Date(m.dt);
+        const durR=(m.toff&&m.land)?this.calcDur(m.toff.slice(0,5),m.land.slice(0,5)).slice(0,5):(m.dur?.slice(0,5)||'—');
+        return[m.num,_dm.toLocaleDateString('pt-PT'),m.tipo,crewM?.fn||'—',m.aero,durR,bt,this.cve(vH),hasPA?this.cve(_mv.pa):'',hasA?this.cve(_mv.al):'',hasJ?this.cve(_mv.jn):'',this.cve(vR),this.cve(vH+vR)];
+      });
+      const{jsPDF}=window.jspdf;
+      const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+      doc.setFillColor(46,125,50);doc.rect(0,0,297,30,'F');
+      doc.setTextColor(255,255,255);doc.setFontSize(15);doc.setFont('helvetica','bold');
+      doc.text('RECIBO DE PAGAMENTO',148,12,{align:'center'});
+      doc.setFontSize(9);doc.setFont('helvetica','normal');
+      doc.text('Comando da Guarda Costeira de Cabo Verde — Esquadrilha Aerea — Missoes Aereas',148,20,{align:'center'});
+      doc.text(mesNome+' '+ano+(filtrosActivos?' — '+filtrosActivos:''),148,27,{align:'center'});
+      doc.setTextColor(0,0,0);
+      let y=37;
+      doc.setFillColor(245,250,245);doc.roundedRect(10,y-4,277,22,3,3,'F');
+      doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(27,94,32);
+      doc.text('DADOS DO TRIPULANTE',14,y+1);
+      doc.setTextColor(0,0,0);doc.setFont('helvetica','normal');doc.setFontSize(8.5);
+      const col1x=14,col2x=148;
+      doc.setFont('helvetica','bold');doc.text(nome,col1x,y+8);
+      doc.setFont('helvetica','normal');doc.setFontSize(8);
+      doc.text('Posto: '+(trip?.posto||'—')+'    NIF: '+(trip?.nif||'—'),col1x,y+14);
+      doc.text('Colocacao: '+(trip?.col||'—'),col2x,y+8);
+      doc.text('Periodo: '+mesNome+' '+ano,col2x,y+14);
+      y+=24;
+      doc.autoTable({
+        startY:y,
+        head:[['Missao','Data','Tipo','Funcao','Aeronave','FLIGHT TIME','BLOCK TIME','Val/Hora','PA','Alm','Jan','Refeicoes','Total']],
+        body:rows,
+        styles:{fontSize:7,cellPadding:2,valign:'middle'},
+        headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold',fontSize:7,halign:'center'},
+        alternateRowStyles:{fillColor:[240,248,240]},
+        columnStyles:{0:{cellWidth:28},1:{cellWidth:18,halign:'center'},2:{cellWidth:40},3:{cellWidth:25},4:{cellWidth:17,halign:'center'},5:{cellWidth:13,halign:'center'},6:{cellWidth:12,halign:'center'},7:{cellWidth:22,halign:'right'},8:{cellWidth:18,halign:'right'},9:{cellWidth:18,halign:'right'},10:{cellWidth:18,halign:'right'},11:{cellWidth:24,halign:'right'},12:{cellWidth:24,halign:'right',fontStyle:'bold'}},
+        foot:[['','','','','','','','','','','','Subtotal',this.cve(totVH+totVR)]],
+        footStyles:{fillColor:[200,230,201],textColor:[27,94,32],fontStyle:'bold',halign:'right'},
+        margin:{left:10,right:10},
+      });
+      y=doc.lastAutoTable.finalY+8;
+      doc.setFillColor(232,245,233);doc.roundedRect(10,y,277,28,3,3,'F');
+      doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(27,94,32);
+      doc.text('RESUMO',14,y+7);
+      doc.setFont('helvetica','normal');doc.setTextColor(0,0,0);doc.setFontSize(8.5);
+      doc.text('Missoes: '+mMes.length+'   |   Block Time: '+Math.floor(totBTMin/60)+'h '+(totBTMin%60<10?'0':'')+(totBTMin%60)+'m   |   Valor/Horas: '+this.cve(totVH),14,y+14);
+      doc.text('Refeicoes: PA='+pa+'  Almoco='+al+'  Jantar='+jn+'   |   Total refeicoes: '+this.cve(totVR),14,y+21);
+      doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(27,94,32);
+      doc.text('TOTAL A PAGAR: '+this.cve(totVH+totVR),200,y+14,{align:'right'});
+      y+=36;
+      doc.setFontSize(7.5);doc.setTextColor(120,120,120);doc.setFont('helvetica','normal');
+      doc.text('Documento gerado em: '+new Date().toLocaleString('pt-PT'),14,y);
+      doc.text('CGC - EA — Sistema de Gestao de Voo',148,y,{align:'center'});
+      // Converter para base64 e enviar via GAS
+      const pdfB64=doc.output('datauristring').split(',')[1];
+      const nomeArq='Recibo_'+nome.split(' ')[0]+'_'+mesNome+'_'+ano+'.pdf';
+      const assunto='Recibo de Pagamento — '+mesNome+' '+ano+' — CGC-EA';
+      const corpo='Exmo(a) '+nome+',\n\nSegue em anexo o recibo de pagamento referente ao mes de '+mesNome+' '+ano+'.\n\nTotal a receber: '+this.cve(totVH+totVR)+'\n\nEste documento foi gerado automaticamente pelo Sistema de Gestao de Voo da Esquadrilha Aerea da Guarda Costeira de Cabo Verde.\n\nCom os melhores cumprimentos,\nEsquadrilha Aerea — CGC';
+      const res=await this.apiCall({action:'sendEmail',to:dest,subject:assunto,body:corpo,pdfBase64:pdfB64,fileName:nomeArq});
+      if(res?.ok){
+        this.showNotif('✅ Recibo enviado para '+dest);
+        this.addAudit('Recibo enviado por email',nome+' → '+dest);
+      }else{
+        this.showNotif('❌ Erro ao enviar: '+(res?.error||'Sem resposta do servidor'),'err');
+      }
+    }catch(e){this.showNotif('❌ Erro: '+e.message,'err');}
+  };
 },
 
 // ─── EXPORTAR EXCEL (MISSÕES) ─────────────────────────────────
@@ -5154,25 +5402,63 @@ renderAeros(){
     this.S.missoes.filter(m=>m.aero===nome).forEach(m=>{add+=(m.fuelAdd||0);use+=(m.fuelUse||0);});
     return{add,use};
   };
-  let h='<table><thead><tr><th>Designação</th><th>Tipo</th><th>Matrícula</th><th>Missões</th><th>BT Acumulado</th><th>Horas Totais</th><th>Inspecção</th><th>Combustível</th><th></th></tr></thead><tbody>';
-  // Default (built-in) aeros first
+  // ── Determina ícone por tipo de aeronave
+  const _tipoIcon=(tipo)=>{
+    if(!tipo)return '✈️';
+    const t=tipo.toLowerCase();
+    if(t.includes('helicóptero')||t.includes('helicoptero'))return '🚁';
+    if(t.includes('uav')||t.includes('drone'))return '🛸';
+    if(t.includes('anfíbio')||t.includes('anfibio'))return '🛥️';
+    return '✈️';
+  };
+  // ── Calcula estado da aeronave: 0=operacional, 1=atencao, 2=critico
+  const _estado=(hrTotal,inspHr,inspDate)=>{
+    let lvl=0;
+    if(inspHr&&inspHr>0){const pct=hrTotal/inspHr*100;if(pct>=100)lvl=2;else if(pct>=80)lvl=Math.max(lvl,1);}
+    if(inspDate){const diff=Math.round((new Date(inspDate)-new Date())/86400000);if(diff<0)lvl=2;else if(diff<=30)lvl=Math.max(lvl,1);}
+    return lvl;
+  };
+  const _estadoInfo=[
+    {cor:'#16a34a',bg:'#dcfce7',txt:'Operacional'},
+    {cor:'#d97706',bg:'#fef3c7',txt:'Atencao'},
+    {cor:'#dc2626',bg:'#fee2e2',txt:'Insp. Vencida'}
+  ];
+  let h='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;padding:4px 0">';
+  // ── Aeronaves pré-definidas
   defaultAeros.forEach(nome=>{
     const nm=this.S.missoes.filter(m=>m.aero===nome).length;
     const btM=_btMins(nome);const btH=(btM/60).toFixed(1);
     const fl=_fuelTotals(nome);
-    h+='<tr>'+
-      '<td><strong>'+this.esc(nome)+'</strong></td>'+
-      '<td><span style="color:var(--ink3);font-size:.85em">—</span></td>'+
-      '<td><span style="color:var(--ink3);font-size:.85em">—</span></td>'+
-      '<td><span class="cbadge">'+nm+'</span></td>'+
-      '<td style="font-family:var(--mono);font-weight:700;color:var(--g8)">'+btH+'h</td>'+
-      '<td style="color:var(--ink3);font-size:.82em">—</td>'+
-      '<td style="color:var(--ink3);font-size:.82em">—</td>'+
-      '<td style="font-size:.82em;color:var(--ink3)">'+(fl.add||fl.use?'⛽ +'+fl.add+'L / −'+fl.use+'L':'—')+'</td>'+
-      '<td><span style="color:var(--ink3);font-size:.76em;font-style:italic">Pré-definida</span></td>'+
-      '</tr>';
+    const ic=_tipoIcon('');
+    h+='<div style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:18px 18px 14px;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;flex-direction:column;gap:10px">'+
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">'+
+        '<div style="display:flex;align-items:center;gap:10px">'+
+          '<div style="font-size:1.8em;line-height:1">'+ic+'</div>'+
+          '<div>'+
+            '<div style="font-weight:700;font-size:.95em;color:var(--ink);line-height:1.2">'+this.esc(nome)+'</div>'+
+            '<div style="font-size:.72em;color:var(--ink3);margin-top:2px">Pré-definida</div>'+
+          '</div>'+
+        '</div>'+
+        '<span style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:20px;padding:3px 10px;font-size:.7em;font-weight:700;white-space:nowrap">Operacional</span>'+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center">'+
+        '<div style="background:var(--g0);border-radius:8px;padding:8px 4px">'+
+          '<div style="font-family:var(--mono);font-size:1.05em;font-weight:700;color:var(--g8)">'+nm+'</div>'+
+          '<div style="font-size:.65em;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-top:2px">Missoes</div>'+
+        '</div>'+
+        '<div style="background:var(--g0);border-radius:8px;padding:8px 4px">'+
+          '<div style="font-family:var(--mono);font-size:1.05em;font-weight:700;color:var(--g8)">'+btH+'h</div>'+
+          '<div style="font-size:.65em;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-top:2px">Block Time</div>'+
+        '</div>'+
+        '<div style="background:var(--g0);border-radius:8px;padding:8px 4px">'+
+          '<div style="font-family:var(--mono);font-size:1.05em;font-weight:700;color:var(--ink3)">—</div>'+
+          '<div style="font-size:.65em;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-top:2px">Horas Tot.</div>'+
+        '</div>'+
+      '</div>'+
+      (fl.add||fl.use?'<div style="font-size:.75em;color:var(--ink3);padding:6px 10px;background:var(--g0);border-radius:8px">Comb.: +'+fl.add+'L adicionado / −'+fl.use+'L utilizado</div>':'')+
+    '</div>';
   });
-  // User-managed aeros
+  // ── Aeronaves geridas pelo utilizador
   managed.forEach((a,i)=>{
     const nm=this.S.missoes.filter(m=>m.aero===a.nome).length;
     const hasMissoes=nm>0;
@@ -5182,37 +5468,67 @@ renderAeros(){
     const inspHr=a.inspHr||null;
     const inspDate=a.inspDate||null;
     const fl=_fuelTotals(a.nome);
-    // Progress bar
+    const ic=_tipoIcon(a.tipo||'');
+    const lvl=_estado(hrTotal,inspHr||0,inspDate);
+    const ei=_estadoInfo[lvl];
+    // Barra de progresso horas
     let progHtml='';
     if(inspHr&&inspHr>0){
       const pct=Math.min(100,Math.round(hrTotal/inspHr*100));
-      const col=pct>=100?'#dc2626':pct>=80?'#f59e0b':'var(--g8)';
-      progHtml='<div style="margin-top:4px"><div style="font-size:.72em;color:var(--ink3);margin-bottom:2px">'+hrTotal.toFixed(1)+'h / '+inspHr+'h insp. ('+pct+'%)</div><div style="height:6px;background:var(--g1);border-radius:3px"><div style="height:100%;width:'+pct+'%;background:'+col+';border-radius:3px;transition:.3s"></div></div></div>';
+      const col=pct>=100?'#dc2626':pct>=80?'#f59e0b':'#16a34a';
+      progHtml='<div style="margin-top:2px">'+
+        '<div style="display:flex;justify-content:space-between;font-size:.68em;color:var(--ink3);margin-bottom:3px">'+
+          '<span>Horas insp.</span><span style="font-weight:700;color:'+col+'">'+hrTotal.toFixed(1)+'h / '+inspHr+'h ('+pct+'%)</span>'+
+        '</div>'+
+        '<div style="height:7px;background:var(--g1);border-radius:4px;overflow:hidden">'+
+          '<div style="height:100%;width:'+pct+'%;background:'+col+';border-radius:4px;transition:.4s"></div>'+
+        '</div>'+
+      '</div>';
     }
-    // Inspection date
-    let inspHtml='—';
-    if(inspDate){const d=new Date(inspDate);const diff=Math.round((d-new Date())/(86400000));const col=diff<0?'#dc2626':diff<=30?'#f59e0b':'var(--g6)';inspHtml='<span style="color:'+col+';font-size:.82em;font-weight:600">'+d.toLocaleDateString('pt-PT')+(diff<0?' ⚠️':diff<=30?' ('+diff+'d)':'')+'</span>';}
-    h+='<tr>'+
-      '<td><strong>'+this.esc(a.nome)+'</strong></td>'+
-      '<td>'+this.esc(a.tipo||'—')+'</td>'+
-      '<td style="font-family:var(--mono);color:var(--ink3)">'+this.esc(a.reg||'—')+'</td>'+
-      '<td><span class="cbadge">'+nm+'</span></td>'+
-      '<td style="font-family:var(--mono);font-weight:700;color:var(--g8)">'+btH+'h</td>'+
-      '<td style="min-width:140px">'+
-        '<div style="font-family:var(--mono);font-weight:700;color:var(--g9)">'+hrTotal.toFixed(1)+'h</div>'+
-        (hrBase?'<div style="font-size:.72em;color:var(--ink3)">Base: '+hrBase+'h + BT: '+btH+'h</div>':'')+
-        progHtml+
-      '</td>'+
-      '<td>'+inspHtml+'</td>'+
-      '<td style="font-size:.82em">'+(fl.add||fl.use?'<span style="color:var(--g8)">⛽ +'+fl.add+'L</span><br><span style="color:var(--ink3)">−'+fl.use+'L</span>':'<span style="color:var(--ink3)">—</span>')+'</td>'+
-      '<td style="white-space:nowrap">'+
-        '<button class="btn btn-xs btn-edit" onclick="A.editAero('+i+')">✏️</button> '+
-        '<button class="btn btn-xs btn-del" onclick="A.delAero('+i+')" '+
-          (hasMissoes?'disabled title="Tem missões registadas — não é possível eliminar"':'')+'>🗑️</button>'+
-      '</td>'+
-      '</tr>';
+    // Data inspeção
+    let inspDateHtml='';
+    if(inspDate){
+      const d=new Date(inspDate);
+      const diff=Math.round((d-new Date())/86400000);
+      const col=diff<0?'#dc2626':diff<=30?'#d97706':'var(--ink3)';
+      const label=diff<0?'Vencida há '+Math.abs(diff)+'d':diff===0?'Hoje':diff<=30?'Em '+diff+'d':''+d.toLocaleDateString('pt-PT');
+      inspDateHtml='<div style="font-size:.72em;color:'+col+';font-weight:'+(diff<=30?700:400)+';margin-top:4px">Data insp.: '+label+'</div>';
+    }
+    h+='<div style="background:var(--white);border:1.5px solid '+(lvl===2?'#fca5a5':lvl===1?'#fcd34d':'var(--border)')+';border-radius:14px;padding:18px 18px 14px;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;flex-direction:column;gap:10px">'+
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">'+
+        '<div style="display:flex;align-items:center;gap:10px">'+
+          '<div style="font-size:1.8em;line-height:1">'+ic+'</div>'+
+          '<div>'+
+            '<div style="font-weight:700;font-size:.95em;color:var(--ink);line-height:1.2">'+this.esc(a.nome)+'</div>'+
+            '<div style="font-size:.72em;color:var(--ink3);margin-top:2px">'+this.esc(a.tipo||'—')+(a.reg?' · <span style="font-family:var(--mono)">'+this.esc(a.reg)+'</span>':'')+'</div>'+
+          '</div>'+
+        '</div>'+
+        '<span style="background:'+ei.bg+';color:'+ei.cor+';border:1px solid '+ei.cor+'40;border-radius:20px;padding:3px 10px;font-size:.7em;font-weight:700;white-space:nowrap">'+ei.txt+'</span>'+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center">'+
+        '<div style="background:var(--g0);border-radius:8px;padding:8px 4px">'+
+          '<div style="font-family:var(--mono);font-size:1.05em;font-weight:700;color:var(--g8)">'+nm+'</div>'+
+          '<div style="font-size:.65em;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-top:2px">Missoes</div>'+
+        '</div>'+
+        '<div style="background:var(--g0);border-radius:8px;padding:8px 4px">'+
+          '<div style="font-family:var(--mono);font-size:1.05em;font-weight:700;color:var(--g8)">'+btH+'h</div>'+
+          '<div style="font-size:.65em;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-top:2px">Block Time</div>'+
+        '</div>'+
+        '<div style="background:var(--g0);border-radius:8px;padding:8px 4px">'+
+          '<div style="font-family:var(--mono);font-size:1.05em;font-weight:700;color:var(--g9)">'+hrTotal.toFixed(1)+'h</div>'+
+          '<div style="font-size:.65em;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-top:2px">Horas Tot.</div>'+
+        '</div>'+
+      '</div>'+
+      progHtml+
+      inspDateHtml+
+      (fl.add||fl.use?'<div style="font-size:.75em;color:var(--ink3);padding:6px 10px;background:var(--g0);border-radius:8px">Comb.: +'+fl.add+'L adicionado / −'+fl.use+'L utilizado</div>':'')+
+      '<div style="display:flex;gap:6px;margin-top:2px">'+
+        '<button class="btn btn-xs btn-edit" onclick="A.editAero('+i+')" style="flex:1">Editar</button>'+
+        '<button class="btn btn-xs btn-del" onclick="A.delAero('+i+')" style="flex:1"'+(hasMissoes?' disabled title="Tem missoes registadas"':'')+'>Eliminar</button>'+
+      '</div>'+
+    '</div>';
   });
-  el.innerHTML=h+'</tbody></table>';
+  el.innerHTML=h+'</div>';
 },
 
 
@@ -5230,23 +5546,363 @@ toggleNav(){
     if(window.innerWidth>768)document.body.classList.add('nav-open');
   }
 },
+
+// ─── QUADRO OPERACIONAL ───────────────────────────────────────
+_quadroFullscreen(){
+  const el=document.getElementById('page-quadro');
+  if(el.requestFullscreen)el.requestFullscreen();
+  else if(el.webkitRequestFullscreen)el.webkitRequestFullscreen();
+},
+renderQuadro(){
+  // Clock
+  const now=new Date();
+  const ck=document.getElementById('qdClock');
+  const dt=document.getElementById('qdDate');
+  if(ck)ck.textContent=now.toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  if(dt)dt.textContent=now.toLocaleDateString('pt-PT',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const filter=(document.getElementById('qdFilter')?.value)||'hoje';
+  const todayStr=now.toISOString().slice(0,10);
+  const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay()+1);
+  const weekEnd=new Date(weekStart);weekEnd.setDate(weekStart.getDate()+6);
+  let missoes=this.S.missoes.filter(m=>{
+    if(filter==='hoje'){return m.data===todayStr;}
+    if(filter==='semana'){const d=new Date(m.data);return d>=weekStart&&d<=weekEnd;}
+    return m.status==='Em Curso'||m.status==='Planeada';
+  });
+  missoes=missoes.sort((a,b)=>{if(a.data!==b.data)return a.data<b.data?-1:1;return (a.toff||'')>(b.toff||'')?1:-1;});
+  const el=document.getElementById('qdMissoes');
+  const vz=document.getElementById('qdVazio');
+  if(!el)return;
+  if(!missoes.length){el.innerHTML='';if(vz)vz.classList.remove('hide');return;}
+  if(vz)vz.classList.add('hide');
+  const statusCfg={
+    'Concluída':{bg:'#f0fdf4',border:'#86efac',badge:'#16a34a',badgeBg:'#dcfce7'},
+    'Em Curso': {bg:'#fffbeb',border:'#fcd34d',badge:'#d97706',badgeBg:'#fef3c7'},
+    'Planeada': {bg:'#eff6ff',border:'#93c5fd',badge:'#2563eb',badgeBg:'#dbeafe'},
+    'Cancelada':{bg:'#fef2f2',border:'#fca5a5',badge:'#dc2626',badgeBg:'#fee2e2'}
+  };
+  el.innerHTML=missoes.map(m=>{
+    const sc=statusCfg[m.status||'Concluída']||statusCfg['Concluída'];
+    const crew=(m.crew||[]).slice(0,3).map(c=>'<div style="font-size:.75em;color:var(--ink2)">• '+this.esc(c.nome)+' <span style="color:var(--ink3)">('+this.esc(c.fn)+')</span></div>').join('');
+    const extra=(m.crew||[]).length>3?'<div style="font-size:.72em;color:var(--ink3)">+'+((m.crew||[]).length-3)+' mais</div>':'';
+    const bt=this.calcBT(m.boff,m.bon);
+    return '<div style="background:'+sc.bg+';border:2px solid '+sc.border+';border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start">'+
+        '<div>'+
+          '<div style="font-family:var(--mono);font-weight:700;font-size:1.05em;color:var(--g9)">'+this.esc(m.num||'—')+'</div>'+
+          '<div style="font-size:.78em;color:var(--ink3);margin-top:2px">'+this.esc(m.tipo||'—')+'</div>'+
+        '</div>'+
+        '<span style="background:'+sc.badgeBg+';color:'+sc.badge+';border:1px solid '+sc.border+';border-radius:20px;padding:3px 10px;font-size:.72em;font-weight:700">'+this.esc(m.status||'Concluída')+'</span>'+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:.78em">'+
+        '<div><span style="color:var(--ink3)">Data:</span> <b>'+this.esc(m.data||'—')+'</b></div>'+
+        '<div><span style="color:var(--ink3)">Aeronave:</span> <b>'+this.esc(m.aero||'—')+'</b></div>'+
+        '<div><span style="color:var(--ink3)">Descolagem:</span> <b style="font-family:var(--mono)">'+this.esc(m.toff||'—')+'</b></div>'+
+        '<div><span style="color:var(--ink3)">Aterragem:</span> <b style="font-family:var(--mono)">'+this.esc(m.land||'—')+'</b></div>'+
+        (m.origem||m.destino?'<div><span style="color:var(--ink3)">Rota:</span> <b>'+this.esc(m.origem||'?')+' → '+this.esc(m.destino||'?')+'</b></div>':'<div></div>')+
+        '<div><span style="color:var(--ink3)">Block Time:</span> <b style="font-family:var(--mono)">'+bt+'</b></div>'+
+      '</div>'+
+      (crew?'<div style="border-top:1px solid '+sc.border+';padding-top:8px"><div style="font-size:.72em;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Tripulação</div>'+crew+extra+'</div>':'')+
+    '</div>';
+  }).join('');
+},
+
+// ─── MAPA DE ROTAS ────────────────────────────────────────────
+renderMapa(){
+  const ms=document.getElementById('mapaMonth');
+  const ys=document.getElementById('mapaYear');
+  // Preencher selects se estiverem vazios
+  if(ms&&!ms.options.length){
+    ['0','1','2','3','4','5','6','7','8','9','10','11'].forEach((v,i)=>{
+      const names=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+      ms.insertAdjacentHTML('beforeend','<option value="'+v+'">'+names[i]+'</option>');
+    });
+    ms.insertAdjacentHTML('afterbegin','<option value="0" selected>Todos os meses</option>');
+    const now=new Date();ms.value=String(now.getMonth()+1);
+  }
+  if(ys&&!ys.options.length){
+    const now=new Date();
+    for(let y=now.getFullYear();y>=now.getFullYear()-4;y--)ys.insertAdjacentHTML('beforeend','<option value="'+y+'">'+y+'</option>');
+  }
+  const selM=parseInt(ms?.value||'0');
+  const selY=parseInt(ys?.value||(new Date().getFullYear()));
+  // Posições das ilhas no SVG (x,y) — coordenadas calibradas para o arquipélago
+  const ilhas={
+    'Santo Antao': {x:70,y:85,r:22,label:'Santo Antão'},
+    'Sao Vicente':  {x:140,y:108,r:18,label:'São Vicente'},
+    'Santa Luzia':  {x:190,y:112,r:10,label:'Santa Luzia'},
+    'Sao Nicolau':  {x:290,y:138,r:16,label:'São Nicolau'},
+    'Sal':          {x:490,y:110,r:20,label:'Sal'},
+    'Boa Vista':    {x:530,y:218,r:22,label:'Boa Vista'},
+    'Maio':         {x:480,y:335,r:14,label:'Maio'},
+    'Santiago':     {x:370,y:385,r:28,label:'Santiago'},
+    'Fogo':         {x:250,y:408,r:20,label:'Fogo'},
+    'Brava':        {x:195,y:418,r:12,label:'Brava'}
+  };
+  // Mapeamento de nomes comuns → ilha no SVG
+  const lookup=(str)=>{
+    if(!str)return null;
+    const s=str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    if(s.includes('praia')||s.includes('santiago')||s.includes('gvnp')||s.includes('gvsn')||s.includes('nelson'))return 'Santiago';
+    if(s.includes('mindelo')||s.includes('sao vicente')||s.includes('s.vicente')||s.includes('gvsv'))return 'Sao Vicente';
+    if(s.includes('sal')||s.includes('santa maria')||s.includes('gvsl')||s.includes('amilcar'))return 'Sal';
+    if(s.includes('boa vista')||s.includes('boavista')||s.includes('gvba')||s.includes('rabil'))return 'Boa Vista';
+    if(s.includes('fogo')||s.includes('filipe')||s.includes('gvsf')||s.includes('sao filipe'))return 'Fogo';
+    if(s.includes('nicolau')||s.includes('s.nicolau')||s.includes('gvsn'))return 'Sao Nicolau';
+    if(s.includes('maio')||s.includes('gvma'))return 'Maio';
+    if(s.includes('brava'))return 'Brava';
+    if(s.includes('santo antao')||s.includes('santo antão')||s.includes('porto novo')||s.includes('ponta sol'))return 'Santo Antao';
+    return null;
+  };
+  // Filtrar missões
+  let missoes=this.S.missoes.filter(m=>m.status==='Concluída'||(m.origem&&m.destino));
+  if(selY)missoes=missoes.filter(m=>{const d=new Date(m.data);return d.getFullYear()===selY;});
+  if(selM>0)missoes=missoes.filter(m=>{const d=new Date(m.data);return d.getMonth()+1===selM;});
+  // Contar rotas
+  const rotas={};
+  let semRota=0;
+  missoes.forEach(m=>{
+    const o=lookup(m.origem);const d=lookup(m.destino);
+    if(!o||!d||o===d){semRota++;return;}
+    const key=[o,d].sort().join('→');
+    if(!rotas[key])rotas[key]={from:o,to:d,count:0,missoes:[]};
+    rotas[key].count++;
+    rotas[key].missoes.push(m.num||'');
+  });
+  // Build SVG
+  const ocean='#e0f2fe';
+  const islandColor='#86efac';
+  const islandStroke='#16a34a';
+  const routeColors=['#2563eb','#dc2626','#d97706','#7c3aed','#0891b2','#be123c'];
+  let svgContent='';
+  // Fundo do oceano
+  svgContent+='<rect width="700" height="520" fill="'+ocean+'" rx="12"/>';
+  // Linhas de grade suaves
+  svgContent+='<g stroke="#bfdbfe" stroke-width=".5" opacity=".5">';
+  for(let x=0;x<=700;x+=70)svgContent+='<line x1="'+x+'" y1="0" x2="'+x+'" y2="520"/>';
+  for(let y=0;y<=520;y+=52)svgContent+='<line x1="0" y1="'+y+'" x2="700" y2="'+y+'"/>';
+  svgContent+='</g>';
+  // Título e subtítulo
+  svgContent+='<text x="350" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="700" fill="#0369a1">REPÚBLICA DE CABO VERDE</text>';
+  svgContent+='<text x="350" y="44" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#0369a1" opacity=".7">CGC-EA — Mapa de Rotas Operacionais</text>';
+  // Rotas (linhas)
+  const rotaKeys=Object.keys(rotas);
+  rotaKeys.forEach((key,idx)=>{
+    const r=rotas[key];
+    const A=ilhas[r.from];const B=ilhas[r.to];
+    if(!A||!B)return;
+    const col=routeColors[idx%routeColors.length];
+    const mx=(A.x+B.x)/2,my=(A.y+B.y)/2-30;
+    const thick=Math.min(6,1+r.count);
+    svgContent+='<path d="M'+A.x+','+A.y+' Q'+mx+','+my+' '+B.x+','+B.y+'" fill="none" stroke="'+col+'" stroke-width="'+thick+'" stroke-linecap="round" opacity=".75"/>';
+    // Contagem no meio da curva
+    const lx=(A.x+B.x)/2,ly=(A.y+B.y)/2-18;
+    svgContent+='<circle cx="'+lx+'" cy="'+ly+'" r="9" fill="'+col+'" opacity=".9"/>';
+    svgContent+='<text x="'+lx+'" y="'+(ly+4)+'" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="white">'+r.count+'</text>';
+  });
+  // Ilhas
+  Object.keys(ilhas).forEach(k=>{
+    const il=ilhas[k];
+    const hasRoutes=rotaKeys.some(key=>rotas[key].from===k||rotas[key].to===k);
+    const fc=hasRoutes?islandColor:'#d1fae5';
+    const sw=hasRoutes?2:1;
+    svgContent+='<ellipse cx="'+il.x+'" cy="'+il.y+'" rx="'+(il.r*1.4)+'" ry="'+il.r+'" fill="'+fc+'" stroke="'+islandStroke+'" stroke-width="'+sw+'"/>';
+    svgContent+='<text x="'+il.x+'" y="'+(il.y+il.r+13)+'" text-anchor="middle" font-family="Arial,sans-serif" font-size="9.5" font-weight="700" fill="#065f46">'+il.label+'</text>';
+  });
+  // Nota sem rota
+  if(semRota>0)svgContent+='<text x="696" y="516" text-anchor="end" font-family="Arial,sans-serif" font-size="8" fill="#6b7280">'+semRota+' missões sem rota definida</text>';
+  const svg=document.getElementById('mapaSvg');
+  if(svg)svg.innerHTML=svgContent;
+  // Legenda
+  const leg=document.getElementById('mapaLegenda');
+  if(leg){
+    let lh='';
+    rotaKeys.forEach((key,idx)=>{
+      const r=rotas[key];const col=routeColors[idx%routeColors.length];
+      const fn=n=>ilhas[n]?ilhas[n].label:n;
+      lh+='<span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:18px;height:4px;background:'+col+';border-radius:2px;flex-shrink:0"></span>'+fn(r.from)+' ↔ '+fn(r.to)+' ('+r.count+')</span>';
+    });
+    leg.innerHTML=lh||'<span>Sem rotas no período seleccionado</span>';
+  }
+  // Lista de rotas
+  const rl=document.getElementById('mapaRotas');
+  if(rl){
+    if(!rotaKeys.length){rl.innerHTML='<div style="color:var(--ink3);font-size:.85em;grid-column:1/-1;padding:10px">Sem rotas com origem e destino definidos no período.</div>';return;}
+    rl.innerHTML=rotaKeys.map((key,idx)=>{
+      const r=rotas[key];const col=routeColors[idx%routeColors.length];
+      const fn=n=>ilhas[n]?ilhas[n].label:n;
+      return '<div style="background:var(--white);border:1.5px solid var(--border);border-left:4px solid '+col+';border-radius:10px;padding:12px 14px">'+
+        '<div style="font-weight:700;font-size:.88em;color:var(--ink)">'+fn(r.from)+' ↔ '+fn(r.to)+'</div>'+
+        '<div style="font-family:var(--mono);font-size:1.2em;font-weight:700;color:'+col+';margin:4px 0">'+r.count+' voos</div>'+
+        '<div style="font-size:.7em;color:var(--ink3)">Missões: '+r.missoes.slice(0,4).join(', ')+(r.missoes.length>4?' +mais...':'')+'</div>'+
+      '</div>';
+    }).join('');
+  }
+},
+
+// ─── INCIDENTES ───────────────────────────────────────────────
+addIncidente(){
+  if(!this.isAdmin()&&this.S.role!=='gestor'){this.showNotif('Sem permissão','err');return;}
+  const data=(document.getElementById('iIncData')?.value||'').trim();
+  const aero=(document.getElementById('iIncAero')?.value||'').trim();
+  const tipo=(document.getElementById('iIncTipo')?.value||'').trim();
+  const sev=(document.getElementById('iIncSev')?.value||'').trim();
+  const desc=(document.getElementById('iIncDesc')?.value||'').trim();
+  const missao=(document.getElementById('iIncMissao')?.value||'').trim();
+  const status=(document.getElementById('iIncStatus')?.value||'Aberto');
+  if(!data)return this.showNotif('Data obrigatória','warn');
+  if(!tipo)return this.showNotif('Tipo de incidente obrigatório','warn');
+  if(!sev)return this.showNotif('Severidade obrigatória','warn');
+  if(!desc)return this.showNotif('Descrição obrigatória','warn');
+  this.S.incidentes=this.S.incidentes||[];
+  const num='INC-'+String(this.S.incidentes.length+1).padStart(3,'0');
+  this.S.incidentes.unshift({id:Date.now(),num,data,aero,tipo,sev,desc,missao,status,criadoEm:new Date().toISOString(),criadoPor:this.S.currentUser||'Sistema'});
+  document.getElementById('iIncData').value='';
+  document.getElementById('iIncTipo').value='';
+  document.getElementById('iIncSev').value='';
+  document.getElementById('iIncDesc').value='';
+  document.getElementById('iIncMissao').value='';
+  this.markDirty();this.renderIncidentes();
+  this.addAudit('Incidente registado',num+' — '+tipo);
+  this.showNotif('Incidente '+num+' registado','ok');
+},
+_incChangeStatus(id,newStatus){
+  const inc=this.S.incidentes.find(i=>i.id===id);
+  if(!inc)return;
+  inc.status=newStatus;
+  this.markDirty();this.renderIncidentes();
+  this.showNotif('Estado actualizado: '+newStatus,'ok');
+},
+delIncidente(id){
+  if(!this.isAdmin()){this.showNotif('Sem permissão','err');return;}
+  if(!confirm('Eliminar este incidente?'))return;
+  this.S.incidentes=(this.S.incidentes||[]).filter(i=>i.id!==id);
+  this.markDirty();this.renderIncidentes();
+  this.showNotif('Incidente eliminado','ok');
+},
+renderIncidentes(){
+  const list=this.S.incidentes||[];
+  // Stats
+  const tot=list.length;
+  const open=list.filter(i=>i.status==='Aberto').length;
+  const inv=list.filter(i=>i.status==='Em Análise').length;
+  const closed=list.filter(i=>i.status==='Encerrado').length;
+  const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setEl('incTot',tot);setEl('incOpen',open);setEl('incInvest',inv);setEl('incClosed',closed);
+  // Preencher select de aeronave
+  const aeroSel=document.getElementById('iIncAero');
+  if(aeroSel&&!aeroSel.dataset.filled){
+    aeroSel.dataset.filled='1';
+    aeroSel.innerHTML='<option value="">Nenhuma específica</option>'+this.allAeros().map(a=>'<option value="'+this.esc(a)+'">'+this.esc(a)+'</option>').join('');
+  }
+  const el=document.getElementById('tIncidentes');if(!el)return;
+  if(!list.length){
+    el.innerHTML='<div style="padding:30px;text-align:center;color:var(--ink3)">Nenhum incidente registado.</div>';
+    return;
+  }
+  const sevCfg={
+    'Baixa':  {bg:'#f0fdf4',border:'#86efac',col:'#16a34a'},
+    'Média':  {bg:'#fffbeb',border:'#fcd34d',col:'#d97706'},
+    'Alta':   {bg:'#fff7ed',border:'#fdba74',col:'#ea580c'},
+    'Crítica':{bg:'#fef2f2',border:'#fca5a5',col:'#dc2626'}
+  };
+  const statusCfg={
+    'Aberto':    {col:'#dc2626',bg:'#fee2e2'},
+    'Em Análise':{col:'#d97706',bg:'#fef3c7'},
+    'Encerrado': {col:'#16a34a',bg:'#dcfce7'}
+  };
+  el.innerHTML='<div style="display:flex;flex-direction:column;gap:10px;padding:4px">'+list.map(inc=>{
+    const sc=sevCfg[inc.sev]||sevCfg['Média'];
+    const ss=statusCfg[inc.status]||statusCfg['Aberto'];
+    const isAdmin=this.isAdmin();
+    return '<div style="background:'+sc.bg+';border:1.5px solid '+sc.border+';border-radius:12px;padding:14px 16px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:8px">'+
+        '<div>'+
+          '<span style="font-family:var(--mono);font-weight:700;color:var(--g9);font-size:.9em">'+this.esc(inc.num)+'</span>'+
+          ' <span style="background:'+sc.col+'20;color:'+sc.col+';border:1px solid '+sc.col+'40;border-radius:10px;padding:1px 8px;font-size:.7em;font-weight:700">'+this.esc(inc.sev)+'</span>'+
+          ' <span style="background:'+ss.bg+';color:'+ss.col+';border-radius:10px;padding:1px 8px;font-size:.7em;font-weight:700;margin-left:2px">'+this.esc(inc.status)+'</span>'+
+        '</div>'+
+        '<span style="font-size:.72em;color:var(--ink3)">'+this.esc(inc.data)+(inc.aero?' · '+this.esc(inc.aero):'')+'</span>'+
+      '</div>'+
+      '<div style="font-weight:600;font-size:.88em;color:var(--ink);margin-bottom:4px">'+this.esc(inc.tipo)+'</div>'+
+      '<div style="font-size:.82em;color:var(--ink2);line-height:1.5">'+this.esc(inc.desc)+'</div>'+
+      (inc.missao?'<div style="font-size:.74em;color:var(--ink3);margin-top:4px">Missão: '+this.esc(inc.missao)+'</div>':'')+
+      (isAdmin?'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">'+
+        (inc.status!=='Encerrado'?'<button class="btn btn-xs btn-edit" onclick="A._incChangeStatus('+inc.id+','Em Análise')" style="font-size:.72em">Em Análise</button>':'') +
+        (inc.status!=='Encerrado'?'<button class="btn btn-xs btn-edit" onclick="A._incChangeStatus('+inc.id+','Encerrado')" style="font-size:.72em;background:#dcfce7;color:#16a34a;border-color:#86efac">Encerrar</button>':'') +
+        (inc.status==='Encerrado'?'<button class="btn btn-xs btn-edit" onclick="A._incChangeStatus('+inc.id+','Aberto')" style="font-size:.72em">Reabrir</button>':'') +
+        '<button class="btn btn-xs btn-del" onclick="A.delIncidente('+inc.id+')" style="font-size:.72em">Eliminar</button>'+
+      '</div>':'')+
+    '</div>';
+  }).join('')+'</div>';
+},
+
 // ─── SERIES MANAGEMENT ───────────────────────
   renderSeries(){
     const el=document.getElementById('tSeries');if(!el)return;
     const list=this.allSeries();
     const cnt=document.getElementById('seriesCount');if(cnt)cnt.textContent='('+list.length+')';
     if(!list.length){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--ink3)">Nenhuma série criada. Adicione uma acima ou ao registar uma missão.</div>';return;}
-    let h='<div style="display:grid;gap:8px">';
+    let h='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;padding:4px 0">';
     list.forEach(s=>{
-      const used=this.S.missoes.filter(m=>m.serie===s).length;
+      const missoes=this.S.missoes.filter(m=>m.serie===s);
+      const used=missoes.length;
+      const conc=missoes.filter(m=>m.status==='Concluída').length;
+      const ativ=missoes.filter(m=>m.status==='Em Curso'||m.status==='Planeada').length;
       const isDefault=this.C.seriesDefault&&this.C.seriesDefault.includes(s);
-      h+='<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--g0);border:1.5px solid var(--g6);border-radius:10px;flex-wrap:wrap">'
-       + '<div style="flex:1;min-width:140px"><b style="font-family:var(--mono);color:var(--g9);font-size:1em">'+this.esc(s)+'</b>'
-       + (isDefault?' <span style="font-size:.7em;color:var(--ink3);background:var(--white);padding:2px 6px;border-radius:6px;margin-left:4px">padrão</span>':'')
-       + '<div style="font-size:.78em;color:var(--ink3);margin-top:2px">'+used+' '+(used===1?'missão':'missões')+'</div></div>'
-       + '<button class="btn btn-s btn-sm" onclick="A.renameSerie(\''+s.replace(/'/g,"\\'")+'\')">✏️ Renomear</button>'
-       + (used>0 ? '<button class="btn btn-sm" style="background:var(--g4);color:var(--ink3);cursor:not-allowed" title="Há '+used+' missão(ões) com esta série — apague-as primeiro" disabled>🗑️ Eliminar</button>' : '<button class="btn btn-sm" style="background:#dc2626;color:#fff" onclick="A.delSerie(\''+s.replace(/'/g,"\\'")+'\')">🗑️ Eliminar</button>')
-       + '</div>';
+      let btTot=0;
+      missoes.filter(m=>m.status==='Concluída').forEach(m=>{
+        const bt=this.calcBT(m.boff,m.bon);
+        if(bt&&bt!=='—'){const[bh,bm]=bt.split(':').map(Number);btTot+=bh*60+(bm||0);}
+      });
+      const btH=(btTot/60).toFixed(1);
+      let lastDate='—';
+      if(missoes.length){
+        const dts=missoes.map(m=>m.data).filter(Boolean).sort();
+        if(dts.length){const d=new Date(dts[dts.length-1]);lastDate=d.toLocaleDateString('pt-PT');}
+      }
+      const aeroCount={};
+      missoes.forEach(m=>{if(m.aero){aeroCount[m.aero]=(aeroCount[m.aero]||0)+1;}});
+      const topAero=Object.keys(aeroCount).sort((a,b)=>aeroCount[b]-aeroCount[a])[0]||null;
+      const sSafe=s.replace(/'/g,"\'");
+      h+='<div style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:16px 16px 12px;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;flex-direction:column;gap:10px">'+
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">'+
+          '<div>'+
+            '<div style="font-family:var(--mono);font-weight:700;font-size:1em;color:var(--g9);letter-spacing:.5px">'+this.esc(s)+'</div>'+
+            '<div style="font-size:.7em;margin-top:3px">'+
+              (isDefault
+                ? '<span style="background:#f0f9ff;color:#0369a1;border:1px solid #bae6fd;border-radius:10px;padding:2px 8px;font-weight:700">Padrao</span>'
+                : '<span style="background:#f5f3ff;color:#6d28d9;border:1px solid #ddd6fe;border-radius:10px;padding:2px 8px;font-weight:700">Personalizada</span>')+
+            '</div>'+
+          '</div>'+
+          '<div style="font-size:1.6em;line-height:1;opacity:.15">🗂️</div>'+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center">'+
+          '<div style="background:var(--g0);border-radius:8px;padding:7px 4px">'+
+            '<div style="font-family:var(--mono);font-size:1em;font-weight:700;color:var(--g8)">'+used+'</div>'+
+            '<div style="font-size:.62em;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-top:1px">Total</div>'+
+          '</div>'+
+          '<div style="background:var(--g0);border-radius:8px;padding:7px 4px">'+
+            '<div style="font-family:var(--mono);font-size:1em;font-weight:700;color:#16a34a">'+conc+'</div>'+
+            '<div style="font-size:.62em;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-top:1px">Concluidas</div>'+
+          '</div>'+
+          '<div style="background:var(--g0);border-radius:8px;padding:7px 4px">'+
+            '<div style="font-family:var(--mono);font-size:1em;font-weight:700;color:var(--g8)">'+btH+'h</div>'+
+            '<div style="font-size:.62em;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-top:1px">Block Time</div>'+
+          '</div>'+
+        '</div>'+
+        '<div style="font-size:.73em;color:var(--ink3);display:flex;flex-direction:column;gap:3px;padding:8px 10px;background:var(--g0);border-radius:8px">'+
+          (topAero?'<div>Aeronave principal: <span style="font-weight:700;color:var(--ink)">'+this.esc(topAero)+'</span></div>':'')+
+          '<div>Ultima missao: <span style="font-weight:700;color:var(--ink)">'+lastDate+'</span></div>'+
+          (ativ>0?'<div style="color:#d97706;font-weight:700">'+ativ+' missao(oes) activa(s)</div>':'')+
+        '</div>'+
+        '<div style="display:flex;gap:6px;margin-top:2px">'+
+          '<button class="btn btn-xs btn-edit" onclick="A.renameSerie(''+sSafe+'')" style="flex:1">Renomear</button>'+
+          (used>0
+            ? '<button class="btn btn-xs btn-del" disabled title="Tem missoes" style="flex:1;opacity:.5">Eliminar</button>'
+            : '<button class="btn btn-xs btn-del" onclick="A.delSerie(''+sSafe+'')" style="flex:1">Eliminar</button>')+
+        '</div>'+
+      '</div>';
     });
     h+='</div>';
     el.innerHTML=h;
@@ -6223,6 +6879,7 @@ exportBackup(){
     colocacoes:this.S.colocacoes,
     aeros:this.S.aeros,
     auditLog:this.S.auditLog,
+    incidentes:this.S.incidentes,
     config:{
       funcoes:this.C.funcoes,
       fnRates:this.C.vPF,
