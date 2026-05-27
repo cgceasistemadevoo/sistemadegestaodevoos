@@ -5828,9 +5828,9 @@ renderIncidentes(){
       '<div style="font-size:.82em;color:var(--ink2);line-height:1.5">'+this.esc(inc.desc)+'</div>'+
       (inc.missao?'<div style="font-size:.74em;color:var(--ink3);margin-top:4px">Missão: '+this.esc(inc.missao)+'</div>':'')+
       (isAdmin?'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">'+
-        (inc.status!=='Encerrado'?'<button class="btn btn-xs btn-edit" onclick="A._incChangeStatus('+inc.id+','Em Análise')" style="font-size:.72em">Em Análise</button>':'') +
-        (inc.status!=='Encerrado'?'<button class="btn btn-xs btn-edit" onclick="A._incChangeStatus('+inc.id+','Encerrado')" style="font-size:.72em;background:#dcfce7;color:#16a34a;border-color:#86efac">Encerrar</button>':'') +
-        (inc.status==='Encerrado'?'<button class="btn btn-xs btn-edit" onclick="A._incChangeStatus('+inc.id+','Aberto')" style="font-size:.72em">Reabrir</button>':'') +
+        (inc.status!=='Encerrado'?'<button class="btn btn-xs btn-edit" onclick="A._incChangeStatus('+inc.id+',\'Em Análise\')" style="font-size:.72em">Em Análise</button>':'') +
+        (inc.status!=='Encerrado'?'<button class="btn btn-xs btn-edit" onclick="A._incChangeStatus('+inc.id+',\'Encerrado\')" style="font-size:.72em;background:#dcfce7;color:#16a34a;border-color:#86efac">Encerrar</button>':'') +
+        (inc.status==='Encerrado'?'<button class="btn btn-xs btn-edit" onclick="A._incChangeStatus('+inc.id+',\'Aberto\')" style="font-size:.72em">Reabrir</button>':'') +
         '<button class="btn btn-xs btn-del" onclick="A.delIncidente('+inc.id+')" style="font-size:.72em">Eliminar</button>'+
       '</div>':'')+
     '</div>';
@@ -5897,10 +5897,10 @@ renderIncidentes(){
           (ativ>0?'<div style="color:#d97706;font-weight:700">'+ativ+' missao(oes) activa(s)</div>':'')+
         '</div>'+
         '<div style="display:flex;gap:6px;margin-top:2px">'+
-          '<button class="btn btn-xs btn-edit" onclick="A.renameSerie(''+sSafe+'')" style="flex:1">Renomear</button>'+
+          '<button class="btn btn-xs btn-edit" onclick="A.renameSerie(\''+sSafe+'\')" style="flex:1">Renomear</button>'+
           (used>0
             ? '<button class="btn btn-xs btn-del" disabled title="Tem missoes" style="flex:1;opacity:.5">Eliminar</button>'
-            : '<button class="btn btn-xs btn-del" onclick="A.delSerie(''+sSafe+'')" style="flex:1">Eliminar</button>')+
+            : '<button class="btn btn-xs btn-del" onclick="A.delSerie(\''+sSafe+'\')" style="flex:1">Eliminar</button>')+
         '</div>'+
       '</div>';
     });
