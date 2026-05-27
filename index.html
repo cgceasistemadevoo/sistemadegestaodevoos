@@ -688,6 +688,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   <div class="ntab" data-p="quadro">📋 Quadro Ops</div>
   <div class="ntab" data-p="mapa">🗺️ Mapa</div>
   <div class="ntab" data-p="incidentes">⚠️ Incidentes</div>
+  <div class="ntab" data-p="contactos">📞 Contactos Úteis</div>
 </nav>
 <!-- NAV TOGGLE TAB -->
 <button class="nav-toggle" id="navToggle" onclick="A.toggleNav()">☰</button>
@@ -1318,6 +1319,187 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   <div class="card">
     <div class="card-hd"><h3>⚠️ Registo de Incidentes</h3></div>
     <div id="tIncidentes" style="padding:4px 0"></div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     CONTACTOS UTEIN
+════════════════════════════════════════════ -->
+<div id="page-contactos" class="page hide">
+  <div style="max-width:1100px;margin:0 auto">
+    <h2 style="font-size:1.25em;font-weight:800;color:var(--ink);margin-bottom:4px;display:flex;align-items:center;gap:8px">📞 Contactos Úteis — Operacionais <span style="font-size:.7em;font-weight:500;color:var(--ink3)">Operações Aeroportuárias &amp; ATC</span></h2>
+    <p style="font-size:.8em;color:var(--ink3);margin-bottom:20px">Fonte: Lista UTEIN actualizada. Uso exclusivo interno CGC-EA.</p>
+
+    <!-- PLANOS DE VOO / ATC Flight Plans -->
+    <div style="margin-bottom:28px">
+      <div style="font-size:.75em;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--primary);border-bottom:2px solid var(--primary);padding-bottom:6px;margin-bottom:12px">✈️ Planos de Voo / ATC Flight Plans</div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+      <table style="width:100%;border-collapse:collapse;font-size:.82em">
+        <thead>
+          <tr style="background:var(--card);border-bottom:2px solid var(--border)">
+            <th style="padding:9px 12px;text-align:left;font-weight:700;color:var(--ink3);white-space:nowrap">Aeródromo</th>
+            <th style="padding:9px 12px;text-align:left;font-weight:700;color:var(--ink3)">Email</th>
+            <th style="padding:9px 12px;text-align:center;font-weight:700;color:var(--ink3);white-space:nowrap">Telefone</th>
+            <th style="padding:9px 12px;text-align:center;font-weight:700;color:var(--ink3);white-space:nowrap">Móvel 1</th>
+            <th style="padding:9px 12px;text-align:center;font-weight:700;color:var(--ink3);white-space:nowrap">Móvel 2</th>
+            <th style="padding:9px 12px;text-align:center;font-weight:700;color:var(--ink3);white-space:nowrap">AFTN</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><span style="font-family:var(--mono);font-weight:700;font-size:.9em;color:var(--primary)">GVNP</span> <span style="color:var(--ink3);font-size:.85em">— Praia</span></td><td style="padding:8px 12px"><a href="mailto:gvnp.operations@vinci-airports.cv" style="color:var(--primary);text-decoration:none">gvnp.operations@vinci-airports.cv</a></td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">2633471</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9951700</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">5945148</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono);font-size:.85em">GVNPZPZX</td></tr>
+          <tr style="border-bottom:1px solid var(--border);background:var(--card)"><td style="padding:8px 12px"><span style="font-family:var(--mono);font-weight:700;font-size:.9em;color:var(--primary)">GVSV</span> <span style="color:var(--ink3);font-size:.85em">— São Vicente</span></td><td style="padding:8px 12px"><a href="mailto:gvsv.operations@vinci-airports.cv" style="color:var(--primary);text-decoration:none">gvsv.operations@vinci-airports.cv</a></td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">2323716</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9977336</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9953232</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono);font-size:.85em">GVSVZPZX</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><span style="font-family:var(--mono);font-weight:700;font-size:.9em;color:var(--primary)">GVAC</span> <span style="color:var(--ink3);font-size:.85em">— Sal</span></td><td style="padding:8px 12px"><a href="mailto:gvac.operations@vinci-airports.cv" style="color:var(--primary);text-decoration:none">gvac.operations@vinci-airports.cv</a></td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">2411309</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9925214</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9913630</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono);font-size:.85em">GVACZPZX</td></tr>
+          <tr style="border-bottom:1px solid var(--border);background:var(--card)"><td style="padding:8px 12px"><span style="font-family:var(--mono);font-weight:700;font-size:.9em;color:var(--primary)">GVBA</span> <span style="color:var(--ink3);font-size:.85em">— Boa Vista</span></td><td style="padding:8px 12px"><a href="mailto:gvba.operations@vinci-airports.cv" style="color:var(--primary);text-decoration:none">gvba.operations@vinci-airports.cv</a></td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">2511070</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9817265</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9948749</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono);font-size:.85em">GVBAZPZX</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><span style="font-family:var(--mono);font-weight:700;font-size:.9em;color:var(--primary)">GVMA</span> <span style="color:var(--ink3);font-size:.85em">— Maio</span></td><td style="padding:8px 12px"><a href="mailto:admaio@vinci-airports.cv" style="color:var(--primary);text-decoration:none">admaio@vinci-airports.cv</a></td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">2633471</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9736081</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">5945148</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono);font-size:.85em">GVNPZPZX</td></tr>
+          <tr style="border-bottom:1px solid var(--border);background:var(--card)"><td style="padding:8px 12px"><span style="font-family:var(--mono);font-weight:700;font-size:.9em;color:var(--primary)">GVSF</span> <span style="color:var(--ink3);font-size:.85em">— Fogo</span></td><td style="padding:8px 12px"><a href="mailto:sfl.operations@vinci-airports.cv" style="color:var(--primary);text-decoration:none">sfl.operations@vinci-airports.cv</a><br><a href="mailto:hiran.santos@vinci-airports.cv" style="color:var(--ink3);font-size:.9em">hiran.santos@vinci-airports.cv</a></td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">—</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9736089</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">—</td><td style="padding:8px 12px;text-align:center;color:var(--ink3)">—</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><span style="font-family:var(--mono);font-weight:700;font-size:.9em;color:var(--primary)">GVSN</span> <span style="color:var(--ink3);font-size:.85em">— São Nicolau</span></td><td style="padding:8px 12px"><a href="mailto:asantos@vinci-airports.cv" style="color:var(--primary);text-decoration:none">asantos@vinci-airports.cv</a><br><a href="mailto:Afis.sne@asa.cv" style="color:var(--ink3);font-size:.9em">Afis.sne@asa.cv</a></td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">2351313</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9936332</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9936332</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono);font-size:.85em">GVACZPZX</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <!-- MAPA DA MISSÃO / TWR -->
+    <div style="margin-bottom:28px">
+      <div style="font-size:.75em;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7c3aed;border-bottom:2px solid #7c3aed;padding-bottom:6px;margin-bottom:12px">🗺️ Mapa da Missão / TWR</div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+      <table style="width:100%;border-collapse:collapse;font-size:.82em">
+        <thead>
+          <tr style="background:var(--card);border-bottom:2px solid var(--border)">
+            <th style="padding:9px 12px;text-align:left;font-weight:700;color:var(--ink3);white-space:nowrap">Aeródromo</th>
+            <th style="padding:9px 12px;text-align:left;font-weight:700;color:var(--ink3)">Email TWR</th>
+            <th style="padding:9px 12px;text-align:center;font-weight:700;color:var(--ink3);white-space:nowrap">Telefone</th>
+            <th style="padding:9px 12px;text-align:center;font-weight:700;color:var(--ink3);white-space:nowrap">Móvel 1</th>
+            <th style="padding:9px 12px;text-align:center;font-weight:700;color:var(--ink3);white-space:nowrap">Móvel 2</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><span style="font-family:var(--mono);font-weight:700;font-size:.9em;color:#7c3aed">GVNP</span> <span style="color:var(--ink3);font-size:.85em">— Praia</span></td><td style="padding:8px 12px"><a href="mailto:twr.adp@asa.cv" style="color:#7c3aed;text-decoration:none">twr.adp@asa.cv</a></td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">2633469</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9913634</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9776379</td></tr>
+          <tr style="border-bottom:1px solid var(--border);background:var(--card)"><td style="padding:8px 12px"><span style="font-family:var(--mono);font-weight:700;font-size:.9em;color:#7c3aed">GVSV</span> <span style="color:var(--ink3);font-size:.85em">— São Vicente</span></td><td style="padding:8px 12px"><a href="mailto:twr.asp@asa.cv" style="color:#7c3aed;text-decoration:none">twr.asp@asa.cv</a></td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">2327990</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9911697</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9915093</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><span style="font-family:var(--mono);font-weight:700;font-size:.9em;color:#7c3aed">GVAC</span> <span style="color:var(--ink3);font-size:.85em">— Sal</span></td><td style="padding:8px 12px"><a href="mailto:twr.aiac@asa.cv" style="color:#7c3aed;text-decoration:none">twr.aiac@asa.cv</a></td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">2413724</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9911696</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9810844</td></tr>
+          <tr style="border-bottom:1px solid var(--border);background:var(--card)"><td style="padding:8px 12px"><span style="font-family:var(--mono);font-weight:700;font-size:.9em;color:#7c3aed">GVBA</span> <span style="color:var(--ink3);font-size:.85em">— Boa Vista</span></td><td style="padding:8px 12px"><a href="mailto:twr.abv@asa.cv" style="color:#7c3aed;text-decoration:none">twr.abv@asa.cv</a></td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">2511923</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9963684</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9953654</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><span style="font-family:var(--mono);font-weight:700;font-size:.9em;color:#7c3aed">GVMA &amp; GVSF</span> <span style="color:var(--ink3);font-size:.85em">— Maio / Fogo</span></td><td style="padding:8px 12px"><a href="mailto:twr.adp@asa.cv" style="color:#7c3aed;text-decoration:none">twr.adp@asa.cv</a></td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">2633469</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9913634</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9776379</td></tr>
+          <tr style="border-bottom:1px solid var(--border);background:var(--card)"><td style="padding:8px 12px"><span style="font-family:var(--mono);font-weight:700;font-size:.9em;color:#7c3aed">GVSN</span> <span style="color:var(--ink3);font-size:.85em">— São Nicolau</span></td><td style="padding:8px 12px"><a href="mailto:atcontrol@asa.cv" style="color:#7c3aed;text-decoration:none">atcontrol@asa.cv</a></td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">2411730</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9925420</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9810844</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><span style="font-family:var(--mono);font-weight:700;font-size:.9em;color:#7c3aed">GVSC ACC</span> <span style="color:var(--ink3);font-size:.85em">— Santa Cruz ACC</span></td><td style="padding:8px 12px"><a href="mailto:atcontrol@asa.cv" style="color:#7c3aed;text-decoration:none">atcontrol@asa.cv</a></td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">2411730</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9925420</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9810844</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <!-- GENDEC -->
+    <div style="margin-bottom:28px">
+      <div style="font-size:.75em;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#0891b2;border-bottom:2px solid #0891b2;padding-bottom:6px;margin-bottom:12px">📋 GENDEC</div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+      <table style="width:100%;border-collapse:collapse;font-size:.82em">
+        <thead>
+          <tr style="background:var(--card);border-bottom:2px solid var(--border)">
+            <th style="padding:9px 12px;text-align:left;font-weight:700;color:var(--ink3)">Aeródromo</th>
+            <th style="padding:9px 12px;text-align:left;font-weight:700;color:var(--ink3)">Email</th>
+            <th style="padding:9px 12px;text-align:center;font-weight:700;color:var(--ink3);white-space:nowrap">Telefone</th>
+            <th style="padding:9px 12px;text-align:center;font-weight:700;color:var(--ink3);white-space:nowrap">Móvel 1</th>
+            <th style="padding:9px 12px;text-align:center;font-weight:700;color:var(--ink3);white-space:nowrap">Móvel 2</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><span style="font-family:var(--mono);font-weight:700;font-size:.9em;color:#0891b2">GVNP</span></td><td style="padding:8px 12px"><a href="mailto:gvnp.operations@vinci-airports.cv" style="color:#0891b2;text-decoration:none">gvnp.operations@vinci-airports.cv</a></td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">2633471</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9951700</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">5945148</td></tr>
+          <tr style="border-bottom:1px solid var(--border);background:var(--card)"><td style="padding:8px 12px"><span style="font-family:var(--mono);font-weight:700;font-size:.9em;color:#0891b2">GVSV</span></td><td style="padding:8px 12px"><a href="mailto:gvsv.operations@vinci-airports.cv" style="color:#0891b2;text-decoration:none">gvsv.operations@vinci-airports.cv</a></td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">2323716</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9977336</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9917200</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><span style="font-family:var(--mono);font-weight:700;font-size:.9em;color:#0891b2">GVAC</span></td><td style="padding:8px 12px"><a href="mailto:gvac.operations@vinci-airports.cv" style="color:#0891b2;text-decoration:none">gvac.operations@vinci-airports.cv</a></td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">2411309</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9925214</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9913630</td></tr>
+          <tr style="border-bottom:1px solid var(--border);background:var(--card)"><td style="padding:8px 12px"><span style="font-family:var(--mono);font-weight:700;font-size:.9em;color:#0891b2">GVBA</span></td><td style="padding:8px 12px"><a href="mailto:gvba.operations@vinci-airports.cv" style="color:#0891b2;text-decoration:none">gvba.operations@vinci-airports.cv</a></td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">2511070</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9817265</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9948749</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><span style="font-family:var(--mono);font-weight:700;font-size:.9em;color:#0891b2">GVMA</span></td><td style="padding:8px 12px"><a href="mailto:admaio@vinci-airports.cv" style="color:#0891b2;text-decoration:none">admaio@vinci-airports.cv</a></td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">2551108</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9736081</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">—</td></tr>
+          <tr style="border-bottom:1px solid var(--border);background:var(--card)"><td style="padding:8px 12px"><span style="font-family:var(--mono);font-weight:700;font-size:.9em;color:#0891b2">GVSF</span></td><td style="padding:8px 12px"><a href="mailto:sfl.operations@vinci-airports.cv" style="color:#0891b2;text-decoration:none">sfl.operations@vinci-airports.cv</a></td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">2812107</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9996817</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">—</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px"><span style="font-family:var(--mono);font-weight:700;font-size:.9em;color:#0891b2">GVSN</span></td><td style="padding:8px 12px"><a href="mailto:afis.sne@asa.cv" style="color:#0891b2;text-decoration:none">afis.sne@asa.cv</a></td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">2351313</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">9936332</td><td style="padding:8px 12px;text-align:center;font-family:var(--mono)">—</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <!-- SLOTS -->
+    <div style="margin-bottom:28px">
+      <div style="font-size:.75em;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#16a34a;border-bottom:2px solid #16a34a;padding-bottom:6px;margin-bottom:12px">🕐 SLOTS</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:220px;background:var(--card);border:1.5px solid var(--border);border-left:4px solid #16a34a;border-radius:10px;padding:14px 16px">
+          <div style="font-family:var(--mono);font-weight:700;color:#16a34a;font-size:.95em;margin-bottom:4px">GVNP</div>
+          <div style="font-size:.82em;color:var(--ink)"><a href="mailto:slot.coordination@asa.cv" style="color:#16a34a;text-decoration:none">slot.coordination@asa.cv</a></div>
+          <div style="font-family:var(--mono);font-size:.85em;color:var(--ink3);margin-top:4px">📱 9936743</div>
+        </div>
+        <div style="flex:1;min-width:220px;background:var(--card);border:1.5px solid var(--border);border-left:4px solid #16a34a;border-radius:10px;padding:14px 16px">
+          <div style="font-family:var(--mono);font-weight:700;color:#16a34a;font-size:.95em;margin-bottom:4px">GVAC</div>
+          <div style="font-size:.82em;color:var(--ink3);font-style:italic">— Ver tabela planos de voo</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTACTOS ADICIONAIS -->
+    <div style="margin-bottom:28px">
+      <div style="font-size:.75em;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#d97706;border-bottom:2px solid #d97706;padding-bottom:6px;margin-bottom:12px">👤 Contactos Adicionais por Aeródromo</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px">
+
+        <!-- GVSV -->
+        <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:16px">
+          <div style="font-family:var(--mono);font-weight:800;color:#d97706;font-size:1em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">GVSV — São Vicente</div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:.82em">
+            <div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:700;color:var(--ink)">Directora Aeroporto</span><span style="color:var(--ink3)">Joelma Ferreira</span><a href="mailto:jfsantos@vinci-airports.cv" style="color:#d97706;text-decoration:none;font-size:.9em">jfsantos@vinci-airports.cv</a><span style="font-family:var(--mono);color:var(--ink3)">📱 982 93 30</span></div>
+            <div style="height:1px;background:var(--border)"></div>
+            <div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:700;color:var(--ink)">Chefe SOICA</span><span style="color:var(--ink3)">Romira Lobo</span><a href="mailto:rlobo@vinci-airports.cv" style="color:#d97706;text-decoration:none;font-size:.9em">rlobo@vinci-airports.cv</a><span style="font-family:var(--mono);color:var(--ink3)">📱 995 32 32</span></div>
+            <div style="height:1px;background:var(--border)"></div>
+            <div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:700;color:var(--ink)">Serviço Operações (SOICA)</span><a href="mailto:gvsv.operations@vinci-airports.cv" style="color:#d97706;text-decoration:none;font-size:.9em">gvsv.operations@vinci-airports.cv</a><span style="font-family:var(--mono);color:var(--ink3)">📱 997 73 36</span></div>
+            <div style="height:1px;background:var(--border)"></div>
+            <div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:700;color:var(--ink)">Coordenador TWR</span><span style="color:var(--ink3)">Valério Fonseca</span><a href="mailto:vfonseca@asa.cv" style="color:#d97706;text-decoration:none;font-size:.9em">vfonseca@asa.cv</a><span style="font-family:var(--mono);color:var(--ink3)">📱 997 72 81</span></div>
+          </div>
+        </div>
+
+        <!-- GVAC -->
+        <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:16px">
+          <div style="font-family:var(--mono);font-weight:800;color:#d97706;font-size:1em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">GVAC — Sal</div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:.82em">
+            <div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:700;color:var(--ink)">SGIA — Serviço de Informações Aeronáuticas</span><span style="font-family:var(--mono);color:var(--ink3)">📱 9925297</span></div>
+          </div>
+        </div>
+
+        <!-- GVBA -->
+        <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:16px">
+          <div style="font-family:var(--mono);font-weight:800;color:#d97706;font-size:1em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">GVBA — Boa Vista</div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:.82em">
+            <div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:700;color:var(--ink)">Chefe SOICA</span><span style="color:var(--ink3)">P. Miranda</span><a href="mailto:pmiranda@vinci-airports.cv" style="color:#d97706;text-decoration:none;font-size:.9em">pmiranda@vinci-airports.cv</a></div>
+            <div style="height:1px;background:var(--border)"></div>
+            <div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:700;color:var(--ink)">Coordenador TWR</span><span style="color:var(--ink3)">Vanir Morais</span><a href="mailto:vmorais@asa.cv" style="color:#d97706;text-decoration:none;font-size:.9em">vmorais@asa.cv</a><span style="font-family:var(--mono);color:var(--ink3)">📱 9953654</span></div>
+          </div>
+        </div>
+
+        <!-- GVSN -->
+        <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:16px">
+          <div style="font-family:var(--mono);font-weight:800;color:#d97706;font-size:1em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">GVSN — São Nicolau</div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:.82em">
+            <div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:700;color:var(--ink)">Chefe SOICA</span><span style="color:var(--ink3)">Aristides Santos</span><a href="mailto:asantos@vinci-airports.cv" style="color:#d97706;text-decoration:none;font-size:.9em">asantos@vinci-airports.cv</a></div>
+          </div>
+        </div>
+
+        <!-- GVMA -->
+        <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:16px">
+          <div style="font-family:var(--mono);font-weight:800;color:#d97706;font-size:1em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">GVMA — Maio</div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:.82em">
+            <div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:700;color:var(--ink)">Chefe SOICA</span><span style="color:var(--ink3)">Filomeno</span><span style="font-family:var(--mono);color:var(--ink3)">📱 9931463</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- LEGENDA ICAO -->
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:20px">
+      <div style="font-size:.75em;font-weight:700;color:var(--ink3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">Códigos ICAO</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px 20px;font-size:.8em">
+        <span><b style="font-family:var(--mono);color:var(--primary)">GVNP</b> — Nelson Mandela (Praia / Santiago)</span>
+        <span><b style="font-family:var(--mono);color:var(--primary)">GVSV</b> — Cesária Évora (São Vicente)</span>
+        <span><b style="font-family:var(--mono);color:var(--primary)">GVAC</b> — Amilcar Cabral (Sal)</span>
+        <span><b style="font-family:var(--mono);color:var(--primary)">GVBA</b> — Aristides Pereira (Boa Vista)</span>
+        <span><b style="font-family:var(--mono);color:var(--primary)">GVMA</b> — Maio</span>
+        <span><b style="font-family:var(--mono);color:var(--primary)">GVSF</b> — São Filipe (Fogo)</span>
+        <span><b style="font-family:var(--mono);color:var(--primary)">GVSN</b> — São Nicolau</span>
+        <span><b style="font-family:var(--mono);color:var(--primary)">GVSC ACC</b> — Santa Cruz ACC</span>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -2301,6 +2483,7 @@ navTo(p){
   if(p==='quadro'){this.renderQuadro();if(!this._quadroTimer)this._quadroTimer=setInterval(()=>{if(!document.getElementById('page-quadro').classList.contains('hide'))this.renderQuadro();},30000);}
   if(p==='mapa')this.renderMapa();
   if(p==='incidentes')this.renderIncidentes();
+  if(p==='contactos'){/* static page */}
   // Fechar hamburger
   const ar=document.getElementById('abarRight');
   if(ar)ar.classList.remove('open');
