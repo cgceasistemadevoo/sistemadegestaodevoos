@@ -5639,25 +5639,25 @@ renderMapa(){
     'Fogo':         {x:250,y:408,r:20,label:'Fogo'},
     'Brava':        {x:195,y:418,r:12,label:'Brava'}
   };
-  // Mapeamento de nomes comuns → ilha no SVG
+  // Mapeamento de nomes comuns + ICAO → ilha no SVG
   const lookup=(str)=>{
     if(!str)return null;
     const s=str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-    if(s.includes('praia')||s.includes('santiago')||s.includes('gvnp')||s.includes('gvsn')||s.includes('nelson'))return 'Santiago';
+    if(s.includes('praia')||s.includes('santiago')||s.includes('gvnp')||s.includes('nelson'))return 'Santiago';
     if(s.includes('mindelo')||s.includes('sao vicente')||s.includes('s.vicente')||s.includes('gvsv'))return 'Sao Vicente';
-    if(s.includes('sal')||s.includes('santa maria')||s.includes('gvsl')||s.includes('amilcar'))return 'Sal';
-    if(s.includes('boa vista')||s.includes('boavista')||s.includes('gvba')||s.includes('rabil'))return 'Boa Vista';
-    if(s.includes('fogo')||s.includes('filipe')||s.includes('gvsf')||s.includes('sao filipe'))return 'Fogo';
+    if(s.includes('sal')||s.includes('santa maria')||s.includes('gvac')||s.includes('gvsl')||s.includes('amilcar'))return 'Sal';
+    if(s.includes('boa vista')||s.includes('boavista')||s.includes('gvbv')||s.includes('rabil'))return 'Boa Vista';
+    if(s.includes('fogo')||s.includes('sao filipe')||s.includes('s.filipe')||s.includes('gvsf'))return 'Fogo';
     if(s.includes('nicolau')||s.includes('s.nicolau')||s.includes('gvsn'))return 'Sao Nicolau';
     if(s.includes('maio')||s.includes('gvma'))return 'Maio';
-    if(s.includes('brava'))return 'Brava';
-    if(s.includes('santo antao')||s.includes('santo antão')||s.includes('porto novo')||s.includes('ponta sol'))return 'Santo Antao';
+    if(s.includes('brava')||s.includes('gvba'))return 'Brava';
+    if(s.includes('santo antao')||s.includes('santo antao')||s.includes('porto novo')||s.includes('ponta sol')||s.includes('gvsao'))return 'Santo Antao';
     return null;
   };
-  // Filtrar missões
+  // Filtrar missões — usar m.dt (campo correcto)
   let missoes=this.S.missoes.filter(m=>m.status==='Concluída'||(m.origem&&m.destino));
-  if(selY)missoes=missoes.filter(m=>{const d=new Date(m.data);return d.getFullYear()===selY;});
-  if(selM>0)missoes=missoes.filter(m=>{const d=new Date(m.data);return d.getMonth()+1===selM;});
+  if(selY)missoes=missoes.filter(m=>{const d=m.dt instanceof Date?m.dt:new Date(m.dt);return d.getFullYear()===selY;});
+  if(selM>0)missoes=missoes.filter(m=>{const d=m.dt instanceof Date?m.dt:new Date(m.dt);return d.getMonth()+1===selM;});
   // Contar rotas
   const rotas={};
   let semRota=0;
