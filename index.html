@@ -1219,12 +1219,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   </div>
 </div>
 
-</div><!-- /wrap -->
-
-<div class="footer">2026 &nbsp;|&nbsp; Comando da Guarda Costeira de Cabo Verde</div>
-
-<!-- SCRIPTS -->
-
 <!-- ══════════════════════════════════════════
      QUADRO OPERACIONAL
 ════════════════════════════════════════════ -->
@@ -1326,6 +1320,9 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div id="tIncidentes" style="padding:4px 0"></div>
   </div>
 </div>
+
+</div><!-- /wrap -->
+<div class="footer">2026 &nbsp;|&nbsp; Comando da Guarda Costeira de Cabo Verde</div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -5700,14 +5697,30 @@ renderMapa(){
     svgContent+='<circle cx="'+lx+'" cy="'+ly+'" r="9" fill="'+col+'" opacity=".9"/>';
     svgContent+='<text x="'+lx+'" y="'+(ly+4)+'" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="white">'+r.count+'</text>';
   });
-  // Ilhas
+  // Silhuetas das ilhas (paths relativos ao centro, com transform translate)
+  const islandPaths={
+    'Santo Antao':'M-27,-5 L-22,-11 L-14,-15 L-4,-14 L6,-11 L16,-8 L25,-3 L26,3 L20,8 L10,11 L0,12 L-10,10 L-20,5 L-26,0 Z',
+    'Sao Vicente':'M-15,-13 L-5,-16 L6,-14 L15,-7 L17,1 L13,9 L5,14 L-5,14 L-13,8 L-17,0 L-16,-7 Z',
+    'Santa Luzia':'M-10,-4 L-4,-8 L4,-6 L9,0 L7,5 L1,8 L-6,6 L-10,1 Z',
+    'Sao Nicolau':'M-20,-4 L-14,-10 L-5,-13 L5,-12 L13,-7 L19,-1 L18,6 L11,11 L2,13 L-8,11 L-17,5 L-21,-1 Z',
+    'Sal':'M-4,-22 L3,-19 L6,-10 L7,0 L6,12 L3,20 L-2,22 L-5,18 L-7,8 L-7,-4 L-6,-14 Z',
+    'Boa Vista':'M-18,-19 L-4,-22 L10,-18 L19,-9 L21,3 L18,14 L9,20 L-3,21 L-14,16 L-20,6 L-20,-7 L-16,-15 Z',
+    'Maio':'M-8,-14 L1,-16 L10,-12 L14,-3 L13,7 L8,14 L0,16 L-9,12 L-13,3 L-12,-6 Z',
+    'Santiago':'M-13,-33 L-4,-36 L6,-31 L14,-20 L19,-8 L20,6 L16,19 L9,29 L0,34 L-10,31 L-19,20 L-22,7 L-20,-7 L-17,-20 Z',
+    'Fogo':'M-9,-19 L1,-21 L12,-15 L18,-4 L18,8 L12,17 L2,21 L-9,18 L-17,9 L-18,-3 L-13,-14 Z',
+    'Brava':'M-7,-10 L0,-12 L8,-8 L11,0 L8,8 L1,12 L-7,9 L-11,1 L-9,-6 Z'
+  };
   Object.keys(ilhas).forEach(k=>{
     const il=ilhas[k];
     const hasRoutes=rotaKeys.some(key=>rotas[key].from===k||rotas[key].to===k);
     const fc=hasRoutes?islandColor:'#d1fae5';
-    const sw=hasRoutes?2:1;
-    svgContent+='<ellipse cx="'+il.x+'" cy="'+il.y+'" rx="'+(il.r*1.4)+'" ry="'+il.r+'" fill="'+fc+'" stroke="'+islandStroke+'" stroke-width="'+sw+'"/>';
-    svgContent+='<text x="'+il.x+'" y="'+(il.y+il.r+13)+'" text-anchor="middle" font-family="Arial,sans-serif" font-size="9.5" font-weight="700" fill="#065f46">'+il.label+'</text>';
+    const sw=hasRoutes?2.5:1.5;
+    const shadow=hasRoutes?'drop-shadow(0 2px 4px rgba(0,0,0,.25))':'drop-shadow(0 1px 2px rgba(0,0,0,.15))';
+    const path=islandPaths[k]||'M-12,-8 L8,-10 L14,0 L10,10 L-6,12 L-14,4 Z';
+    svgContent+='<g transform="translate('+il.x+','+il.y+')" style="filter:'+shadow+'">';
+    svgContent+='<path d="'+path+'" fill="'+fc+'" stroke="'+islandStroke+'" stroke-width="'+sw+'" stroke-linejoin="round"/>';
+    svgContent+='</g>';
+    svgContent+='<text x="'+il.x+'" y="'+(il.y+22)+'" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#065f46" stroke="white" stroke-width="2.5" paint-order="stroke">'+il.label+'</text>';
   });
   // Nota sem rota
   if(semRota>0)svgContent+='<text x="696" y="516" text-anchor="end" font-family="Arial,sans-serif" font-size="8" fill="#6b7280">'+semRota+' missões sem rota definida</text>';
