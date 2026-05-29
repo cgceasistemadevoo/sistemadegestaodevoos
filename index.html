@@ -2788,7 +2788,8 @@ gestaoDocs(tipo, id){
             <button class="btn btn-p btn-sm" onclick="A._docAdd('${tipo}','${id}')">＋ Adicionar</button>
           </div>
           <div style="font-size:.75em;color:var(--ink3)">
-            💡 Guarde o ficheiro no Google Drive → clique com o botão direito → "Obter link" → cole aqui.
+            💡 <b>Google Drive:</b> Abrir ficheiro → <b>Partilhar</b> → "Qualquer pessoa com a ligação" → <b>Visualizador</b> → Copiar ligação → colar aqui.<br>
+            ⚡ Links de Drive são convertidos automaticamente para visualização directa (sem pedir permissão de editor).
           </div>
         </div>
       </div>
@@ -2802,24 +2803,55 @@ gestaoDocs(tipo, id){
   if(box && modal){ box.innerHTML = renderDocs(); modal.classList.add('on'); }
 },
 
+_normalizeDocUrl(raw){
+  // Converte links Google Drive para formato mais acessível (sem pedir permissão de editor)
+  // https://drive.google.com/file/d/ID/view  →  https://drive.google.com/file/d/ID/preview
+  // https://docs.google.com/.../edit         →  https://docs.google.com/.../preview
+  // https://drive.google.com/open?id=ID      →  https://drive.google.com/file/d/ID/preview
+  const u=raw.trim();
+  // drive.google.com/open?id=ID
+  const openM=u.match(/drive\.google\.com\/open\?id=([^&]+)/);
+  if(openM) return 'https://drive.google.com/file/d/'+openM[1]+'/preview';
+  // drive.google.com/file/d/ID/...
+  const fileM=u.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  if(fileM) return 'https://drive.google.com/file/d/'+fileM[1]+'/preview';
+  // docs.google.com/document|spreadsheets|presentation/d/ID/edit
+  const docsM=u.match(/(docs\.google\.com\/(?:document|spreadsheets|presentation)\/d\/[^/]+)\//);
+  if(docsM) return 'https://'+docsM[1]+'/preview';
+  return u; // URL externo — deixar intacto
+},
+
 _docAdd(tipo, id){
-  const nome = document.getElementById('_docNome')?.value.trim();
-  const url  = document.getElementById('_docUrl')?.value.trim();
-  const tipo2= document.getElementById('_docTipo')?.value || '';
-  if(!nome){ this.showNotif('⚠️ Introduza uma descrição','warn'); return; }
-  if(!url || !url.startsWith('http')){ this.showNotif('⚠️ Introduza um link válido (https://...)','warn'); return; }
-  const isMiss = tipo === 'miss';
-  const obj = isMiss
-    ? this.S.missoes.find(x => x.id === id)
-    : this.S.trips.find(x => x.nome === id);
-  if(!obj) return;
-  if(!obj.docs) obj.docs = [];
-  const now = new Date();
-  obj.docs.push({ nome, tipo: tipo2, url, data: now.toLocaleDateString('pt-PT') });
-  if(isMiss) this._logHistory(obj, 'Documento adicionado: ' + nome);
-  this.markDirty();
-  this.gestaoDocs(tipo, id);
-  this.showNotif('✅ Documento adicionado','ok');
+  // Guarda contra duplo-clique — evita guardar o mesmo doc múltiplas vezes
+  if(this._docBusy) return;
+  this._docBusy = true;
+  const btn = document.querySelector('#modalEditBox .btn-p');
+  if(btn){ btn.disabled=true; btn.textContent='A guardar…'; }
+  try{
+    const nome = document.getElementById('_docNome')?.value.trim();
+    const url  = document.getElementById('_docUrl')?.value.trim();
+    const tipo2= document.getElementById('_docTipo')?.value || '';
+    if(!nome){ this.showNotif('⚠️ Introduza uma descrição','warn'); return; }
+    if(!url || !url.startsWith('http')){ this.showNotif('⚠️ Introduza um link válido (https://...)','warn'); return; }
+    const isMiss = tipo === 'miss';
+    const obj = isMiss
+      ? this.S.missoes.find(x => x.id === id)
+      : this.S.trips.find(x => x.nome === id);
+    if(!obj) return;
+    if(!obj.docs) obj.docs = [];
+    const now = new Date();
+    const urlFinal=this._normalizeDocUrl(url);
+    obj.docs.push({ nome, tipo: tipo2, url: urlFinal, data: now.toLocaleDateString('pt-PT') });
+    if(isMiss) this._logHistory(obj, 'Documento adicionado: ' + nome);
+    this.markDirty();
+    // Guardar imediatamente — não esperar pelo debounce de 1.5s
+    if(typeof getApiUrl==='function' && getApiUrl()){ clearTimeout(this._autoSaveT); this.saveToCloud(); }
+    this.closeModal(); // Fechar modal automaticamente após guardar
+    this.showNotif('✅ Documento adicionado e guardado','ok');
+  } finally {
+    this._docBusy = false;
+    if(btn){ btn.disabled=false; btn.textContent='＋ Adicionar'; }
+  }
 },
 
 _docDel(tipo, id, idx){
@@ -2833,6 +2865,7 @@ _docDel(tipo, id, idx){
   obj.docs.splice(idx, 1);
   if(isMiss) this._logHistory(obj, 'Documento removido: ' + nome);
   this.markDirty();
+  if(typeof getApiUrl==='function' && getApiUrl()){ clearTimeout(this._autoSaveT); this.saveToCloud(); }
   this.gestaoDocs(tipo, id);
   this.showNotif('🗑️ Documento removido','ok');
 },
