@@ -1487,6 +1487,7 @@ closeInfoModal(){ document.getElementById('modalInfo').classList.remove('on'); }
 // ─── MODAL EDIÇÃO ─────────────────────────────────────────────
 closeModal(){
   document.getElementById('modalEdit').classList.remove('on');
+  const _md=document.getElementById('modalDyn');if(_md)_md.classList.remove('on');
   const _eCL=document.getElementById('editCrewList');if(_eCL)_eCL.innerHTML='';
   const _eCB=document.getElementById('editCrewBadge');if(_eCB)_eCB.textContent='0';
 },
@@ -2790,7 +2791,7 @@ gestaoDocs(tipo, id){
 
   const box = document.getElementById('modalEditBox');
   const modal = document.getElementById('modalEdit');
-  if(box && modal){ box.innerHTML = renderDocs(); modal.classList.add('open'); }
+  if(box && modal){ box.innerHTML = renderDocs(); modal.classList.add('on'); }
 },
 
 _docAdd(tipo, id){
@@ -2915,7 +2916,7 @@ editContacto(id){
   if(!c){this.showNotif('❌ Contacto não encontrado','err');return;}
   const gopts=grupos.map(g=>'<option'+(c.grupo===g?' selected':'')+'>'+g+'</option>').join('');
   const box=document.getElementById('modalEditBox');
-  const modal=document.getElementById('modalEdit');
+  const modal=document.getElementById('modalDyn');
   if(!box||!modal)return;
   box.innerHTML=`
     <h3 style="margin-bottom:16px;font-size:1em">${isNew?'➕ Novo Contacto':'✏️ Editar Contacto'}</h3>
@@ -2945,7 +2946,7 @@ editContacto(id){
       <button class="btn btn-s" onclick="A.closeModal()">Cancelar</button>
       <button class="btn btn-p" onclick="A.saveContacto('${this.esc(c.id)}',${isNew})">💾 Guardar</button>
     </div>`;
-  modal.classList.add('open');
+  modal.classList.add('on');
 },
 saveContacto(id, isNew){
   const get=i=>document.getElementById(i)?.value.trim()||'';
@@ -5827,9 +5828,10 @@ renderQuadro(){
   const todayStr=now.toISOString().slice(0,10);
   const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay()+1);
   const weekEnd=new Date(weekStart);weekEnd.setDate(weekStart.getDate()+6);
+  const _dtStr=m=>{const d=m.dt instanceof Date?m.dt:new Date(m.dt);return isNaN(d)?'':d.toISOString().slice(0,10);};
   let missoes=this.S.missoes.filter(m=>{
-    if(filter==='hoje'){return m.data===todayStr;}
-    if(filter==='semana'){const d=new Date(m.data);return d>=weekStart&&d<=weekEnd;}
+    if(filter==='hoje'){return _dtStr(m)===todayStr;}
+    if(filter==='semana'){const d=m.dt instanceof Date?m.dt:new Date(m.dt);return d>=weekStart&&d<=weekEnd;}
     return m.status==='Em Curso'||m.status==='Planeada';
   });
   missoes=missoes.sort((a,b)=>{if(a.data!==b.data)return a.data<b.data?-1:1;return (a.toff||'')>(b.toff||'')?1:-1;});
@@ -6115,7 +6117,7 @@ renderIncidentes(){
       const btH=(btTot/60).toFixed(1);
       let lastDate='—';
       if(missoes.length){
-        const dts=missoes.map(m=>m.data).filter(Boolean).sort();
+        const dts=missoes.map(m=>m.dt instanceof Date?m.dt.toISOString().slice(0,10):String(m.dt||'')).filter(Boolean).sort();
         if(dts.length){const d=new Date(dts[dts.length-1]);lastDate=d.toLocaleDateString('pt-PT');}
       }
       const aeroCount={};
@@ -7794,5 +7796,11 @@ tripLogbookPDF(nome){
 // ══════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded',()=>{A.initDark();A._checkSession();});
 </script>
-<script src=""></script></body>
+<script src=""></script>
+<!-- Modal dinâmico — gestaoDocs + editContacto -->
+<div id="modalDyn" class="modal">
+  <div id="modalEditBox" class="modal-box" style="max-width:660px;width:100%;max-height:88vh;overflow-y:auto;padding:28px 24px">
+  </div>
+</div>
+</body>
 </html>
