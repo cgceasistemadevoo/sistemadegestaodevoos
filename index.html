@@ -55,6 +55,11 @@ body.dark .hdr{background:#1a1c1e;background-image:none;border-bottom:1px solid 
 body.dark .bdg-plan{background:#1a2d45;color:#8ab4f8}
 body.dark .bdg-done{background:#1a2e1c;color:#4ade80}
 body.dark .bdg-cancel{background:#3e1515;color:#f28b82}
+body.dark .mission-tag{background:#1e293b!important;color:#93c5fd!important;border:1px solid #334155}
+body.dark .btn-dup{background:#1e1b4b!important;color:#a5b4fc!important;border-color:#312e81!important}
+body.dark .cal-today-cell{background:rgba(59,130,246,.18)!important;border-color:#3b82f6!important}
+body.dark tbody tr:hover{background:rgba(255,255,255,.04)}
+body.dark thead th{background:#1a1c1e;color:#9aa0a6}
 body.dark .bdg-inprog{background:#3e2c00;color:#fdd663}
 
 /* ═══════════════════════════════════════════════════════
@@ -3465,13 +3470,15 @@ delContacto(id){
       const tags=(m.tags||[]).map(t=>'<span style="background:#e0e7ff;color:#3730a3;padding:1px 6px;border-radius:8px;font-size:9px;margin-right:3px">'+this.esc(t)+'</span>').join('');
       rows+='<tr style="page-break-inside:avoid">'
         +'<td style="text-align:center;font-weight:700">'+(i+1)+'</td>'
-        +'<td><b>'+this.esc(m.num)+'</b><br><span style="font-size:10px;color:#666">'+this.esc(m.serie)+'</span>'+(tags?'<br>'+tags:'')+'</td>'
+        +'<td style="text-align:left"><b>'+this.esc(m.num)+'</b><br><span style="font-size:10px;color:#666">'+this.esc(m.serie)+'</span>'+(tags?'<br>'+tags:'')+'</td>'
         +'<td>'+this.esc(m.tipo)+'</td>'
         +'<td>'+this.esc(m.aero)+'</td>'
-        +'<td style="font-family:monospace">BOff: '+(m.boff||'').slice(0,5)+'<br>TOff: '+(m.toff||'').slice(0,5)+'<br>Land: '+(m.land||'').slice(0,5)+'<br>BOn: '+(m.bon||'').slice(0,5)+'</td>'
+        +'<td style="text-align:center">'+this.esc(m.origem||'—')+'</td>'
+        +'<td style="text-align:center">'+this.esc(m.destino||'—')+'</td>'
+        +'<td style="font-family:monospace;text-align:left">BOff: '+(m.boff||'').slice(0,5)+'<br>TOff: '+(m.toff||'').slice(0,5)+'<br>Land: '+(m.land||'').slice(0,5)+'<br>BOn: '+(m.bon||'').slice(0,5)+'</td>'
         +'<td style="font-family:monospace;text-align:center;font-weight:700">'+(m.dur||'—').slice(0,5)+'</td>'
         +'<td style="font-family:monospace;text-align:center;font-weight:700">'+(this.calcBT(m.boff,m.bon)||'—')+'</td>'
-        +'<td>'+crew+'</td>'
+        +'<td style="text-align:left">'+crew+'</td>'
         +'<td style="text-align:center"><span style="padding:2px 8px;border-radius:10px;font-size:10px;background:'+({'Concluída':'#d1fae5','Planeada':'#dbeafe','Em Curso':'#fef3c7','Cancelada':'#fee2e2'}[m.status||'Concluída'])+'">'+(m.status||'Concluída')+'</span></td>'
         +'<td style="border:1px solid #999;width:60px"></td>'
         +'</tr>';
@@ -3487,8 +3494,8 @@ delContacto(id){
       +'.hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #2e7d32;padding-bottom:8px;margin-bottom:14px}'
       +'.meta{font-size:11px;color:#555}'
       +'table{width:100%;border-collapse:collapse;margin-bottom:14px}'
-      +'th{background:#2e7d32;color:#fff;padding:6px;text-align:left;font-size:11px}'
-      +'td{padding:6px;border-bottom:1px solid #ddd;vertical-align:top;font-size:10px}'
+      +'th{background:#2e7d32;color:#fff;padding:6px;text-align:center;font-size:11px}'
+      +'td{padding:6px;border-bottom:1px solid #ddd;vertical-align:middle;text-align:center;font-size:10px}'
       +'tr:nth-child(even) td{background:#fafafa}'
       +'.totals{display:flex;justify-content:space-around;background:#f5f5f5;padding:10px;border-radius:6px;margin-bottom:14px}'
       +'.totals div{text-align:center}'
@@ -3502,7 +3509,7 @@ delContacto(id){
       +'<div class="no-print" style="margin-bottom:14px"><button class="btn" onclick="window.print()">🖨️ Imprimir</button><button class="btn" style="background:#666" onclick="window.close()">Fechar</button></div>'
       +'<div class="hdr"><div><h1>FOLHA DE SERVIÇO DIÁRIA</h1><h2>CGC - EA - Sistema de Gestão de Voo</h2></div><div class="meta"><b>Data:</b> '+dateStr+'<br><b>Emitida:</b> '+new Date().toLocaleString('pt-PT')+'</div></div>'
       +'<div class="totals"><div><b>'+dayMs.length+'</b>Missões</div><div><b>'+totH+'</b>Total Flight Time</div><div><b>'+totBtH+'</b>Total Block Time</div><div><b>'+(new Set(dayMs.flatMap(m=>(m.crew||[]).map(c=>c.nome)))).size+'</b>Tripulantes</div><div><b>'+(new Set(dayMs.map(m=>m.aero))).size+'</b>Aeronaves</div></div>'
-      +'<table><thead><tr><th>#</th><th>Missão</th><th>Tipo</th><th>Aeronave</th><th>Horários</th><th>FLIGHT TIME</th><th>BLOCK TIME</th><th>Tripulação</th><th>Estado</th><th>Visto</th></tr></thead><tbody>'+rows+'</tbody></table>'
+      +'<table><thead><tr><th>#</th><th>Missão</th><th>Tipo</th><th>Aeronave</th><th>Origem</th><th>Destino</th><th>Horários</th><th>FLIGHT TIME</th><th>BLOCK TIME</th><th>Tripulação</th><th>Estado</th><th>Visto</th></tr></thead><tbody>'+rows+'</tbody></table>'
       +'<div class="sig"><div>Oficial de Operações<br><span style="font-size:9px;color:#999">Data: ___/___/________</span></div><div>Chefe de Serviço de Operações<br><span style="font-size:9px;color:#999">Data: ___/___/________</span></div><div>Diretor de Operações Aereas<br><span style="font-size:9px;color:#999">Data: ___/___/________</span></div></div>'
       +'<div class="foot">CGC - EA - Sistema de Gestão de Voo — Documento gerado automaticamente</div>'
       +'</body></html>';
@@ -3549,7 +3556,8 @@ delContacto(id){
       const dayDate=new Date(y,mo,d);dayDate.setHours(0,0,0,0);
       const isToday=dayDate.getTime()===today.getTime();
       const ms=byDay[d]||[];
-      const bg=isToday?'#dbeafe':'var(--white)';
+      const isDkCal=document.body.classList.contains('dark');
+      const bg=isToday?(isDkCal?'rgba(59,130,246,.2)':'#dbeafe'):'var(--white)';
       const bd=isToday?'#3b82f6':'var(--border)';
       const _dropDate=y+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
       h+='<div ondragover="event.preventDefault();this.style.outline=\'2px dashed #3b82f6\'" ondragleave="this.style.outline=\'\'" ondrop="A._calDrop(event,\''+_dropDate+'\')" onclick="A.calDay('+y+','+mo+','+d+')" style="min-height:78px;background:'+bg+';border:1.5px solid '+bd+';border-radius:6px;padding:4px;cursor:'+(ms.length?'pointer':'default')+';transition:transform .12s" onmouseover="if('+ms.length+')this.style.transform=\'scale(1.02)\'" onmouseout="this.style.transform=\'scale(1)\'">'
@@ -4112,7 +4120,7 @@ saveTemplateFromMission(id){
         +todayMs.map(m=>'• '+m.num+' — '+(m.toff||'').slice(0,5)+' '+m.tipo+' ('+m.aero+')').join('<br>')+'</div></div>';
     }
     if(tomorrowMs.length){
-      html+='<div style="background:#e0e7ff;border-left:3px solid #6366f1;padding:10px;border-radius:6px;margin-bottom:8px"><b>📆 Missões para AMANHÃ ('+tomorrowMs.length+'):</b><div style="margin-top:4px;font-size:.88em">'
+      html+='<div style="background:var(--surface);border-left:3px solid #6366f1;padding:10px;border-radius:6px;margin-bottom:8px"><b>📆 Missões para AMANHÃ ('+tomorrowMs.length+'):</b><div style="margin-top:4px;font-size:.88em">'
         +tomorrowMs.map(m=>'• '+m.num+' — '+(m.toff||'').slice(0,5)+' '+m.tipo+' ('+m.aero+')').join('<br>')+'</div></div>';
     }
     if(expSoon.length){
@@ -4506,7 +4514,7 @@ renderVoos(list){
     const eid=m.id.replace(/'/g,"\\'");
     h+='<tr>'+
       '<td><span class="bdg bdg-log">'+this.esc(m.serie)+'</span></td>'+
-      '<td><span class="mtag">🔖 '+this.esc(m.num)+(m.perna?'<span class="perna-tag">'+this.esc(m.perna)+'</span>':'')+'</span>'+((m.tags&&m.tags.length)?' <div style="margin-top:3px;display:flex;flex-wrap:wrap;gap:3px">'+m.tags.map(t=>'<span style=\'background:#e0e7ff;color:#3730a3;padding:1px 6px;border-radius:8px;font-size:.65em\'>'+this.esc(t)+'</span>').join('')+'</div>':'')+'</td>'+
+      '<td><span class="mtag">🔖 '+this.esc(m.num)+(m.perna?'<span class="perna-tag">'+this.esc(m.perna)+'</span>':'')+'</span>'+((m.tags&&m.tags.length)?' <div style="margin-top:3px;display:flex;flex-wrap:wrap;gap:3px">'+m.tags.map(t=>'<span class="mission-tag" style="padding:1px 6px;border-radius:8px;font-size:.65em;background:#e0e7ff;color:#3730a3">'+this.esc(t)+'</span>').join('')+'</div>':'')+'</td>'+
       '<td>'+m.dt.toLocaleDateString('pt-PT')+'</td>'+
       '<td><span class="bdg '+sc+' clickable" title="Clique para alterar estado" onclick="A.quickStatus(\''+eid+'\',event)">'+this.esc(m.status||'Concluída')+' ▾</span></td>'+
       '<td><span class="bdg '+bc+'" title="'+this.esc(m.tipo)+'">'+this.esc(m.tipo.length>18?m.tipo.slice(0,16)+'…':m.tipo)+'</span></td>'+
@@ -4520,7 +4528,7 @@ renderVoos(list){
       '<td style="white-space:nowrap">'+
         '<button class="btn btn-xs btn-pdf" onclick="A.missaoPDF(\''+eid+'\')" title="Ordem de Serviço PDF">📄</button> '+
         '<button class="btn btn-xs btn-edit admin-only" onclick="A.editMissao(\''+eid+'\')">✏️</button> '+
-        '<button class="btn btn-xs admin-only" style="background:#e0e7ff;color:#4338ca;border:1px solid #c7d2fe" onclick="A.dupMissao(\''+eid+'\')" title="Duplicar">📋</button> '+
+        '<button class="btn btn-xs admin-only" class="btn-dup" style="background:#e0e7ff;color:#4338ca;border:1px solid #c7d2fe" onclick="A.dupMissao(\''+eid+'\')" title="Duplicar">📋</button> '+
         '<button class="btn btn-xs admin-only" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a" onclick="A.saveTemplateFromMission(\''+eid+'\')" title="Guardar como modelo reutilizável">💾</button> '+
         '<button class="btn btn-xs" style="background:var(--surface);border:1px solid var(--border)" onclick="A.showHistoria(\''+eid+'\')">📜</button> '+
         '<button class="btn btn-xs btn-del admin-only" onclick="A.delMissao(\''+eid+'\')">🗑️</button> '+
@@ -4560,7 +4568,7 @@ _renderCards(list){
       '<div class="voo-card-actions">'+
         '<button class="btn btn-xs btn-pdf" onclick="A.missaoPDF(\''+eid+'\')" title="Ordem de Serviço PDF">📄 PDF</button>'+
         '<button class="btn btn-xs btn-edit admin-only" onclick="A.editMissao(\''+eid+'\')">✏️ Editar</button>'+
-        '<button class="btn btn-xs admin-only" style="background:#e0e7ff;color:#4338ca;border:1px solid #c7d2fe" onclick="A.dupMissao(\''+eid+'\')">📋 Duplicar</button>'+
+        '<button class="btn btn-xs admin-only" class="btn-dup" style="background:#e0e7ff;color:#4338ca;border:1px solid #c7d2fe" onclick="A.dupMissao(\''+eid+'\')">📋 Duplicar</button>'+
         '<button class="btn btn-xs admin-only" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a" onclick="A.saveTemplateFromMission(\''+eid+'\')" title="Guardar como modelo">💾 Modelo</button>'+
         '<button class="btn btn-xs" style="background:var(--surface);border:1px solid var(--border)" onclick="A.showHistoria(\''+eid+'\')">📜</button>'+
         '<button class="btn btn-xs btn-del admin-only" onclick="A.delMissao(\''+eid+'\')">🗑️</button>'+
