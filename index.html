@@ -4114,21 +4114,32 @@ saveTemplateFromMission(id){
 
     if(!todayMs.length&&!tomorrowMs.length&&!expSoon.length&&!maint.length)return;
 
+    const isDk=document.body.classList.contains('dark');
+    const clr={
+      hoje: isDk?'rgba(29,78,216,.28)':'#dbeafe',
+      hojeT: isDk?'#93c5fd':'#1e40af',
+      ama:  isDk?'rgba(79,70,229,.28)':'#ede9fe',
+      amaT: isDk?'#a5b4fc':'#3730a3',
+      val:  isDk?'rgba(127,29,29,.45)':'#fee2e2',
+      valT: isDk?'#fca5a5':'#991b1b',
+      man:  isDk?'rgba(120,53,15,.45)':'#fef3c7',
+      manT: isDk?'#fde68a':'#92400e',
+    };
     let html='<h3 style="margin-bottom:14px">🔔 Avisos de Hoje</h3>';
     if(todayMs.length){
-      html+='<div style="background:#dbeafe;border-left:3px solid #3b82f6;padding:10px;border-radius:6px;margin-bottom:8px"><b>📅 Missões para HOJE ('+todayMs.length+'):</b><div style="margin-top:4px;font-size:.88em">'
+      html+='<div style="background:'+clr.hoje+';border-left:3px solid #3b82f6;padding:10px;border-radius:6px;margin-bottom:8px;color:'+clr.hojeT+'"><b>📅 Missões para HOJE ('+todayMs.length+'):</b><div style="margin-top:4px;font-size:.88em">'
         +todayMs.map(m=>'• '+m.num+' — '+(m.toff||'').slice(0,5)+' '+m.tipo+' ('+m.aero+')').join('<br>')+'</div></div>';
     }
     if(tomorrowMs.length){
-      html+='<div style="background:var(--surface);border-left:3px solid #6366f1;padding:10px;border-radius:6px;margin-bottom:8px"><b>📆 Missões para AMANHÃ ('+tomorrowMs.length+'):</b><div style="margin-top:4px;font-size:.88em">'
+      html+='<div style="background:'+clr.ama+';border-left:3px solid #6366f1;padding:10px;border-radius:6px;margin-bottom:8px;color:'+clr.amaT+'"><b>📆 Missões para AMANHÃ ('+tomorrowMs.length+'):</b><div style="margin-top:4px;font-size:.88em">'
         +tomorrowMs.map(m=>'• '+m.num+' — '+(m.toff||'').slice(0,5)+' '+m.tipo+' ('+m.aero+')').join('<br>')+'</div></div>';
     }
     if(expSoon.length){
-      html+='<div style="background:#fee2e2;border-left:3px solid #dc2626;padding:10px;border-radius:6px;margin-bottom:8px"><b>⚠️ Validades urgentes ('+expSoon.length+'):</b><div style="margin-top:4px;font-size:.88em">'
+      html+='<div style="background:'+clr.val+';border-left:3px solid #dc2626;padding:10px;border-radius:6px;margin-bottom:8px;color:'+clr.valT+'"><b>⚠️ Validades urgentes ('+expSoon.length+'):</b><div style="margin-top:4px;font-size:.88em">'
         +expSoon.slice(0,8).map(a=>'• '+a.nome+' — '+a.tipo+': '+a.label).join('<br>')+(expSoon.length>8?'<br>... e mais '+(expSoon.length-8):'')+'</div></div>';
     }
     if(maint.length){
-      html+='<div style="background:#fef3c7;border-left:3px solid #f59e0b;padding:10px;border-radius:6px;margin-bottom:8px"><b>🛠️ Manutenção de Aeronaves ('+maint.length+'):</b><div style="margin-top:4px;font-size:.88em">'
+      html+='<div style="background:'+clr.man+';border-left:3px solid #f59e0b;padding:10px;border-radius:6px;margin-bottom:8px;color:'+clr.manT+'"><b>🛠️ Manutenção de Aeronaves ('+maint.length+'):</b><div style="margin-top:4px;font-size:.88em">'
         +maint.map(a=>'• '+a.nome+' — '+a.tipo+': '+a.label).join('<br>')+'</div></div>';
     }
     html+='<div style="margin-top:14px;text-align:right"><button class="btn btn-p btn-sm" onclick="A.closeInfoModal()">OK, entendido</button></div>';
