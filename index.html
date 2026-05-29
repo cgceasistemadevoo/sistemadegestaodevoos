@@ -2812,7 +2812,7 @@ _docAdd(tipo, id){
   const now = new Date();
   obj.docs.push({ nome, tipo: tipo2, url, data: now.toLocaleDateString('pt-PT') });
   if(isMiss) this._logHistory(obj, 'Documento adicionado: ' + nome);
-  this._dirty();
+  this.markDirty();
   this.gestaoDocs(tipo, id);
   this.showNotif('✅ Documento adicionado','ok');
 },
@@ -2827,7 +2827,7 @@ _docDel(tipo, id, idx){
   const nome = obj.docs[idx]?.nome || '';
   obj.docs.splice(idx, 1);
   if(isMiss) this._logHistory(obj, 'Documento removido: ' + nome);
-  this._dirty();
+  this.markDirty();
   this.gestaoDocs(tipo, id);
   this.showNotif('🗑️ Documento removido','ok');
 },
@@ -2967,12 +2967,12 @@ saveContacto(id, isNew){
     c.aftn=get('_cAftn');c.obs=get('_cObs');
     this.showNotif('✅ Contacto actualizado','ok');
   }
-  this._dirty();this.closeModal();this.renderContactos();
+  this.markDirty();this.closeModal();this.renderContactos();
 },
 delContacto(id){
   if(!confirm('Eliminar este contacto?'))return;
   this.S.contactos=this.S.contactos.filter(x=>x.id!==id);
-  this._dirty();this.renderContactos();this.showNotif('🗑️ Contacto eliminado','ok');
+  this.markDirty();this.renderContactos();this.showNotif('🗑️ Contacto eliminado','ok');
 },
 
 // ─── ALERTAS DE VALIDADE ──────────────────────────────────────
