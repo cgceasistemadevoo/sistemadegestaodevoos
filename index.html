@@ -20,9 +20,7 @@
    RESET + VARIÁVEIS
 ═══════════════════════════════════════════════════════ */
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-/* ═══════════════════════════════════════════════════════════
-   VARIÁVEIS CSS — Cores, fontes, sombras (light + dark mode)
-═══════════════════════════════════════════════════════════ */
+:root{
   --g9:#1B5E20;--g8:#2E7D32;--g7:#388E3C;--g6:#43A047;--g5:#4CAF50;--g4:#66BB6A;
   --g2:#C8E6C9;--g1:#E8F5E9;--g0:#F1F8F2;
   --ink:#0f1f12;--ink2:#3a5440;--ink3:#6b8a72;
@@ -37,9 +35,6 @@
   --font:'IBM Plex Sans',system-ui,sans-serif;
   --mono:'IBM Plex Mono','Menlo',monospace;
 }
-/* ═══════════════════════════════════════════════════════════
-   RESET + LAYOUT BASE
-═══════════════════════════════════════════════════════════ */
 body{font-family:var(--font);background:var(--surface);color:var(--ink);font-size:14px;line-height:1.5;min-height:100vh}
 
 /* ═══════════════════════════════════════════════════════
@@ -708,7 +703,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 <!-- ══════════════════════════════════════════
      DASHBOARD
 ══════════════════════════════════════════ -->
-<!-- ═══ PÁGINA: DASHBOARD (KPIs, alertas, próximas missões) ═══ -->
 <div id="page-dashboard" class="page">
   <div class="fsection">
     <div class="fgrid">
@@ -820,17 +814,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div id="alertsBody" style="padding:6px 4px"></div>
   </div>
 
-  <div class="card" id="meteoCard" style="margin-bottom:14px">
-    <div class="card-hd" style="flex-wrap:wrap;gap:8px">
-      <h3>🌤️ Meteo Operacional</h3>
-      <span id="meteoTs" style="font-size:.75em;color:var(--ink3);font-weight:400;margin-left:4px"></span>
-      <button class="btn btn-s btn-sm" style="margin-left:auto" onclick="A._meteoFetch(true)">⟳ Actualizar</button>
-    </div>
-    <div id="meteoBody" style="padding:6px 4px">
-      <div style="color:var(--ink3);font-size:.88em;padding:10px 4px">Clique em <strong>⟳ Actualizar</strong> para carregar dados METAR/TAF dos aeródromos configurados.</div>
-    </div>
-  </div>
-
   <div class="card">
     <div class="card-hd"><h3>🔜 Próximas Missões <span id="proxCount" style="font-weight:400;color:var(--ink3)"></span></h3></div>
     <div class="tscroll" id="tProximas"></div>
@@ -840,7 +823,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 <!-- ══════════════════════════════════════════
      TRIPULANTES
 ══════════════════════════════════════════ -->
-<!-- ═══ PÁGINA: TRIPULANTES (lista, validades, PDF individual) ═══ -->
 <div id="page-tripulantes" class="page hide">
   <div class="mgrid">
     <div class="mcard" data-ic="👥"><div class="mcard-lbl">Total</div><div class="mcard-val" id="mTt">0</div></div>
@@ -893,7 +875,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 <!-- ══════════════════════════════════════════
      MISSÕES
 ══════════════════════════════════════════ -->
-<!-- ═══ PÁGINA: MISSÕES (tabela, filtros, exportação) ═══ -->
 <div id="page-voos" class="page hide">
   <div class="form-sec admin-only">
     <h3>✈️ Registar Nova Missão</h3>
@@ -998,7 +979,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 <!-- ══════════════════════════════════════════
      PAGAMENTOS
 ══════════════════════════════════════════ -->
-<!-- ═══ PÁGINA: PAGAMENTOS (vencimentos, recibos PDF) ═══ -->
 <div id="page-pagamentos" class="page hide">
   <div class="pay-sec">
     <div class="pay-title">💰 Relatório de Pagamentos por Mês</div>
@@ -1073,7 +1053,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 <!-- ══════════════════════════════════════════
      ANÁLISES
 ══════════════════════════════════════════ -->
-<!-- ═══ PÁGINA: ANÁLISES (charts, heatmap, ranking) ═══ -->
 <div id="page-analises" class="page hide">
   <div class="fsection" style="margin-bottom:12px">
     <div class="fgrid">
@@ -1157,7 +1136,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 <!-- ══════════════════════════════════════════
        CALENDÁRIO
   ══════════════════════════════════════════ -->
-<!-- ═══ PÁGINA: CALENDÁRIO (drag-drop, folha de serviço) ═══════════════ -->
   <div id="page-calendario" class="page hide">
     <div class="card">
       <div class="card-hd" style="flex-wrap:wrap;gap:10px">
@@ -1179,7 +1157,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   <!-- ══════════════════════════════════════════
      AERONAVES
 ══════════════════════════════════════════ -->
-<!-- ═══ PÁGINA: AERONAVES (frota, manutenção) ═══ -->
 <div id="page-aeronaves" class="page hide">
   <div class="mgrid">
     <div class="mcard" data-ic="✈️"><div class="mcard-lbl">Total Aeronaves</div><div class="mcard-val" id="mAeroTot">0</div><div class="mcard-sub">registadas</div></div>
@@ -1251,7 +1228,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 <!-- ══════════════════════════════════════════
      QUADRO OPERACIONAL
 ════════════════════════════════════════════ -->
-<!-- ═══ PÁGINA: QUADRO OPERACIONAL (FIDS tempo-real) ═══ -->
 <div id="page-quadro" class="page hide">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
     <div>
@@ -1277,7 +1253,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 <!-- ══════════════════════════════════════════
      MAPA DE ROTAS
 ════════════════════════════════════════════ -->
-<!-- ═══ PÁGINA: MAPA (posicionamento aeronaves) ═══ -->
 <div id="page-mapa" class="page hide">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
     <select id="mapaMonth" onchange="A.renderMapa()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85em;background:var(--white);color:var(--ink);outline:none"></select>
@@ -1298,7 +1273,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 <!-- ══════════════════════════════════════════
      INCIDENTES
 ════════════════════════════════════════════ -->
-<!-- ═══ PÁGINA: INCIDENTES (registo de ocorrências) ═══ -->
 <div id="page-incidentes" class="page hide">
   <div class="mgrid" style="margin-bottom:16px">
     <div class="mcard" data-ic="⚠️"><div class="mcard-lbl">Total</div><div class="mcard-val" id="incTot">0</div><div class="mcard-sub">registados</div></div>
@@ -1357,7 +1331,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 <!-- ══════════════════════════════════════════
      CONTACTOS UTEIN
 ════════════════════════════════════════════ -->
-<!-- ═══ PÁGINA: CONTACTOS ÚTEIS (ATC, ops, SAR) ═══ -->
 <div id="page-contactos" class="page hide">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:18px">
     <div>
@@ -1382,36 +1355,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 <script>window.savePDF=function(doc,filename){try{var ua=navigator.userAgent||"";var isIOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);var isMobile=/Android|Mobi/.test(ua)||isIOS;if(isIOS||isMobile){var blob=doc.output("blob");var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=filename;a.target="_blank";a.rel="noopener";document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);var w=window.open(url,"_blank");if(!w){location.href=url;}},100);}else{doc.save(filename);}}catch(e){try{var u=doc.output("bloburl");window.open(u,"_blank")||(location.href=u);}catch(_){alert("Não foi possível gerar o PDF: "+e.message);}}};</script>
 
 <script>
-/* ════════════════════════════════════════════════════════════════════════════
-   CGC-EA  —  Sistema de Gestão de Voo                          v2
-   ════════════════════════════════════════════════════════════════════════════
-
-   ÍNDICE DO FICHEIRO
-   ─────────────────────────────────────────────────────────────────────────
-   [HTML]   l.1      <head>  Meta, CSS inline, ícones
-   [CSS]    l.~120   <style>  Variáveis CSS, layout, componentes
-   [HTML]   l.~510k  Páginas: Dashboard · Tripulantes · Missões · Pagamentos
-                             Análises · Calendário · Aeronaves · Quadro
-                             Mapa · Incidentes · Contactos
-   [JS]     l.~553k  App object:
-              ├─ Estado (S) e Constantes (C)
-              ├─ Utilitários / Auditoria / Modal
-              ├─ Guardar/Carregar Drive · Cache localStorage
-              ├─ Configurações · Autenticação · Init
-              ├─ Missões: Registar · Editar · Apagar · Histórico
-              ├─ Documentos · Contactos · Alertas
-              ├─ Calendário · Filtros · Render Voos
-              ├─ Tripulantes · Aeronaves · Séries
-              ├─ Análises · Charts · Heatmap
-              ├─ Pagamentos · Recibos PDF
-              ├─ Exportações: Excel · PDF · Email
-              ├─ Quadro Operacional · Incidentes
-              └─ Relatórios: Mensal · Anual · Executivo
-   ─────────────────────────────────────────────────────────────────────────
-   GAS URL: definido em getApiUrl() / localStorage fx9_api_url
-   Dados:   guardados no Google Drive via fetch POST → _handleSaveData
-   Cache:   localStorage fx9_cloud_cache (reabertura instantânea)
-   ════════════════════════════════════════════════════════════════════════ */
 'use strict';
 // ══════════════════════════════════════════════════════════════
 //  CONFIGURAÇÃO — URL lido de localStorage (configurável na app)
@@ -1527,29 +1470,9 @@ allAeros(){
   },
 
 // ─── AUDITORIA ────────────────────────────────────────────────
-_checkMonthlyExport(){
-  try{
-    const now=new Date();
-    const key='fx9_last_export';
-    const last=localStorage.getItem(key)||'';
-    const thisMonth=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-    if(last===thisMonth||!this.S.missoes.length)return;
-    localStorage.setItem(key,thisMonth);
-    const payload=JSON.stringify({
-      exportedAt:now.toISOString(),month:thisMonth,
-      missoes:this.S.missoes.map(m=>({...m,dt:m.dt instanceof Date?m.dt.toISOString():m.dt})),
-      trips:this.S.trips,aeros:this.S.aeros,series:this.S.series
-    },null,2);
-    const a=document.createElement('a');
-    a.href='data:application/json;charset=utf-8,'+encodeURIComponent(payload);
-    a.download='CGC_EA_backup_'+thisMonth+'.json';
-    a.click();
-    this.showNotif('📦 Cópia de segurança mensal exportada automaticamente ('+thisMonth+')','ok');
-  }catch(_){}
-},
 addAudit(action,details){
   this.S.auditLog.unshift({timestamp:new Date().toISOString(),action,details,user:'Sistema'});
-  if(this.S.auditLog.length>500)this.S.auditLog=this.S.auditLog.slice(0,500);
+  if(this.S.auditLog.length>1000)this.S.auditLog.pop();
 },
 showAuditLog(){
   const html=this.S.auditLog.length===0
@@ -1625,17 +1548,12 @@ async saveToCloud(){
         seriesDefault:this.getDefaultSeries(),
         metas:this.getMetas(),
       },
-      _savedAt:new Date().toISOString(),
     };
-    const jsonStr=JSON.stringify(data);
-    const _sizeKB=Math.round(jsonStr.length/1024);
-    if(_sizeKB>180)this.showNotif('⚠️ Atenção: dados a '+_sizeKB+'KB (limite ~250KB). Exporte uma cópia de segurança em breve.','warn');
     const resp=await fetch(url,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(data)});
     const r=await resp.json();
     if(r&&(r.ok||r.success)){
       this.S.dirty=false;
       this.S.lastSave=new Date().toISOString();
-      try{localStorage.setItem('fx9_my_save_ts',this.S.lastSave);}catch(_){}
       this.syncUI('synced',this.S.lastSave);
       this.addAudit('Dados guardados','Sincronização com Google Drive');
       this.showNotif('☁️ Dados guardados no Drive!');
@@ -1686,20 +1604,6 @@ async loadFromCloud(){
         if(cfg.metas&&typeof cfg.metas==='object') this.C.metas=cfg.metas;
       }
       this.S.lastSave=new Date().toISOString();
-      // ── Cache local (reabertura instantânea) ──
-      try{
-        const _cache={ts:this.S.lastSave,savedAt:d._savedAt||null,
-          trips:this.S.trips,
-          missoes:this.S.missoes.map(m=>({...m,dt:m.dt instanceof Date?m.dt.toISOString():m.dt})),
-          series:this.S.series,colocacoes:this.S.colocacoes,aeros:this.S.aeros,
-          incidentes:this.S.incidentes,contactos:this.S.contactos,auditLog:this.S.auditLog};
-        localStorage.setItem('fx9_cloud_cache',JSON.stringify(_cache));
-      }catch(_){}
-      // ── Detecção de conflito: se o Drive tem dados mais novos que o nosso último save ──
-      const _myTs=localStorage.getItem('fx9_my_save_ts');
-      if(d._savedAt&&_myTs&&d._savedAt>_myTs){
-        this.showNotif('ℹ️ Os dados foram actualizados por outro utilizador desde a sua última gravação.','warn');
-      }
       this.syncUI('synced',this.S.lastSave);
       this.addAudit('Dados carregados do Drive',this.S.missoes.length+' missões');
       return true;
@@ -1720,23 +1624,6 @@ async loadFromCloud(){
 async reloadCloud(){
   const url=getApiUrl();
   if(!url){this.openSettings();return;}
-  // ── Mostrar cache local imediatamente enquanto carrega do Drive ──
-  try{
-    const _raw=localStorage.getItem('fx9_cloud_cache');
-    if(_raw){
-      const _c=JSON.parse(_raw);
-      if(_c&&_c.missoes&&_c.missoes.length){
-        this.S.trips=_c.trips||[];
-        this.S.missoes=(_c.missoes||[]).map(m=>({...m,dt:new Date(m.dt)}));
-        this.S.series=_c.series||[];this.S.colocacoes=_c.colocacoes||[];
-        this.S.aeros=_c.aeros||[];this.S.incidentes=_c.incidentes||[];
-        this.S.contactos=_c.contactos||[];this.S.auditLog=_c.auditLog||[];
-        this.S.filtered=[...this.S.missoes];
-        this.fillSelects();this.renderAll();this.buildCharts();
-        this.showLoad(true,'A sincronizar com o Drive...');
-      }
-    }
-  }catch(_){}
   const ok=await this.loadFromCloud();
   this.S.filtered=[...this.S.missoes];
   this.fillSelects();
@@ -1768,7 +1655,6 @@ openSettings(){
   ${tabBtn('cfgTabMetas','🎯 Metas',false)}
   ${tabBtn('cfgTabBackup','💾 Backup',false)}
   ${this.canManageUsers()?tabBtn('cfgTabUtilizadores','👥 Utilizadores',false):''}
-  ${tabBtn('cfgTabMeteo','🌤️ Meteo',false)}
 </div>
 
 <div id="cfgTabDrive" class="cfg-tp" style="display:block">
@@ -1914,26 +1800,6 @@ openSettings(){
   </div>
   <div style="margin-top:14px;text-align:right">
     <button class="btn btn-s" onclick="A.closeInfoModal()">Fechar</button>
-  </div>
-</div>
-
-<div id="cfgTabMeteo" class="cfg-tp" style="display:none">
-  <p style="color:var(--ink3);font-size:.84em;margin-bottom:14px">Configure os aeródromos a monitorizar. Dados METAR/TAF actualizados a cada 30 minutos via aviationweather.gov (serviço público e gratuito, requer ligação à internet).</p>
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 12px;background:var(--g0);border:1.5px solid var(--border);border-radius:9px">
-    <input type="checkbox" id="meteoOnToggle" style="width:18px;height:18px;cursor:pointer" ${localStorage.getItem('fx9_meteo_on')!=='0'?'checked':''}>
-    <label for="meteoOnToggle" style="cursor:pointer;font-size:.88em;font-weight:600">Mostrar painel Meteo no Dashboard</label>
-  </div>
-  <div style="font-size:.75rem;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Aeródromos ICAO</div>
-  <div id="meteoIcaoList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
-    ${this._meteoIcaoListHtml()}
-  </div>
-  <button class="btn btn-s btn-sm" onclick="A._meteoAddRow()">+ Adicionar Aeródromo</button>
-  <div style="margin-top:12px;padding:10px 12px;background:var(--g0);border:1.5px solid var(--border);border-radius:9px;font-size:.8em;color:var(--ink3)">
-    <b>Aeródromos de Cabo Verde:</b> GVAC (Santiago/STC), GVNP (Praia/RAI), GVSV (S.Vicente/VXE), GVBA (Boa Vista/BVC), GVSA (Sal/SID), GVMA (Maio), GVFL (Fogo), GVSI (S.Nicolau)
-  </div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
-    <button class="btn btn-p" onclick="A._meteoSaveIcaos()">💾 Guardar</button>
-    <button class="btn btn-s" onclick="A.closeInfoModal()">Cancelar</button>
   </div>
 </div>`;
   this.openInfoModal(html);
@@ -2224,7 +2090,6 @@ async init(){
   this.showLoad(true,'A carregar dados do Google Drive...');
   this.initDark();
   this.bindNav();
-  if(window.innerWidth>900){document.getElementById('nav')?.classList.add('open');document.body.classList.add('nav-open');}
   this._updateConfigBtn();
   // Configurações são carregadas do Drive em loadFromCloud() — sem localStorage
 
@@ -2265,10 +2130,6 @@ async init(){
   const sm=document.getElementById('selMes');
   if(sm)sm.value=String(n.getMonth()+1);
   this.calcPag();
-  // Exportação automática mensal
-  setTimeout(()=>this._checkMonthlyExport(),2000);
-  // Meteo: show card if enabled, but don't auto-fetch (user clicks ⟳ to load)
-  setTimeout(()=>{const c=document.getElementById('meteoCard');if(c)c.style.display=this._meteoOn()?'':'none';},100);
 
   window.addEventListener('resize',()=>{const nav=document.getElementById('nav');if(nav&&nav.classList.contains('open')){if(window.innerWidth>768)document.body.classList.add('nav-open');else document.body.classList.remove('nav-open');}});
     this.addAudit('Sistema iniciado','v9.0 carregado');
@@ -2483,8 +2344,8 @@ toggleAbar(){
 
 // ─── DARK MODE ────────────────────────────────────────────────
 initDark(){
-  let dark=true;
-  try{const _s=localStorage.getItem('fx9_dark');if(_s!==null)dark=_s==='1';}catch{}
+  let dark=false;
+  try{dark=localStorage.getItem('fx9_dark')==='1';}catch{}
   if(dark){document.body.classList.add('dark');const b=document.getElementById('darkBtn');if(b)b.textContent='☀️ Claro';}
 },
 toggleDark(){
@@ -4650,13 +4511,11 @@ applyF(){
   if(trip&&trip!=='todos')f=f.filter(m=>(m.crew||[]).some(c=>c.nome===trip));
   if(status&&status!=='todos')f=f.filter(m=>(m.status||'Concluída')===status);
   this.S.filtered=f;
-  this._tablePage=0;
   this.renderAll();
   this.buildCharts();
   this.showNotif('✅ '+f.length+' missão(ões) filtrada(s)');
 },
 clearF(){
-  this._tablePage=0;
   ['fInicio','fFim'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   ['fTipo','fSerie','fAero','fTrip','fStatus'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='todos';});
   // Sincroniza selects da Análises
@@ -4691,10 +4550,8 @@ renderVoos(list){
   if(!el)return;
   if(!list.length){el.innerHTML='<div style="padding:24px;text-align:center;color:var(--ink3)">Nenhuma missão encontrada</div>';return;}
   const sorted=[...list].sort((a,b)=>b.dt-a.dt);
-  const _pg=this._tablePage||0,_pp=50,_tot=sorted.length,_pages=Math.ceil(_tot/_pp)||1;
-  const _list=sorted.slice(_pg*_pp,(_pg+1)*_pp);
   let h='<div class="tscroll"><table style="min-width:1100px"><thead><tr><th>Série</th><th>Nº Missão</th><th>Data</th><th>Estado</th><th>Tipo</th><th>Aeronave</th><th>Origem</th><th>Destino</th><th>FLIGHT TIME</th><th>Block Time</th><th>Tripulação</th><th>Obs.</th><th>Ações</th></tr></thead><tbody>';
-  _list.forEach(m=>{
+  sorted.forEach(m=>{
     const bc=this.C.bdgTipo[m.tipo]||'bdg-log';
     const sc=this.C.bdgStatus[m.status||'Concluída']||'bdg-done';
     const crewHtml=(m.crew||[]).slice(0,3).map(c=>'<div><strong>'+(n=>{const p=n.trim().split(/\s+/);return p.length>1?p[0][0].toUpperCase()+'. '+p[p.length-1]:n;})(c.nome)+'</strong> <span style="color:var(--ink3);font-size:.85em">'+c.fn+'</span></div>').join('')+((m.crew||[]).length>3?'<div style="color:var(--ink3);font-size:.8em">+'+((m.crew||[]).length-3)+' mais</div>':'');
@@ -4722,17 +4579,7 @@ renderVoos(list){
         '<button class="btn btn-xs" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0" onclick="A.gestaoDocs(\'miss\',\''+eid+'\')" title="Documentos anexados">📎 '+(m.docs&&m.docs.length?'<span style="background:#15803d;color:white;border-radius:8px;padding:0 5px;font-size:.75em">'+m.docs.length+'</span>':'')+'</button>'+
       '</td></tr>';
   });
-  // ── Barra de paginação ──
-  let _pagBar='';
-  if(_pages>1){
-    _pagBar='<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface);border-top:1px solid var(--border);font-size:.85em;gap:8px">'+'<button class="btn btn-s btn-sm" '+((_pg===0)?'disabled':'onclick="A._tableGo(-1)"')+'>◀ Anterior</button>'+'<span style="color:var(--ink3)">Página '+(_pg+1)+' / '+_pages+' &nbsp;·&nbsp; '+_tot+' missões</span>'+'<button class="btn btn-s btn-sm" '+((_pg>=_pages-1)?'disabled':'onclick="A._tableGo(1)"')+'>Seguinte ▶</button>'+'</div>';
-  }
-  el.innerHTML=h+'</tbody></table></div>'+_pagBar;
-},
-_tableGo(dir){
-  this._tablePage=Math.max(0,Math.min((this._tablePage||0)+dir,999));
-  this.renderVoos(this.S.filtered);
-  document.getElementById('tVoos')?.scrollIntoView({behavior:'smooth',block:'start'});
+  el.innerHTML=h+'</tbody></table></div>';
 },
 _renderCards(list){
   const el=document.getElementById('tVoos');
@@ -6509,7 +6356,7 @@ _loadCreds(){
 },
 // ─── AUTH: verificar sessão ao arranque ───────────────────────
 async _checkSession(){
-  const tok=localStorage.getItem(this._SESSION_KEY);
+  const tok=sessionStorage.getItem(this._SESSION_KEY);
   if(!tok)return;
   try{
     const res=await this._authPost({action:'validateToken',token:tok});
@@ -6519,7 +6366,7 @@ async _checkSession(){
       this._applyRole();this.init();return;
     }
   }catch(_){}
-  localStorage.removeItem(this._SESSION_KEY);
+  sessionStorage.removeItem(this._SESSION_KEY);
 },
 // ─── LOGIN ────────────────────────────────────────────────────
 async doLogin(){
@@ -6535,7 +6382,7 @@ async doLogin(){
     const res=await this._authPost({action:'login',username:u,passwordHash:ph});
     if(res&&res.ok){
       this.S.role=res.role;this.S.currentUser=res.username;this.S.sessionToken=res.token;
-      localStorage.setItem(this._SESSION_KEY,res.token);ok=true;
+      sessionStorage.setItem(this._SESSION_KEY,res.token);ok=true;
     }else{if(err)err.textContent=res?.error||'Utilizador ou palavra-passe incorretos.';}
   }catch(e){
     const noUrl=!getApiUrl();
@@ -6659,8 +6506,8 @@ async submitForgotPwd(){
 },
 // ─── LOGOUT ───────────────────────────────────────────────────
 doLogout(){
-  const tok=this.S.sessionToken||localStorage.getItem(this._SESSION_KEY);
-  localStorage.removeItem(this._SESSION_KEY);
+  const tok=this.S.sessionToken||sessionStorage.getItem(this._SESSION_KEY);
+  sessionStorage.removeItem(this._SESSION_KEY);
   if(tok){try{this._authPost({action:'logout',token:tok});}catch(_){}}
   this.S.role=null;this.S.currentUser=null;this.S.sessionToken=null;
   location.reload();
@@ -8036,206 +7883,6 @@ tripLogbookPDF(nome){
     this.showNotif('✅ Caderneta PDF gerada','ok');
   }catch(ex){this.showNotif('❌ Erro ao gerar PDF: '+ex.message,'err');}
 },
-
-// ─── METEOROLOGIA ─────────────────────────────────────────────
-_meteoIcaoListHtml(){
-  try{
-    const s=localStorage.getItem('fx9_meteo_icaos');
-    const a=s?JSON.parse(s):['GVAC','GVNP','GVSV','GVBA'];
-    const row=icao=>'<div style="display:flex;gap:6px;align-items:center">'+
-      '<input class="meteo-icao-input" value="'+this.esc(icao)+'" maxlength="4" style="width:80px;padding:7px 10px;border:1.5px solid var(--border2);border-radius:8px;font-family:var(--mono);font-size:.9rem;text-transform:uppercase;background:var(--white);color:var(--ink)">'+
-      '<button onclick="this.parentElement.remove()" style="width:32px;height:34px;border:1.5px solid #fca5a5;border-radius:8px;background:#fee2e2;color:#991b1b;font-size:1.1rem;cursor:pointer">×</button></div>';
-    return a.map(row).join('');
-  }catch(e){return '';}
-},
-_meteoIcaos(){
-  try{const s=localStorage.getItem('fx9_meteo_icaos');if(s){const a=JSON.parse(s);if(Array.isArray(a)&&a.length)return a;}}catch(e){}
-  return ['GVAC','GVNP','GVSV','GVBA'];
-},
-_meteoOn(){
-  const v=localStorage.getItem('fx9_meteo_on');
-  return v===null?true:v==='1';
-},
-_meteoCache:{data:null,ts:0},
-async _meteoFetch(force){
-  if(!this._meteoOn()){
-    const card=document.getElementById('meteoCard');
-    if(card)card.style.display='none';
-    return;
-  }
-  const icaos=this._meteoIcaos();
-  const now=Date.now();
-  if(!force&&this._meteoCache.data&&(now-this._meteoCache.ts)<1800000){
-    this._meteoRender(this._meteoCache.data);return;
-  }
-  const el=document.getElementById('meteoBody');
-  if(el)el.innerHTML='<div style="color:var(--ink3);font-size:.88em;padding:6px 0">⏳ A carregar dados METAR/TAF…</div>';
-  try{
-    const ids=encodeURIComponent(icaos.join(','));
-    const _fx=async(url)=>{
-      const ac=new AbortController();
-      const t=setTimeout(()=>ac.abort(),9000);
-      try{const r=await fetch(url,{signal:ac.signal});return await r.json();}
-      finally{clearTimeout(t);}
-    };
-    const [rM,rT]=await Promise.all([
-      _fx('https://aviationweather.gov/api/data/metar?ids='+ids+'&format=json&hours=2'),
-      _fx('https://aviationweather.gov/api/data/taf?ids='+ids+'&format=json&time=valid'),
-    ]);
-    const data={metars:{},tafs:{},ts:now};
-    if(Array.isArray(rM))rM.forEach(m=>{if(m.stationId)data.metars[m.stationId]=m;});
-    if(Array.isArray(rT))rT.forEach(t=>{if(t.stationId)data.tafs[t.stationId]=t;});
-    this._meteoCache={data,ts:now};
-    this._meteoRender(data);
-  }catch(e){
-    const el2=document.getElementById('meteoBody');
-    if(el2){const msg=e.name==='AbortError'?'Tempo de resposta excedido (9s)':e.message||'Erro de rede';el2.innerHTML='<div style="color:var(--ink3);font-size:.88em;padding:6px 0">⚠️ '+A.esc(msg)+' — clique <strong>⟳ Actualizar</strong> para tentar novamente.</div>';}
-    const ts=document.getElementById('meteoTs');if(ts)ts.textContent='';
-  }
-},
-_meteoSkyIcon(metar){
-  if(!metar)return '❓';
-  const raw=metar.rawOb||'';
-  if(/CAVOK/.test(raw))return '☀️';
-  const wx=metar.wxString||'';
-  if(wx){
-    const w=wx.toUpperCase();
-    if(w.includes('TS'))return '⛈️';
-    if(w.includes('RA')&&w.startsWith('+'))return '🌧️';
-    if(w.includes('RA'))return '🌦️';
-    if(w.includes('SN'))return '❄️';
-    if(w.includes('FG')||w.includes('BR'))return '🌫️';
-    if(w.includes('DZ'))return '🌧️';
-    return '🌩️';
-  }
-  const sky=metar.skyCondition;
-  if(Array.isArray(sky)&&sky.length){
-    const order=['SKC','FEW','SCT','BKN','OVC'];
-    const worst=sky.reduce((a,b)=>order.indexOf(b.skyCover||'')>order.indexOf(a.skyCover||'')?b:a,{skyCover:'SKC'});
-    const c=worst.skyCover;
-    if(c==='SKC'||c==='NSC')return '☀️';
-    if(c==='FEW')return '🌤️';
-    if(c==='SCT')return '⛅';
-    if(c==='BKN')return '🌥️';
-    if(c==='OVC')return '☁️';
-  }
-  return '☀️';
-},
-_meteoWindStr(metar){
-  if(!metar)return '—';
-  const spd=metar.windSpeed,dir=metar.windDir,gust=metar.windGust;
-  if(spd===undefined&&dir===undefined)return '—';
-  const dirStr=(dir||dir===0)?String(Math.round(dir)).padStart(3,'0')+'°':'VRB';
-  const gustStr=gust?` G${gust}kt`:'';
-  return `${dirStr}/${spd}kt${gustStr}`;
-},
-_meteoVisStr(metar){
-  if(!metar)return '—';
-  const v=metar.visib;
-  if(v===undefined||v===null)return '—';
-  const vNum=parseFloat(v);
-  if(isNaN(vNum))return String(v);
-  if(vNum>=6)return '>10km';
-  const km=vNum*1.852;
-  return km>=1?km.toFixed(1)+'km':Math.round(km*1000)+'m';
-},
-_meteoQnhStr(metar){
-  const q=metar&&metar.altimHg;
-  if(!q)return '—';
-  return 'Q'+Math.round(q*33.8639)+' hPa';
-},
-_meteoTempStr(metar){
-  if(!metar)return '—';
-  const t=metar.temp,d=metar.dewpoint;
-  if(t===undefined||t===null)return '—';
-  return `${t}°C / ${d!==undefined&&d!==null?d+'°C':'—'}`;
-},
-_meteoTimeStr(metar){
-  if(!metar||!metar.reportTime)return '';
-  try{return new Date(metar.reportTime).toISOString().slice(11,16)+'Z';}catch(e){return '';}
-},
-_meteoRender(data){
-  const el=document.getElementById('meteoBody');
-  const tsEl=document.getElementById('meteoTs');
-  if(!el)return;
-  const icaos=this._meteoIcaos();
-  const names={GVAC:'Santiago',GVNP:'Praia Cidade',GVSV:'S.Vicente',GVBA:'Boa Vista',GVMA:'Maio',GVSA:'Sal',GVFL:'Fogo',GVSI:'S.Nicolau'};
-  const ts=data&&data.ts?new Date(data.ts).toISOString().slice(11,16)+'Z':'';
-  if(tsEl)tsEl.textContent=ts?'actualizado '+ts+' UTC':'';
-  if(!data||!Object.keys(data.metars).length){
-    el.innerHTML='<div style="color:var(--ink3);font-size:.88em;padding:8px 0">⚠️ Sem dados METAR disponíveis para os aeródromos configurados. Verifique a ligação à internet.</div>';
-    return;
-  }
-  const isDk=document.body.classList.contains('dark');
-  const rows=icaos.map(icao=>{
-    const m=data.metars[icao]||null;
-    const t=(data.tafs&&data.tafs[icao])||null;
-    const name=names[icao]||icao;
-    const icon=this._meteoSkyIcon(m);
-    const wind=this._meteoWindStr(m);
-    const vis=this._meteoVisStr(m);
-    const qnh=this._meteoQnhStr(m);
-    const temp=this._meteoTempStr(m);
-    const obs=this._meteoTimeStr(m);
-    const noData=!m;
-    const tafRaw=t&&t.rawTAF?this.esc(t.rawTAF):'Sem TAF disponível para este aeródromo.';
-    const tafBg=isDk?'#1e293b':'#f8fafc';
-    const tafColor=isDk?'#94a3b8':'#475569';
-    return `<div style="border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px">
-<div onclick="A._meteoToggle('${icao}')" style="display:grid;grid-template-columns:2em 1fr auto;gap:0 10px;align-items:center;padding:10px 12px;cursor:pointer;background:var(--surface)" onmouseenter="this.style.background='var(--g0)'" onmouseleave="this.style.background='var(--surface)'">
-  <span style="font-size:1.35em;line-height:1;text-align:center">${icon}</span>
-  <div>
-    <div style="font-weight:700;font-size:.88em;color:var(--ink)">${icao} <span style="font-weight:400;color:var(--ink3)">${name}</span>${obs?' <span style="font-size:.75em;color:var(--ink3)">'+obs+'</span>':''}</div>
-    ${noData?'<div style="font-size:.8em;color:var(--ink3);font-style:italic">Sem dados METAR</div>':`<div style="font-size:.8em;color:var(--ink2);margin-top:3px;display:flex;flex-wrap:wrap;gap:3px 12px"><span>💨 ${wind}</span><span>👁️ ${vis}</span><span>📊 ${qnh}</span><span>🌡️ ${temp}</span></div>`}
-  </div>
-  <span style="font-size:.72em;color:var(--ink3);white-space:nowrap">TAF ▾</span>
-</div>
-<div id="meteo-taf-${icao}" style="display:none;padding:10px 12px;border-top:1px solid var(--border);background:${tafBg}">
-  <div style="font-size:.72rem;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">TAF — Previsão</div>
-  <pre style="font-family:var(--mono);font-size:.75em;white-space:pre-wrap;word-break:break-all;color:${tafColor};margin:0;line-height:1.6">${tafRaw}</pre>
-</div>
-</div>`;
-  }).join('');
-  el.innerHTML=rows;
-},
-_meteoToggle(icao){
-  const el=document.getElementById('meteo-taf-'+icao);
-  if(!el)return;
-  const open=el.style.display!=='none';
-  el.style.display=open?'none':'block';
-  // Update icon
-  const btn=el.previousElementSibling;
-  if(btn){const sp=btn.querySelector('span:last-child');if(sp)sp.textContent=open?'TAF ▾':'TAF ▴';}
-},
-_meteoAddRow(){
-  const l=document.getElementById('meteoIcaoList');
-  if(!l)return;
-  const d=document.createElement('div');
-  d.style.cssText='display:flex;gap:6px;align-items:center';
-  const inp=document.createElement('input');
-  inp.className='meteo-icao-input';inp.maxLength=4;inp.placeholder='ICAO';
-  inp.style.cssText='width:80px;padding:7px 10px;border:1.5px solid var(--border2);border-radius:8px;font-family:var(--mono);font-size:.9rem;text-transform:uppercase;background:var(--white);color:var(--ink)';
-  const rm=document.createElement('button');
-  rm.style.cssText='width:32px;height:34px;border:1.5px solid #fca5a5;border-radius:8px;background:#fee2e2;color:#991b1b;font-size:1.1rem;cursor:pointer';
-  rm.textContent='×';rm.onclick=()=>d.remove();
-  d.appendChild(inp);d.appendChild(rm);l.appendChild(d);inp.focus();
-},
-_meteoSaveIcaos(){
-  const inputs=document.querySelectorAll('.meteo-icao-input');
-  const vals=[...inputs].map(i=>i.value.trim().toUpperCase()).filter(v=>/^[A-Z]{4}$/.test(v));
-  const unique=[...new Set(vals)];
-  if(!unique.length){this.showNotif('⚠️ Adicione pelo menos um aeródromo ICAO válido (4 letras)','warn');return;}
-  localStorage.setItem('fx9_meteo_icaos',JSON.stringify(unique));
-  const tog=document.getElementById('meteoOnToggle');
-  localStorage.setItem('fx9_meteo_on',tog&&tog.checked?'1':'0');
-  this._meteoCache={data:null,ts:0};
-  const card=document.getElementById('meteoCard');
-  if(card)card.style.display=tog&&tog.checked?'':'none';
-  this.closeInfoModal();
-  this.showNotif('✅ Configuração Meteo guardada','ok');
-  if(tog&&tog.checked)this._meteoFetch(true);
-},
-
 
 };// end A
 
