@@ -2224,6 +2224,7 @@ async init(){
   this.showLoad(true,'A carregar dados do Google Drive...');
   this.initDark();
   this.bindNav();
+  if(window.innerWidth>900){document.getElementById('nav')?.classList.add('open');document.body.classList.add('nav-open');}
   this._updateConfigBtn();
   // Configurações são carregadas do Drive em loadFromCloud() — sem localStorage
 
@@ -2482,8 +2483,8 @@ toggleAbar(){
 
 // ─── DARK MODE ────────────────────────────────────────────────
 initDark(){
-  let dark=false;
-  try{dark=localStorage.getItem('fx9_dark')==='1';}catch{}
+  let dark=true;
+  try{const _s=localStorage.getItem('fx9_dark');if(_s!==null)dark=_s==='1';}catch{}
   if(dark){document.body.classList.add('dark');const b=document.getElementById('darkBtn');if(b)b.textContent='☀️ Claro';}
 },
 toggleDark(){
