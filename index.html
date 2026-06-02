@@ -827,7 +827,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
       <button class="btn btn-s btn-sm" style="margin-left:auto" onclick="A._meteoFetch(true)">⟳ Actualizar</button>
     </div>
     <div id="meteoBody" style="padding:6px 4px">
-      <div style="color:var(--ink3);font-size:.9em;padding:8px 0">A carregar dados meteorológicos…</div>
+      <div style="color:var(--ink3);font-size:.88em;padding:10px 4px">Clique em <strong>⟳ Actualizar</strong> para carregar dados METAR/TAF dos aeródromos configurados.</div>
     </div>
   </div>
 
@@ -1927,7 +1927,7 @@ openSettings(){
   <div id="meteoIcaoList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
     ${this._meteoIcaoListHtml()}
   </div>
-  <button class="btn btn-s btn-sm" onclick="const l=document.getElementById('meteoIcaoList');const d=document.createElement('div');d.style.cssText='display:flex;gap:6px;align-items:center';d.innerHTML='<input class=\'meteo-icao-input\' maxlength=\'4\' placeholder=\'ICAO\' style=\'width:80px;padding:7px 10px;border:1.5px solid var(--border2);border-radius:8px;font-family:var(--mono);font-size:.9rem;text-transform:uppercase;background:var(--white);color:var(--ink)\'><button onclick=\'this.parentElement.remove()\' style=\'width:32px;height:34px;border:1.5px solid #fca5a5;border-radius:8px;background:#fee2e2;color:#991b1b;font-size:1.1rem;cursor:pointer\'>×</button>';l.appendChild(d)">+ Adicionar Aeródromo</button>
+  <button class="btn btn-s btn-sm" onclick="A._meteoAddRow()">+ Adicionar Aeródromo</button>
   <div style="margin-top:12px;padding:10px 12px;background:var(--g0);border:1.5px solid var(--border);border-radius:9px;font-size:.8em;color:var(--ink3)">
     <b>Aeródromos de Cabo Verde:</b> GVAC (Santiago/STC), GVNP (Praia/RAI), GVSV (S.Vicente/VXE), GVBA (Boa Vista/BVC), GVSA (Sal/SID), GVMA (Maio), GVFL (Fogo), GVSI (S.Nicolau)
   </div>
@@ -2266,7 +2266,8 @@ async init(){
   this.calcPag();
   // Exportação automática mensal
   setTimeout(()=>this._checkMonthlyExport(),2000);
-  setTimeout(()=>{if(this._meteoOn())this._meteoFetch(false);else{const c=document.getElementById('meteoCard');if(c)c.style.display='none';}},1200);
+  // Meteo: show card if enabled, but don't auto-fetch (user clicks ⟳ to load)
+  setTimeout(()=>{const c=document.getElementById('meteoCard');if(c)c.style.display=this._meteoOn()?'':'none';},100);
 
   window.addEventListener('resize',()=>{const nav=document.getElementById('nav');if(nav&&nav.classList.contains('open')){if(window.innerWidth>768)document.body.classList.add('nav-open');else document.body.classList.remove('nav-open');}});
     this.addAudit('Sistema iniciado','v9.0 carregado');
@@ -8070,9 +8071,15 @@ async _meteoFetch(force){
   if(el)el.innerHTML='<div style="color:var(--ink3);font-size:.88em;padding:6px 0">⏳ A carregar dados METAR/TAF…</div>';
   try{
     const ids=encodeURIComponent(icaos.join(','));
+    const _fx=async(url)=>{
+      const ac=new AbortController();
+      const t=setTimeout(()=>ac.abort(),9000);
+      try{const r=await fetch(url,{signal:ac.signal});return await r.json();}
+      finally{clearTimeout(t);}
+    };
     const [rM,rT]=await Promise.all([
-      fetch('https://aviationweather.gov/api/data/metar?ids='+ids+'&format=json&hours=2').then(r=>r.json()),
-      fetch('https://aviationweather.gov/api/data/taf?ids='+ids+'&format=json&time=valid').then(r=>r.json()),
+      _fx('https://aviationweather.gov/api/data/metar?ids='+ids+'&format=json&hours=2'),
+      _fx('https://aviationweather.gov/api/data/taf?ids='+ids+'&format=json&time=valid'),
     ]);
     const data={metars:{},tafs:{},ts:now};
     if(Array.isArray(rM))rM.forEach(m=>{if(m.stationId)data.metars[m.stationId]=m;});
@@ -8081,7 +8088,7 @@ async _meteoFetch(force){
     this._meteoRender(data);
   }catch(e){
     const el2=document.getElementById('meteoBody');
-    if(el2)el2.innerHTML='<div style="color:var(--ink3);font-size:.88em;padding:6px 0">⚠️ Sem ligação — dados meteorológicos indisponíveis</div>';
+    if(el2){const msg=e.name==='AbortError'?'Tempo de resposta excedido (9s)':e.message||'Erro de rede';el2.innerHTML='<div style="color:var(--ink3);font-size:.88em;padding:6px 0">⚠️ '+A.esc(msg)+' — clique <strong>⟳ Actualizar</strong> para tentar novamente.</div>';}
     const ts=document.getElementById('meteoTs');if(ts)ts.textContent='';
   }
 },
@@ -8198,6 +8205,19 @@ _meteoToggle(icao){
   // Update icon
   const btn=el.previousElementSibling;
   if(btn){const sp=btn.querySelector('span:last-child');if(sp)sp.textContent=open?'TAF ▾':'TAF ▴';}
+},
+_meteoAddRow(){
+  const l=document.getElementById('meteoIcaoList');
+  if(!l)return;
+  const d=document.createElement('div');
+  d.style.cssText='display:flex;gap:6px;align-items:center';
+  const inp=document.createElement('input');
+  inp.className='meteo-icao-input';inp.maxLength=4;inp.placeholder='ICAO';
+  inp.style.cssText='width:80px;padding:7px 10px;border:1.5px solid var(--border2);border-radius:8px;font-family:var(--mono);font-size:.9rem;text-transform:uppercase;background:var(--white);color:var(--ink)';
+  const rm=document.createElement('button');
+  rm.style.cssText='width:32px;height:34px;border:1.5px solid #fca5a5;border-radius:8px;background:#fee2e2;color:#991b1b;font-size:1.1rem;cursor:pointer';
+  rm.textContent='×';rm.onclick=()=>d.remove();
+  d.appendChild(inp);d.appendChild(rm);l.appendChild(d);inp.focus();
 },
 _meteoSaveIcaos(){
   const inputs=document.querySelectorAll('.meteo-icao-input');
