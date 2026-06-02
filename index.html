@@ -6508,7 +6508,7 @@ _loadCreds(){
 },
 // ─── AUTH: verificar sessão ao arranque ───────────────────────
 async _checkSession(){
-  const tok=sessionStorage.getItem(this._SESSION_KEY);
+  const tok=localStorage.getItem(this._SESSION_KEY);
   if(!tok)return;
   try{
     const res=await this._authPost({action:'validateToken',token:tok});
@@ -6518,7 +6518,7 @@ async _checkSession(){
       this._applyRole();this.init();return;
     }
   }catch(_){}
-  sessionStorage.removeItem(this._SESSION_KEY);
+  localStorage.removeItem(this._SESSION_KEY);
 },
 // ─── LOGIN ────────────────────────────────────────────────────
 async doLogin(){
@@ -6534,7 +6534,7 @@ async doLogin(){
     const res=await this._authPost({action:'login',username:u,passwordHash:ph});
     if(res&&res.ok){
       this.S.role=res.role;this.S.currentUser=res.username;this.S.sessionToken=res.token;
-      sessionStorage.setItem(this._SESSION_KEY,res.token);ok=true;
+      localStorage.setItem(this._SESSION_KEY,res.token);ok=true;
     }else{if(err)err.textContent=res?.error||'Utilizador ou palavra-passe incorretos.';}
   }catch(e){
     const noUrl=!getApiUrl();
@@ -6658,8 +6658,8 @@ async submitForgotPwd(){
 },
 // ─── LOGOUT ───────────────────────────────────────────────────
 doLogout(){
-  const tok=this.S.sessionToken||sessionStorage.getItem(this._SESSION_KEY);
-  sessionStorage.removeItem(this._SESSION_KEY);
+  const tok=this.S.sessionToken||localStorage.getItem(this._SESSION_KEY);
+  localStorage.removeItem(this._SESSION_KEY);
   if(tok){try{this._authPost({action:'logout',token:tok});}catch(_){}}
   this.S.role=null;this.S.currentUser=null;this.S.sessionToken=null;
   location.reload();
