@@ -2821,7 +2821,7 @@ _normalizeDocUrl(raw){
   return u; // URL externo — deixar intacto
 },
 
-_docAdd(tipo, id){
+async _docAdd(tipo, id){
   // Guarda contra duplo-clique — evita guardar o mesmo doc múltiplas vezes
   if(this._docBusy) return;
   this._docBusy = true;
@@ -2844,9 +2844,11 @@ _docAdd(tipo, id){
     obj.docs.push({ nome, tipo: tipo2, url: urlFinal, data: now.toLocaleDateString('pt-PT') });
     if(isMiss) this._logHistory(obj, 'Documento adicionado: ' + nome);
     this.markDirty();
-    // Guardar imediatamente — não esperar pelo debounce de 1.5s
-    if(typeof getApiUrl==='function' && getApiUrl()){ clearTimeout(this._autoSaveT); this.saveToCloud(); }
-    this.closeModal(); // Fechar modal automaticamente após guardar
+    // Aguardar conclusão do save antes de fechar o modal
+    if(typeof getApiUrl==='function' && getApiUrl()){ clearTimeout(this._autoSaveT); await this.saveToCloud(); }
+    this.closeModal();
+    // Actualizar tabela para mostrar badge actualizado
+    if(isMiss) this.filterVoos(); else this.renderTrips();
     this.showNotif('✅ Documento adicionado e guardado','ok');
   } finally {
     this._docBusy = false;
@@ -2854,7 +2856,7 @@ _docAdd(tipo, id){
   }
 },
 
-_docDel(tipo, id, idx){
+async _docDel(tipo, id, idx){
   if(!confirm('Remover este documento?')) return;
   const isMiss = tipo === 'miss';
   const obj = isMiss
@@ -2865,8 +2867,10 @@ _docDel(tipo, id, idx){
   obj.docs.splice(idx, 1);
   if(isMiss) this._logHistory(obj, 'Documento removido: ' + nome);
   this.markDirty();
-  if(typeof getApiUrl==='function' && getApiUrl()){ clearTimeout(this._autoSaveT); this.saveToCloud(); }
+  if(typeof getApiUrl==='function' && getApiUrl()){ clearTimeout(this._autoSaveT); await this.saveToCloud(); }
   this.gestaoDocs(tipo, id);
+  // Actualizar tabela para reflectir badge actualizado
+  if(isMiss) this.filterVoos(); else this.renderTrips();
   this.showNotif('🗑️ Documento removido','ok');
 },
 
