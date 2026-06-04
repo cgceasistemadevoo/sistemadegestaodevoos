@@ -1475,10 +1475,39 @@ addAudit(action,details){
   if(this.S.auditLog.length>1000)this.S.auditLog.pop();
 },
 showAuditLog(){
-  const html=this.S.auditLog.length===0
+  const log=this.S.auditLog;
+  const now=new Date();
+  const cutoff90=new Date(now-90*864e5),cutoff60=new Date(now-60*864e5),cutoff30=new Date(now-30*864e5);
+  const old90=log.filter(e=>new Date(e.timestamp)<cutoff90).length;
+  const old60=log.filter(e=>new Date(e.timestamp)<cutoff60).length;
+  const old30=log.filter(e=>new Date(e.timestamp)<cutoff30).length;
+  const rows=log.length===0
     ?'<div style="padding:20px;text-align:center;color:var(--ink3)">Nenhum registo.</div>'
-    :this.S.auditLog.map(e=>`<div class="audit-item"><strong>${new Date(e.timestamp).toLocaleString('pt-PT')}</strong><br>📌 ${this.esc(e.action)}<br><span style="color:var(--ink3)">${this.esc(e.details)}</span></div>`).join('');
-  this.openInfoModal('<h3 style="margin-bottom:14px">📋 Registo de Auditoria</h3>'+html);
+    :log.map(e=>`<div class="audit-item"><strong>${new Date(e.timestamp).toLocaleString('pt-PT')}</strong><br>📌 ${this.esc(e.action)}<br><span style="color:var(--ink3)">${this.esc(e.details)}</span></div>`).join('');
+  const btnStyle='padding:5px 12px;border-radius:7px;border:1.5px solid var(--border);background:var(--surface);color:var(--ink);font-size:.8em;cursor:pointer';
+  const cleanBar=`<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:14px;padding:10px 12px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px">
+    <span style="font-size:.82em;color:var(--ink3);flex:1;min-width:120px">🧹 <b>Limpar registos antigos:</b></span>
+    <button style="${btnStyle}" onclick="A.clearOldAudit(30)" ${old30===0?'disabled':''}>+30 dias <span style="background:#fee2e2;color:#b91c1c;border-radius:5px;padding:1px 6px;margin-left:4px">${old30}</span></button>
+    <button style="${btnStyle}" onclick="A.clearOldAudit(60)" ${old60===0?'disabled':''}>+60 dias <span style="background:#fee2e2;color:#b91c1c;border-radius:5px;padding:1px 6px;margin-left:4px">${old60}</span></button>
+    <button style="${btnStyle}" onclick="A.clearOldAudit(90)" ${old90===0?'disabled':''}>+90 dias <span style="background:#fee2e2;color:#b91c1c;border-radius:5px;padding:1px 6px;margin-left:4px">${old90}</span></button>
+    <span style="font-size:.78em;color:var(--ink3)">${log.length}/1000 registos</span>
+  </div>`;
+  this.openInfoModal('<h3 style="margin-bottom:12px">📋 Registo de Auditoria</h3>'+cleanBar+'<div style="max-height:55vh;overflow-y:auto">'+rows+'</div>');
+},
+
+async clearOldAudit(days){
+  const cutoff=new Date(Date.now()-days*864e5);
+  const before=this.S.auditLog.length;
+  this.S.auditLog=this.S.auditLog.filter(e=>new Date(e.timestamp)>=cutoff);
+  const removed=before-this.S.auditLog.length;
+  if(removed===0){this.showNotif('ℹ️ Nenhum registo com mais de '+days+' dias','warn');return;}
+  this.markDirty();
+  if(typeof getApiUrl==='function'&&getApiUrl()){
+    try{ await this.saveToCloud(); }
+    catch(e){ this.showNotif('❌ Erro ao guardar após limpeza','err'); return; }
+  }
+  this.showNotif('🧹 '+removed+' registo(s) removido(s) (>'+days+' dias)','ok');
+  this.showAuditLog();
 },
 
 // ─── MODAL GENÉRICO ───────────────────────────────────────────
@@ -2825,6 +2854,11 @@ _normalizeDocUrl(raw){
   const docsM=u.match(/(docs\.google\.com\/(?:document|spreadsheets|presentation)\/d\/[^/]+)\//);
   if(docsM) return 'https://'+docsM[1]+'/preview';
   return u; // URL externo — deixar intacto
+},
+
+_logHistory(obj, txt){
+  if(!obj.history) obj.history=[];
+  obj.history.push({ts:new Date().toISOString(),txt});
 },
 
 async _docAdd(tipo, id){
