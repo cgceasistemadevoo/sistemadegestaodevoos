@@ -1559,12 +1559,18 @@ async saveToCloud(){
       this.showNotif('☁️ Dados guardados no Drive!');
     }else{
       this.syncUI('error');
-      this.showNotif('❌ Erro: '+(r?.error||'Falha na ligação'),'err');
+      const msg='❌ Erro GAS: '+(r?.error||'Falha na ligação');
+      this.showNotif(msg,'err');
+      this.addAudit('Erro ao guardar',msg);
+      throw new Error(msg);
     }
   }catch(e){
+    // Só processar erros de rede/fetch — erros GAS já foram tratados acima
+    if(e.message&&e.message.startsWith('❌ Erro GAS:')) throw e;
     this.syncUI('error');
     this.showNotif('❌ Sem ligação ao Drive. Verifique as configurações.','err');
     this.addAudit('Erro ao guardar',String(e));
+    throw e;
   }
 },
 
@@ -2845,10 +2851,21 @@ async _docAdd(tipo, id){
     if(isMiss) this._logHistory(obj, 'Documento adicionado: ' + nome);
     this.markDirty();
     // Aguardar conclusão do save antes de fechar o modal
-    if(typeof getApiUrl==='function' && getApiUrl()){ clearTimeout(this._autoSaveT); await this.saveToCloud(); }
+    if(typeof getApiUrl==='function' && getApiUrl()){
+      clearTimeout(this._autoSaveT);
+      try{
+        await this.saveToCloud();
+      }catch(saveErr){
+        // Save falhou — doc está em memória mas não no Drive; avisar e manter modal aberto
+        if(btn){ btn.disabled=false; btn.textContent='＋ Adicionar'; }
+        this._docBusy = false;
+        this.showNotif('❌ Falha ao guardar no Drive — tente novamente','err');
+        return;
+      }
+    }
     this.closeModal();
-    // Actualizar tabela para mostrar badge actualizado
-    if(isMiss) this.filterVoos(); else this.renderTrips();
+    // Actualizar tabela para reflectir badge actualizado (applyF re-aplica filtros activos)
+    if(isMiss) this.applyF(); else this.renderTrips();
     this.showNotif('✅ Documento adicionado e guardado','ok');
   } finally {
     this._docBusy = false;
@@ -2867,10 +2884,21 @@ async _docDel(tipo, id, idx){
   obj.docs.splice(idx, 1);
   if(isMiss) this._logHistory(obj, 'Documento removido: ' + nome);
   this.markDirty();
-  if(typeof getApiUrl==='function' && getApiUrl()){ clearTimeout(this._autoSaveT); await this.saveToCloud(); }
+  if(typeof getApiUrl==='function' && getApiUrl()){
+    clearTimeout(this._autoSaveT);
+    try{
+      await this.saveToCloud();
+    }catch(saveErr){
+      // Save falhou — reverter a remoção para evitar perda de dados
+      obj.docs.splice(idx, 0, {nome, tipo:'', url:'', data:''});
+      this.showNotif('❌ Falha ao guardar no Drive — remoção cancelada','err');
+      this.gestaoDocs(tipo, id);
+      return;
+    }
+  }
   this.gestaoDocs(tipo, id);
-  // Actualizar tabela para reflectir badge actualizado
-  if(isMiss) this.filterVoos(); else this.renderTrips();
+  // Actualizar tabela para reflectir badge actualizado (applyF re-aplica filtros activos)
+  if(isMiss) this.applyF(); else this.renderTrips();
   this.showNotif('🗑️ Documento removido','ok');
 },
 
