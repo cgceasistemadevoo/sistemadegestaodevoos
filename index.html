@@ -1588,7 +1588,7 @@ async loadFromCloud(){
     const d=(_raw&&_raw.missoes)?_raw:(_raw&&_raw.data&&_raw.data.missoes?_raw.data:_raw);
     if(d&&d.missoes){
       this.S.trips=(d.trips?.length?d.trips:JSON.parse(JSON.stringify(this.C.defTrips))).map(t=>{if(t.valCur!==undefined&&!t.cursos){t.cursos=t.valCur?[{nome:'Curso',val:t.valCur}]:[];delete t.valCur;}else if(!t.cursos)t.cursos=[];return t;});
-      this.S.missoes=(d.missoes||[]).map(m=>({...m,dt:new Date(m.dt),status:m.status||'Concluída',serie:m.serie||'CGC-EA',history:m.history||[],tags:m.tags||[],origem:m.origem||'',destino:m.destino||'',perna:m.perna||'',catering:m.catering||false,obs:m.obs||'',fuelAdd:m.fuelAdd??null,fuelUse:m.fuelUse??null}));
+      this.S.missoes=(d.missoes||[]).map(m=>({...m,dt:new Date(m.dt),status:m.status||'Concluída',serie:m.serie||'CGC-EA',history:m.history||[],tags:m.tags||[],docs:m.docs||[],origem:m.origem||'',destino:m.destino||'',perna:m.perna||'',catering:m.catering||false,obs:m.obs||'',fuelAdd:m.fuelAdd??null,fuelUse:m.fuelUse??null}));
       this.S.series=d.series||[];
       this.S.colocacoes=d.colocacoes||[];
       this.S.aeros=d.aeros||[];
@@ -2864,8 +2864,8 @@ async _docAdd(tipo, id){
       }
     }
     this.closeModal();
-    // Actualizar tabela para reflectir badge actualizado (applyF re-aplica filtros activos)
-    if(isMiss) this.applyF(); else this.renderTrips();
+    // Actualizar badge na tabela (filterVoos re-renderiza a vista actual)
+    if(isMiss) this.filterVoos(); else this.renderTrips();
     this.showNotif('✅ Documento adicionado e guardado','ok');
   } finally {
     this._docBusy = false;
@@ -2897,8 +2897,8 @@ async _docDel(tipo, id, idx){
     }
   }
   this.gestaoDocs(tipo, id);
-  // Actualizar tabela para reflectir badge actualizado (applyF re-aplica filtros activos)
-  if(isMiss) this.applyF(); else this.renderTrips();
+  // Actualizar badge na tabela (filterVoos re-renderiza a vista actual)
+  if(isMiss) this.filterVoos(); else this.renderTrips();
   this.showNotif('🗑️ Documento removido','ok');
 },
 
