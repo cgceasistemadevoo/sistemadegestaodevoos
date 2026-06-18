@@ -676,8 +676,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <button class="btn btn-s btn-sm admin-only" id="btnUndo" onclick="A.undo()" title="Desfazer última ação (Ctrl+Z)" style="background:#fef3c7;color:#92400e">↶ Desfazer</button>
     <button class="btn btn-s btn-sm admin-only" onclick="A.openImport()" title="Importar Excel/CSV" style="background:#dbeafe;color:#1e40af">📥 Importar</button>
     <input type="file" id="impFile" accept=".csv,.xlsx,.xls" style="display:none" onchange="A.importMissoes(event)">
-    <button class="btn btn-ex btn-sm" onclick="A.toExcel()" title="Exportar Excel">📊 Excel</button>
-    <button class="btn btn-pdf btn-sm" onclick="A.toPDF()" title="Exportar PDF">📄 PDF</button>
     <button class="btn btn-s btn-sm" onclick="A.showAuditLog()" title="Auditoria">📋</button>
     <button class="btn btn-s btn-sm" id="btnChangePwd" onclick="A.openChangePwd()" title="Alterar palavra-passe" style="display:none;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0">🔑</button>
     <button class="btn btn-s btn-sm" id="btnLogout" onclick="A.doLogout()" title="Terminar sessão" style="display:none;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5">↩ Sair</button>
@@ -982,13 +980,22 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   </div>
 
   <div class="card">
-    <div class="card-hd" style="flex-wrap:wrap;gap:8px">
-      <h3>📋 Histórico de Missões <span id="vooCount" style="font-weight:400;color:var(--ink3)"></span></h3>
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:auto">
-        <input class="search-inp" id="srchVoo" placeholder="🔍 ex: aero:CGC tripulante:silva" title="Pesquisa avançada: aero:X tripulante:Y tipo:Z serie:W tag:T status:S — ou texto livre" style="width:200px" oninput="A.filterVoos()">
+    <div class="card-hd" style="flex-direction:column;gap:10px;align-items:stretch">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <h3>📋 Histórico de Missões <span id="vooCount" style="font-weight:400;color:var(--ink3)"></span></h3>
+        <div style="margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <div class="view-toggle">
+            <button class="view-btn active" id="vBtn-table" onclick="A.setView('table')">📋 Tabela</button>
+            <button class="view-btn" id="vBtn-cards" onclick="A.setView('cards')">📇 Cartões</button>
+          </div>
+          <button class="btn btn-ex btn-sm admin-only" onclick="A.toExcel()" title="Exportar dados filtrados para Excel">📊 Excel</button>
+          <button class="btn btn-pdf btn-sm admin-only" onclick="A.toPDF()" title="Exportar dados filtrados para PDF">📄 PDF</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding-bottom:4px">
+        <input class="search-inp" id="srchVoo" placeholder="🔍 pesquisa livre..." title="Pesquisa: aero:X tripulante:Y tipo:Z serie:W tag:T status:S" style="width:170px" oninput="A.filterVoos()">
         <select id="vFilterSerie" onchange="A.filterVoos()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:.8em;background:var(--white);color:var(--ink);outline:none"></select>
         <select id="vFilterAero" onchange="A.filterVoos()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:.8em;background:var(--white);color:var(--ink);outline:none"><option value="todos">Todas aeronaves</option></select>
-        <input id="vFilterTag" oninput="A.filterVoos()" placeholder="🏷️ tag..." style="width:90px;padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:.8em;background:var(--white);color:var(--ink);outline:none">
         <select id="vFilterStatus" onchange="A.filterVoos()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:.8em;background:var(--white);color:var(--ink);outline:none">
           <option value="todos">Todos estados</option>
           <option value="Concluída">✅ Concluída</option>
@@ -996,10 +1003,12 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
           <option value="Em Curso">🔄 Em Curso</option>
           <option value="Cancelada">❌ Cancelada</option>
         </select>
-        <div class="view-toggle">
-          <button class="view-btn active" id="vBtn-table" onclick="A.setView('table')">📋 Tabela</button>
-          <button class="view-btn" id="vBtn-cards" onclick="A.setView('cards')">📇 Cartões</button>
-        </div>
+        <select id="vFilterTipo" onchange="A.filterVoos()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:.8em;background:var(--white);color:var(--ink);outline:none"><option value="todos">Todos tipos</option></select>
+        <select id="vFilterTrip" onchange="A.filterVoos()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:.8em;background:var(--white);color:var(--ink);outline:none"><option value="todos">Todos tripulantes</option></select>
+        <label style="font-size:.8em;color:var(--ink3);white-space:nowrap">De <input type="date" id="vFilterDtIni" onchange="A.filterVoos()" style="padding:4px 6px;border:1.5px solid var(--border);border-radius:8px;font-size:.85em;background:var(--white);color:var(--ink);outline:none;margin-left:4px"></label>
+        <label style="font-size:.8em;color:var(--ink3);white-space:nowrap">Até <input type="date" id="vFilterDtFim" onchange="A.filterVoos()" style="padding:4px 6px;border:1.5px solid var(--border);border-radius:8px;font-size:.85em;background:var(--white);color:var(--ink);outline:none;margin-left:4px"></label>
+        <input id="vFilterTag" oninput="A.filterVoos()" placeholder="🏷️ tag..." style="width:80px;padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:.8em;background:var(--white);color:var(--ink);outline:none">
+        <button class="btn btn-s btn-sm" onclick="A.limparFiltrosVoos()" title="Limpar todos os filtros" style="white-space:nowrap">✕ Limpar</button>
       </div>
     </div>
     <div id="tVoos"></div>
@@ -2418,6 +2427,12 @@ fillSelects(){
   // vFilterSerie
   const vfs=document.getElementById('vFilterSerie');
   if(vfs) vfs.innerHTML='<option value="todos">Todas as séries</option>'+this.allSeries().map(s=>`<option value="${this.esc(s)}">${this.esc(s)}</option>`).join('');
+  // vFilterTipo
+  const vftEl=document.getElementById('vFilterTipo');
+  if(vftEl){const tipos=[...new Set(this.S.missoes.map(m=>m.tipo).filter(Boolean))].sort();const cur=vftEl.value;vftEl.innerHTML='<option value="todos">Todos tipos</option>'+tipos.map(t=>`<option value="${this.esc(t)}">${this.esc(t)}</option>`).join('');if(cur)vftEl.value=cur;}
+  // vFilterTrip
+  const vftrEl=document.getElementById('vFilterTrip');
+  if(vftrEl){const nomes=[...new Set(this.S.trips.map(t=>t.nome).filter(Boolean))].sort();const cur=vftrEl.value;vftrEl.innerHTML='<option value="todos">Todos tripulantes</option>'+nomes.map(n=>`<option value="${this.esc(n)}">${this.esc(n)}</option>`).join('');if(cur)vftrEl.value=cur;}
   // post-populate render series
   if(document.getElementById('tSeries'))this.renderSeries();
 },
@@ -4712,9 +4727,24 @@ filterVoos(){
   if(vst&&vst!=='todos') list=list.filter(m=>(m.status||'Concluída')===vst);
   if(vsa&&vsa!=='todos') list=list.filter(m=>m.aero===vsa);
   if(vtag) list=list.filter(m=>(m.tags||[]).some(t=>t.toLowerCase().includes(vtag)));
+  // ── novos filtros ──
+  const vft=(document.getElementById('vFilterTipo')?.value||'todos');
+  const vftr=(document.getElementById('vFilterTrip')?.value||'todos');
+  const vfdi=document.getElementById('vFilterDtIni')?.value;
+  const vfdf=document.getElementById('vFilterDtFim')?.value;
+  if(vft&&vft!=='todos') list=list.filter(m=>(m.tipo||'').toLowerCase()===vft.toLowerCase());
+  if(vftr&&vftr!=='todos') list=list.filter(m=>(m.crew||[]).some(c=>c.nome===vftr));
+  if(vfdi){const d=new Date(vfdi+'T00:00:00');list=list.filter(m=>{const md=m.dt instanceof Date?m.dt:new Date(m.dt);return md>=d;});}
+  if(vfdf){const d=new Date(vfdf+'T23:59:59');list=list.filter(m=>{const md=m.dt instanceof Date?m.dt:new Date(m.dt);return md<=d;});}
+  this._filteredVoos=list;
   const vc=document.getElementById('vooCount');
   if(vc) vc.textContent='('+list.length+')';
   this.renderVoos(list);
+},
+limparFiltrosVoos(){
+  ['srchVoo','vFilterTag','vFilterDtIni','vFilterDtFim'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['vFilterSerie','vFilterAero','vFilterStatus','vFilterTipo','vFilterTrip'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='todos';});
+  this.filterVoos();
 },
 applyF(){
   const ini=document.getElementById('fInicio')?.value;
@@ -5273,12 +5303,13 @@ async enviarReciboEmail(nome){
 
 // ─── EXPORTAR EXCEL (MISSÕES) ─────────────────────────────────
 toExcel(){
-  if(!this.S.filtered.length){this.showNotif('⚠️ Sem dados para exportar','warn');return;}
+  const _data=this._filteredVoos||_data;
+  if(!_data.length){this.showNotif('⚠️ Sem dados filtrados para exportar','warn');return;}
   try{
     const wb=XLSX.utils.book_new();
     // Sheet 1: Missões
     const rows=[['Nº Missão','Perna','Série','Data','Estado','Tipo','Aeronave','Origem','Destino','Blocks Off','Take Off','Landing','Blocks On','FLIGHT TIME','Block Time','Tripulação','Funções']];
-    this.S.filtered.forEach(m=>rows.push([m.num+(m.perna||''),m.perna||'',m.serie,m.dt.toLocaleDateString('pt-PT'),m.status||'Concluída',m.tipo,m.aero,m.origem||'',m.destino||'',(m.boff||'').slice(0,5),(m.toff||'').slice(0,5),(m.land||'').slice(0,5),(m.bon||'').slice(0,5),m.dur?.slice(0,5)||'—',this.calcBT(m.boff,m.bon),(m.crew||[]).map(c=>c.nome).join('; '),(m.crew||[]).map(c=>c.fn).join('; ')]));
+    _data.forEach(m=>rows.push([m.num+(m.perna||''),m.perna||'',m.serie,m.dt.toLocaleDateString('pt-PT'),m.status||'Concluída',m.tipo,m.aero,m.origem||'',m.destino||'',(m.boff||'').slice(0,5),(m.toff||'').slice(0,5),(m.land||'').slice(0,5),(m.bon||'').slice(0,5),m.dur?.slice(0,5)||'—',this.calcBT(m.boff,m.bon),(m.crew||[]).map(c=>c.nome).join('; '),(m.crew||[]).map(c=>c.fn).join('; ')]));
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Missões');
     // Sheet 2: Tripulantes
     const tr=[['Nome','Posto','Colocação','NIF','Total Missões']];
@@ -5291,7 +5322,8 @@ toExcel(){
 
 // ─── EXPORTAR PDF (MISSÕES) ───────────────────────────────────
 toPDF(){
-  if(!this.S.filtered.length){this.showNotif('⚠️ Sem dados para exportar','warn');return;}
+  const _data=this._filteredVoos||_data;
+  if(!_data.length){this.showNotif('⚠️ Sem dados filtrados para exportar','warn');return;}
   try{
     const{jsPDF}=window.jspdf;
     const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
@@ -5299,7 +5331,7 @@ toPDF(){
     doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(14);
     doc.text('CGC - EA — Sistema de Gestão de Voo',148,10,{align:'center'});
     doc.setFontSize(9);doc.setFont('helvetica','normal');
-    doc.text('Gerado em: '+new Date().toLocaleString('pt-PT')+'   |   Total: '+this.S.filtered.length+' missões',148,17,{align:'center'});
+    doc.text('Gerado em: '+new Date().toLocaleString('pt-PT')+'   |   Total: '+_data.length+' missões',148,17,{align:'center'});
     doc.setTextColor(0,0,0);
     // Caixa de filtros activos
     const _fv=(id,d)=>{const v=document.getElementById(id)?.value||'';return(v&&v!==d)?v:'';};
@@ -5318,7 +5350,7 @@ toPDF(){
       doc.setFont('helvetica','normal');doc.text(fParts.join('  |  '),55,sy+5.8,{maxWidth:228});
       doc.setTextColor(0,0,0);sy+=12;
     }
-    const rows=this.S.filtered.slice().sort((a,b)=>b.dt-a.dt).map(m=>[
+    const rows=_data.slice().sort((a,b)=>b.dt-a.dt).map(m=>[
       m.num,m.serie,m.dt.toLocaleDateString('pt-PT'),m.status||'Concluída',m.tipo.slice(0,20),m.aero,m.origem||'—',m.destino||'—',m.dur?.slice(0,5)||'—',this.calcBT(m.boff,m.bon),(m.crew||[]).map(c=>(n=>{const p=n.trim().split(/\s+/);return p.length>1?p[0][0].toUpperCase()+'. '+p[p.length-1]:n;})(c.nome)+' ('+c.fn+')').join('\n')
     ]);
     doc.autoTable({
@@ -5634,7 +5666,7 @@ switchChartTab(){},
 _buildCombinedChart(){
   this._destroyCharts('cTemp');
   const ctx=document.getElementById('cTemp')?.getContext('2d');if(!ctx)return;
-  const mis=this.S.filtered;
+  const mis=_data;
   const now=new Date(),months=[],counts=[],btHours=[],ftHours=[];
   const MLBL=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   for(let i=11;i>=0;i--){
@@ -5682,7 +5714,7 @@ buildCharts(){
 
 buildAnalysisCharts(){
   this._destroyCharts('cTipo','cAero','cHor','cFunc','cTend','cBTvsDur','cCustoMes','cCancel','cDurHist','cBTTrip');
-  const mis=this.S.filtered;
+  const mis=_data;
   const SC={x:{grid:{color:this._gridColor()},ticks:{color:this._textColor()}},y:{grid:{color:this._gridColor()},ticks:{color:this._textColor(),stepSize:1},beginAtZero:true}};
   const mkChart=(id,cfg)=>{const ctx=document.getElementById(id)?.getContext('2d');if(ctx)this.S.charts[id]=new Chart(ctx,cfg);};
 
@@ -7539,7 +7571,7 @@ importBackup(ev){
       if(cfg.metas&&typeof cfg.metas==='object') this.C.metas=cfg.metas;
       // suporte a backup antigo com metas no topo
       if(data.metas&&!cfg.metas) this.C.metas=data.metas;
-      this.S.filtered=[...this.S.missoes];
+      _data=[...this.S.missoes];
       this.markDirty();
       this.fillSelects();
       this.renderAll();
