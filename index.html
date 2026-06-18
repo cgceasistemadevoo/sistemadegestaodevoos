@@ -1985,6 +1985,7 @@ _addUserRow(){
     <select class="cfg-user-role" style="padding:8px 10px;border:1.5px solid var(--border2);border-radius:8px;font-size:.85rem;font-family:inherit;background:var(--white);color:var(--ink);outline:none;height:36px">
       <option value="guest" selected>👁 Consulta</option>
       <option value="gestor">✏️ Gestor</option>
+      <option value="tripulante">✈️ Tripulante</option>
     </select>
     <span style="padding:0 6px;height:36px;display:flex;align-items:center;justify-content:center;font-size:.72rem;color:var(--ink3);white-space:nowrap;border:1.5px solid var(--border2);border-radius:8px" title="Senha inicial atribuída automaticamente">cgcea2024</span>
     <button onclick="this.closest('.cfg-user-row').remove()" title="Apagar" style="width:34px;height:36px;border:1.5px solid #fca5a5;border-radius:8px;background:#fee2e2;color:#991b1b;font-size:1.1rem;cursor:pointer">×</button>`;
@@ -4501,7 +4502,7 @@ _anoCell(t,now){
   const _now=new Date(),_lim=this.S.hrLimit||80;
   let h='<table><thead><tr><th>Nome</th><th>Posto</th><th>Col.</th><th>NIF</th><th>Missões</th><th>BT (mês)</th><th>BT (ano)</th><th>Validades</th><th></th></tr></thead><tbody>';
   _tripsView.forEach(t=>{
-    const nm=this.S.missoes.filter(m=>(m.crew||[]).some(c=>c.nome===t.nome)).length;
+    const nm=new Set(this.S.missoes.filter(m=>(m.crew||[]).some(c=>c.nome===t.nome)).map(m=>m.num)).size;
     const minMes=this.S.missoes
       .filter(m=>{const _d=m.dt instanceof Date?m.dt:new Date(m.dt);return _d.getFullYear()===_now.getFullYear()&&_d.getMonth()===_now.getMonth()&&(m.crew||[]).some(c=>c.nome===t.nome);})
       .reduce((acc,m)=>{const btStr=this.calcBT(m.boff,m.bon);if(btStr==='—')return acc;const[bh,bm]=btStr.split(':').map(Number);return acc+bh*60+(bm||0);},0);
@@ -4837,18 +4838,22 @@ calcPag(){
     });
   });
   const lista=Object.values(pag).sort((a,b)=>a.nome.localeCompare(b.nome));
-  let totMin=0,totVal=0;lista.forEach(p=>{totMin+=p.min;totVal+=p.tot;});
-  if(e('sMis'))e('sMis').textContent=new Set(mMes.map(m=>m.num)).size;
+  // Tripulante vê apenas os seus dados
+  const _tripNomePag=this.isTripulante()?this._getTripNome():null;
+  const listaView=_tripNomePag?lista.filter(p=>p.nome===_tripNomePag):lista;
+  const _mMesView=_tripNomePag?mMes.filter(m=>(m.crew||[]).some(c=>c.nome===_tripNomePag)):mMes;
+  let totMin=0,totVal=0,totRefView=0;listaView.forEach(p=>{totMin+=p.min;totVal+=p.tot;totRefView+=p.pa+p.al+p.jn;});
+  if(e('sMis'))e('sMis').textContent=new Set(_mMesView.map(m=>m.num)).size;
   if(e('sHr'))e('sHr').textContent=Math.floor(totMin/60)+'h';
-  if(e('sTr'))e('sTr').textContent=lista.length;
-  if(e('sRef'))e('sRef').textContent=totRef;
+  if(e('sTr'))e('sTr').textContent=listaView.length;
+  if(e('sRef'))e('sRef').textContent=_tripNomePag?totRefView:totRef;
   if(e('totPag'))e('totPag').textContent=this.cve(totVal);
   if(e('iTH'))e('iTH').value=(totMin/60).toFixed(2)+' h';
-  if(e('iTR'))e('iTR').value=totRef+' refeições';
+  if(e('iTR'))e('iTR').value=(_tripNomePag?totRefView:totRef)+' refeições';
   if(e('iTV'))e('iTV').value=this.cve(totVal);
   const R='text-align:right',C='text-align:center';
   let h='<table><thead><tr><th>Tripulante</th><th>Função</th><th style="'+C+'">Mis</th><th style="'+R+'">Horas</th><th style="'+R+'">Val/H</th><th style="'+C+'">PA</th><th style="'+C+'">Alm</th><th style="'+C+'">Jan</th><th style="'+R+'">Refeições</th><th style="'+R+'">Total</th><th>📄</th></tr></thead><tbody>';
-  lista.forEach(p=>{
+  listaView.forEach(p=>{
     h+='<tr><td><strong>'+this.esc(p.nome)+'</strong></td><td style="color:var(--ink3);font-size:.86em">'+this.esc(p.fn)+'</td>'+
       '<td style="'+C+'">'+p.mis+'</td>'+
       '<td style="'+R+'">'+((p.min/60).toFixed(2))+'h</td>'+
