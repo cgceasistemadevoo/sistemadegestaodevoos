@@ -510,6 +510,8 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 .login-ok{color:#2E7D32;font-size:.82rem;text-align:center;min-height:18px;margin:8px 0 4px;line-height:1.4}
 /* Modo convidado: esconde elementos só de admin */
 .guest-mode .admin-only{display:none!important}
+/* Modo tripulante: esconde elementos não relevantes */
+.trip-mode .no-trip{display:none!important}
 </style>
 </head>
 <body>
@@ -1880,7 +1882,8 @@ async _loadUsersTab(){
       <input class="cfg-user-name" value="${this.esc(u)}" placeholder="nome de utilizador" style="padding:8px 10px;border:1.5px solid var(--border2);border-radius:8px;font-size:.88rem;font-family:inherit;outline:none;background:var(--white);color:var(--ink)">
       <select class="cfg-user-role" style="padding:8px 10px;border:1.5px solid var(--border2);border-radius:8px;font-size:.85rem;font-family:inherit;background:var(--white);color:var(--ink);outline:none;height:36px">
         <option value="gestor"${role==='gestor'?' selected':''}>✏️ Gestor</option>
-        <option value="guest"${role!=='gestor'?' selected':''}>👁 Consulta</option>
+        <option value="tripulante"${role==='tripulante'?' selected':''}>✈️ Tripulante</option>
+        <option value="guest"${role!=='gestor'&&role!=='tripulante'?' selected':''}>👁 Consulta</option>
       </select>
       <button onclick="A._adminPwdDialog('${this.esc(u)}')" title="Alterar ou repor palavra-passe" style="padding:0 6px;height:36px;border:1.5px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--ink1);font-size:.78rem;cursor:pointer;white-space:nowrap">🔑 Senha</button>
       <button onclick="this.closest('.cfg-user-row').remove()" title="Apagar utilizador" style="width:34px;height:36px;border:1.5px solid #fca5a5;border-radius:8px;background:#fee2e2;color:#991b1b;font-size:1.1rem;cursor:pointer">×</button>
@@ -3365,6 +3368,7 @@ delContacto(id){
         </div>
         <div class="fg"><label>NIF</label><input id="etNif" value="${this.esc(t.nif||'')}" maxlength="9"></div>
         <div class="fg"><label>✉️ Email</label><input type="email" id="etEmail" value="${this.esc(t.email||'')}" placeholder="nome@exemplo.com"></div>
+        <div class="fg admin-only"><label>👤 Username de login</label><input id="etUsername" value="${this.esc(t.username||'')}" placeholder="ex: joaosilva" autocomplete="off" style="font-family:monospace"></div>
         <div class="fg"><label>📋 Validade Médico</label><input type="date" id="etValMed" value="${t.valMed||''}"></div>
         <div class="fg"><label>🎫 Validade Licença</label><input type="date" id="etValLic" value="${t.valLic||''}"></div>
         <div class="fg" style="grid-column:1/-1">
@@ -3398,6 +3402,7 @@ delContacto(id){
       this.S.missoes.forEach(m=>{(m.crew||[]).forEach(cr=>{if(cr.nome===oldName)cr.nome=n;});});
     }
     t.nome=n;t.posto=p;t.col=c;t.nif=nif;
+    t.username=(document.getElementById('etUsername')?.value||'').trim().toLowerCase();
     t.email=(document.getElementById('etEmail')?.value||'').trim().toLowerCase();
     t.valMed=document.getElementById('etValMed')?.value||'';
     t.valLic=document.getElementById('etValLic')?.value||'';
@@ -4490,9 +4495,12 @@ _anoCell(t,now){
   const el=document.getElementById('tTrip');
   if(!el)return;
   if(!this.S.trips.length){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--ink3)">Nenhum tripulante registado.</div>';return;}
+  // Tripulante vê apenas a sua própria linha
+  const _tripsView=this.isTripulante()?this.S.trips.filter(t=>t.username&&t.username.toLowerCase()===(this.S.currentUser||'').toLowerCase()):this.S.trips;
+  if(this.isTripulante()&&!_tripsView.length){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--ink3)">Perfil não associado. Contacte o administrador.</div>';return;}
   const _now=new Date(),_lim=this.S.hrLimit||80;
   let h='<table><thead><tr><th>Nome</th><th>Posto</th><th>Col.</th><th>NIF</th><th>Missões</th><th>BT (mês)</th><th>BT (ano)</th><th>Validades</th><th></th></tr></thead><tbody>';
-  this.S.trips.forEach(t=>{
+  _tripsView.forEach(t=>{
     const nm=this.S.missoes.filter(m=>(m.crew||[]).some(c=>c.nome===t.nome)).length;
     const minMes=this.S.missoes
       .filter(m=>{const _d=m.dt instanceof Date?m.dt:new Date(m.dt);return _d.getFullYear()===_now.getFullYear()&&_d.getMonth()===_now.getMonth()&&(m.crew||[]).some(c=>c.nome===t.nome);})
@@ -4541,6 +4549,11 @@ filterVoos(){
   const vtag=(document.getElementById('vFilterTag')?.value||'').toLowerCase().trim();
   const vsa=document.getElementById('vFilterAero')?.value;
   let list=this.S.filtered;
+  // Filtro automático para papel tripulante: apenas as suas missões
+  if(this.isTripulante()){
+    const tn=this._getTripNome();
+    list=tn?list.filter(m=>(m.crew||[]).some(c=>c.nome===tn)):[];
+  }
   // Pesquisa avançada: aero:X tripulante:Y tipo:Z serie:W tag:T status:S + texto livre
   const ops={aero:null,tripulante:null,tip:null,tipo:null,serie:null,tag:null,status:null,trip:null};
   let qFree=qRaw;
@@ -6386,6 +6399,13 @@ renderIncidentes(){
 
 // ─── AUTENTICAÇÃO ─────────────────────────────────────────────
 isAdmin(){return this.S.role==='admin'||this.S.role==='gestor';},
+isTripulante(){return this.S.role==='tripulante';},
+// Devolve o nome do tripulante associado ao utilizador actual (por campo username)
+_getTripNome(){
+  if(!this.S.currentUser)return null;
+  const t=this.S.trips.find(x=>x.username&&x.username.toLowerCase()===this.S.currentUser.toLowerCase());
+  return t?t.nome:null;
+},
 canManageUsers(){return this.S.role==='admin';},
 async _hashPwd(p){
   const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(p));
@@ -6581,8 +6601,9 @@ doLogout(){
 },
 _applyRole(){
   if(!this.isAdmin()){document.body.classList.add('guest-mode');}
+  if(this.isTripulante()){document.body.classList.add('trip-mode');}
   const lb=document.getElementById('btnLogout');
-  const roleLabel=this.S.role==='admin'?'👤 Admin':this.S.role==='gestor'?'✏️ Gestor':'👁 Convidado';
+  const roleLabel=this.S.role==='admin'?'👤 Admin':this.S.role==='gestor'?'✏️ Gestor':this.S.role==='tripulante'?'✈️ Tripulante':'👁 Convidado';
   if(lb){lb.style.display='inline-flex';lb.textContent=roleLabel+' ↩';}
   const kb=document.getElementById('btnChangePwd');
   if(kb)kb.style.display='inline-flex';
