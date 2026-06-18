@@ -508,6 +508,11 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 .forgot-link{background:none;border:none;color:#6b8a72;font-size:.78rem;cursor:pointer;text-decoration:underline;font-family:inherit;padding:0}
 .forgot-link:hover{color:#1B5E20}
 .login-ok{color:#2E7D32;font-size:.82rem;text-align:center;min-height:18px;margin:8px 0 4px;line-height:1.4}
+/* Modal overlay — Nova Missão */
+#formNovaVooOverlay{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.52);overflow-y:auto;padding:16px 12px}
+.form-novavoo-modal{max-width:890px;margin:28px auto;background:var(--white);border-radius:16px;box-shadow:0 8px 48px rgba(0,0,0,.28);position:relative;padding:0}
+#btnCloseNovaVoo{position:absolute;top:14px;right:14px;width:32px;height:32px;border:none;border-radius:8px;background:var(--surface);color:var(--ink2);font-size:1.1rem;cursor:pointer;line-height:1;z-index:1}
+#btnCloseNovaVoo:hover{background:var(--g2)}
 /* Modo convidado: esconde elementos só de admin */
 .guest-mode .admin-only{display:none!important}
 /* Modo tripulante: esconde elementos não relevantes */
@@ -878,7 +883,13 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
      MISSÕES
 ══════════════════════════════════════════ -->
 <div id="page-voos" class="page hide">
-  <div class="form-sec admin-only">
+  <div class="admin-only" style="padding:14px 16px 4px;display:flex;gap:8px;align-items:center">
+    <button class="btn btn-p" onclick="A.openNovaVoo()" style="gap:6px">✈️ Nova Missão</button>
+  </div>
+  <div id="formNovaVooOverlay">
+  <div class="form-novavoo-modal">
+    <button id="btnCloseNovaVoo" onclick="A.closeNovaVoo()" title="Fechar">✕</button>
+<div class="form-sec">
     <h3>✈️ Registar Nova Missão</h3>
 
     <div class="serie-box">
@@ -941,6 +952,8 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
       <button class="btn btn-del btn-sm" onclick="A.deleteTemplate()" title="Apagar modelo selecionado">🗑️</button>
     </div>
   </div>
+  </div>
+</div>
 
   <div class="card" id="seriesMgr">
     <div class="card-hd" style="flex-wrap:wrap;gap:8px">
@@ -2645,6 +2658,7 @@ addMissao(){
   this.buildCharts();
   this.addAudit('Missão criada',num+' — '+tipo);
   this.showNotif('✅ '+num+' registada!');
+  this.closeNovaVoo();
   this.clearForm();
 },
 clearForm(){
@@ -6405,6 +6419,19 @@ renderIncidentes(){
 // ─── AUTENTICAÇÃO ─────────────────────────────────────────────
 isAdmin(){return this.S.role==='admin'||this.S.role==='gestor';},
 isTripulante(){return this.S.role==='tripulante';},
+// ─── MODAL NOVA MISSÃO ────────────────────────────────────────
+openNovaVoo(){
+  const ov=document.getElementById('formNovaVooOverlay');
+  if(ov){ov.style.display='block';document.body.style.overflow='hidden';}
+  // preencher data com hoje se vazia
+  const fd=document.getElementById('iData');
+  if(fd&&!fd.value)fd.value=new Date().toISOString().slice(0,10);
+},
+closeNovaVoo(){
+  const ov=document.getElementById('formNovaVooOverlay');
+  if(ov)ov.style.display='none';
+  document.body.style.overflow='';
+},
 // Devolve o nome do tripulante associado ao utilizador actual (por campo username)
 _getTripNome(){
   if(!this.S.currentUser)return null;
