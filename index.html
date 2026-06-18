@@ -2298,30 +2298,31 @@ async init(){
     }
   }
 
-  this.S.filtered=[...this.S.missoes];
-  this.S.dirty=false;
-  this.autoCancelPast();
-  this.fillSelects();
-  this.renderAll();
-  this.buildCharts();
-  // Mostrar notificações de arranque
-  this._refreshUndoBtn();
-  this._refreshTplSelect();
-  setTimeout(()=>this.showStartupNotifs(),800);
-
-  // Mês atual nos pagamentos
-  const n=new Date();
-  const sa=document.getElementById('selAno');
-  if(sa&&sa.querySelector(`option[value="${n.getFullYear()}"]`))sa.value=String(n.getFullYear());
-  // Set nav toggle initial icon
-  const navBtn=document.getElementById('navToggle');if(navBtn)navBtn.textContent='☰';
-  const sm=document.getElementById('selMes');
-  if(sm)sm.value=String(n.getMonth()+1);
-  this.calcPag();
-
-  window.addEventListener('resize',()=>{const nav=document.getElementById('nav');if(nav&&nav.classList.contains('open')){if(window.innerWidth>768)document.body.classList.add('nav-open');else document.body.classList.remove('nav-open');}});
+  try{
+    this.S.filtered=[...this.S.missoes];
+    this.S.dirty=false;
+    this.autoCancelPast();
+    this.fillSelects();
+    this.renderAll();
+    this.buildCharts();
+    this._refreshUndoBtn();
+    this._refreshTplSelect();
+    setTimeout(()=>this.showStartupNotifs(),800);
+    const n=new Date();
+    const sa=document.getElementById('selAno');
+    if(sa&&sa.querySelector(`option[value="${n.getFullYear()}"]`))sa.value=String(n.getFullYear());
+    const navBtn=document.getElementById('navToggle');if(navBtn)navBtn.textContent='☰';
+    const sm=document.getElementById('selMes');
+    if(sm)sm.value=String(n.getMonth()+1);
+    this.calcPag();
+    window.addEventListener('resize',()=>{const nav=document.getElementById('nav');if(nav&&nav.classList.contains('open')){if(window.innerWidth>768)document.body.classList.add('nav-open');else document.body.classList.remove('nav-open');}});
     this.addAudit('Sistema iniciado','v9.0 carregado');
-  this.showLoad(false);
+  }catch(e){
+    console.error('Init error:',e);
+    this.showNotif('⚠️ Erro ao inicializar: '+e.message,'err');
+  }finally{
+    this.showLoad(false);
+  }
 },
 
 showLoad(on,msg=''){
