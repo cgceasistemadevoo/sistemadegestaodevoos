@@ -2279,26 +2279,23 @@ async init(){
   this.initDark();
   this.bindNav();
   this._updateConfigBtn();
-  // Configurações são carregadas do Drive em loadFromCloud() — sem localStorage
-
-  const ok=await this.loadFromCloud();
-  if(!ok){
-    this.S.trips=JSON.parse(JSON.stringify(this.C.defTrips));
-    this.S.missoes=JSON.parse(JSON.stringify(this.C.defMissoes)).map(m=>({...m,dt:new Date(m.dt),status:m.status||'Concluída',history:m.history||[]}));
-    this.S.series=[];
-    this.S.colocacoes=[];
-    this.S.aeros=[];
-    this.S.auditLog=[];
-    if(!getApiUrl()){
-      this.syncUI('offline');
-      this.showNotif('⚙️ Configure o Google Drive — clique em "⚠️ Configurar Drive"','warn');
-    } else {
-      this.syncUI('error');
-      this.showNotif('⚠️ Sem acesso ao Drive — a usar dados de demonstração','warn');
-    }
-  }
-
   try{
+    // Timeout de segurança: se loadFromCloud demorar mais de 15s, continua sem dados
+    const cloudPromise=this.loadFromCloud();
+    const timeoutPromise=new Promise(res=>setTimeout(()=>res(false),15000));
+    const ok=await Promise.race([cloudPromise,timeoutPromise]);
+    if(!ok){
+      this.S.trips=JSON.parse(JSON.stringify(this.C.defTrips));
+      this.S.missoes=JSON.parse(JSON.stringify(this.C.defMissoes)).map(m=>({...m,dt:new Date(m.dt),status:m.status||'Concluída',history:m.history||[]}));
+      this.S.series=[];this.S.colocacoes=[];this.S.aeros=[];this.S.auditLog=[];
+      if(!getApiUrl()){
+        this.syncUI('offline');
+        this.showNotif('⚙️ Configure o Google Drive — clique em "⚠️ Configurar Drive"','warn');
+      }else{
+        this.syncUI('error');
+        this.showNotif('⚠️ Sem acesso ao Drive — a usar dados de demonstração','warn');
+      }
+    }
     this.S.filtered=[...this.S.missoes];
     this.S.dirty=false;
     this.autoCancelPast();
