@@ -754,6 +754,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="mcard" data-ic="✅" style="border-left:4px solid #10b981"><div class="mcard-lbl">Taxa Conclusão</div><div class="mcard-val" id="mTaxaCon">0%</div><div class="mcard-sub">missões concluídas</div></div>
     <div class="mcard" data-ic="❌" style="border-left:4px solid #ef4444"><div class="mcard-lbl">Canceladas</div><div class="mcard-val" id="mCancel">0</div><div class="mcard-sub" id="mCancelSub">no período</div></div>
     <div class="mcard" data-ic="🏥" style="border-left:4px solid #dc2626"><div class="mcard-lbl">Pacientes MEDEVAC</div><div class="mcard-val" id="mPac">0</div><div class="mcard-sub" id="mPacSub">evacuações</div></div>
+    <div class="mcard" data-ic="🚑" style="border-left:4px solid #b91c1c"><div class="mcard-lbl">Missões MEDEVAC</div><div class="mcard-val" id="mMedMis">0</div><div class="mcard-sub" id="mMedMisSub">no período</div></div>
   </div>
 
   <div class="cgrid">
@@ -2851,11 +2852,11 @@ editMissao(id){
   const eOr=document.getElementById('eOrigem');if(eOr)eOr.value=m.origem||'';
   const eDe=document.getElementById('eDestino');if(eDe)eDe.value=m.destino||'';
   const ePe=document.getElementById('ePerna');if(ePe)ePe.value=m.perna||'';
-  const eNPacR=document.getElementById('eNPacRow');const eNPac=document.getElementById('eNPac');
+  const eNPacR=document.getElementById('eNPacRow');const eNPacInp=document.getElementById('eNPac');
   const _isMEDVAC=m.tipo&&m.tipo.toLowerCase().includes('evacuac');
   if(eNPacR)eNPacR.style.display=_isMEDVAC?'':'none';
-  if(eNPac)eNPac.value=m.nPac!=null?m.nPac:'';
-  const eTipoEl=document.getElementById('eTipo');if(eTipoEl)eTipoEl.addEventListener('change',function(){A._onTipoChange(this.value,'eNPacRow');},{once:false});
+  if(eNPacInp)eNPacInp.value=m.nPac!=null?m.nPac:'';
+  const eTipoEl=document.getElementById('eTipo');if(eTipoEl)eTipoEl.onchange=function(){A._onTipoChange(this.value,'eNPacRow');};
   const eCat=document.getElementById('eCatering');if(eCat)eCat.checked=m.catering||false;
   const eFa=document.getElementById('eFuelAdd');if(eFa)eFa.value=m.fuelAdd!=null?m.fuelAdd:'';
   const eFu=document.getElementById('eFuelUse');if(eFu)eFu.value=m.fuelUse!=null?m.fuelUse:'';
@@ -4614,6 +4615,8 @@ renderMetrics(){
   const totalPac=medevac.reduce((s,m)=>s+(m.nPac||0),0);
   if(e('mPac'))e('mPac').textContent=totalPac;
   if(e('mPacSub'))e('mPacSub').textContent=medevac.length+(medevac.length===1?' evacuação':' evacuações');
+  if(e('mMedMis'))e('mMedMis').textContent=medevac.length;
+  if(e('mMedMisSub'))e('mMedMisSub').textContent=medevac.length===1?'evacuação médica':'evacuações médicas';
   // Block Time mês actual
   const now=new Date();let btMesMins=0;
   this.S.missoes.forEach(m=>{
