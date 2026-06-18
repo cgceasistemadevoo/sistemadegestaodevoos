@@ -1478,50 +1478,66 @@ overlaps(tMin,dMin,sh,eh){
 corrigirNumeracao(){
   const el=document.getElementById('numCorrecaoResult');
   if(!el)return;
-  // Padrão correcto: SERIE-YYYY-NNN
-  const reCorr=/^(.+)-(\d{4})-(\d+)([A-Z]?)$/;
-  // Padrão antigo: SERIE-NNN (sem ano)
-  const reOld=/^(.+?)-(\d{1,4})([A-Z]?)$/;
-  const fixes=[];
-  const usedNums=new Set(this.S.missoes.map(m=>m.num));
+
+  // Escape regex special chars in serie name
+  const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+
+  // Build map: serieKey → { YYYY → [{m, dt, basePerna}] }
+  // For multi-leg missions (same num), use first occurrence as representative
+  const seen=new Map(); // num → representative entry
   this.S.missoes.forEach(m=>{
-    if(reCorr.test(m.num||''))return; // já tem ano
-    const mo=( m.num||'').match(reOld);
-    if(!mo)return;
-    const serie=mo[1],seq=mo[2],perna=mo[3]||'';
-    const dt=m.dt instanceof Date?m.dt:new Date(m.dt);
-    const ano=isNaN(dt)?new Date().getFullYear():dt.getFullYear();
-    let newNum=serie+'-'+ano+'-'+String(seq).padStart(3,'0')+perna;
-    // evitar colisão
-    let suffix=0;
-    const baseNew=serie+'-'+ano+'-'+String(seq).padStart(3,'0');
-    while(usedNums.has(newNum)&&newNum!==m.num){
-      suffix++;
-      newNum=baseNew+'v'+suffix+(perna);
-    }
-    fixes.push({m,oldNum:m.num,newNum,ano});
-    usedNums.add(newNum);
+    if(!m.num||!m.serie)return;
+    if(!seen.has(m.num)) seen.set(m.num,m);
   });
+
+  // Group unique missions by serie+year-from-date
+  const groups=new Map(); // 'SERIE||YYYY' → [{m, dt, oldNum}]
+  seen.forEach((m,num)=>{
+    const dt=m.dt instanceof Date?m.dt:new Date(m.dt);
+    if(isNaN(dt))return;
+    const yr=dt.getFullYear();
+    const key=m.serie+'||'+yr;
+    if(!groups.has(key))groups.set(key,[]);
+    groups.get(key).push({m,dt,oldNum:num,serie:m.serie,yr});
+  });
+
+  // Sort each group by date and assign new sequential numbers
+  const fixes=[]; // {oldNum, newNum, serie, yr, dt}
+  groups.forEach((entries,key)=>{
+    entries.sort((a,b)=>a.dt-b.dt);
+    entries.forEach((e,i)=>{
+      const newNum=e.serie+'-'+e.yr+'-'+String(i+1).padStart(3,'0');
+      if(newNum!==e.oldNum) fixes.push({oldNum:e.oldNum,newNum,serie:e.serie,yr:e.yr,dt:e.dt});
+    });
+  });
+
   if(!fixes.length){
-    el.innerHTML='<p style="color:var(--g8);font-size:.87em;margin:0">✅ Todas as missões já têm numeração correcta — nada a corrigir.</p>';
+    el.innerHTML='<p style="color:var(--g8);font-size:.87em;margin:0">✅ Numeração já correcta — todas as missões estão sequenciadas por ano.</p>';
     return;
   }
-  let h='<p style="font-size:.84em;color:var(--ink3);margin:0 0 8px">'+fixes.length+' missão(ões) com numeração sem ano detectadas:</p>';
-  h+='<table style="width:100%;font-size:.8em;border-collapse:collapse">'
-    +'<thead><tr><th style="text-align:left;padding:4px 8px;border-bottom:1.5px solid var(--border2)">Nº Actual</th>'
-    +'<th style="text-align:left;padding:4px 8px;border-bottom:1.5px solid var(--border2)">→ Nº Corrigido</th>'
-    +'<th style="text-align:left;padding:4px 8px;border-bottom:1.5px solid var(--border2)">Data</th></tr></thead><tbody>';
+
+  // Sort preview by serie + yr + newNum for readability
+  fixes.sort((a,b)=>a.serie.localeCompare(b.serie)||a.yr-b.yr||a.newNum.localeCompare(b.newNum));
+
+  let h='<p style="font-size:.84em;color:var(--ink3);margin:0 0 8px"><b>'+fixes.length+'</b> missão(ões) com numeração incorrecta detectadas:</p>';
+  h+='<div style="max-height:340px;overflow-y:auto;border:1px solid var(--border);border-radius:8px">';
+  h+='<table style="width:100%;font-size:.78em;border-collapse:collapse">'
+    +'<thead><tr>'
+    +'<th style="text-align:left;padding:5px 8px;border-bottom:2px solid var(--border);background:var(--g0)">Nº Actual</th>'
+    +'<th style="text-align:left;padding:5px 8px;border-bottom:2px solid var(--border);background:var(--g0)">→ Nº Correcto</th>'
+    +'<th style="text-align:left;padding:5px 8px;border-bottom:2px solid var(--border);background:var(--g0)">Data</th>'
+    +'</tr></thead><tbody>';
   fixes.forEach(f=>{
-    const dt=f.m.dt instanceof Date?f.m.dt:new Date(f.m.dt);
-    const ds=isNaN(dt)?'—':dt.toLocaleDateString('pt-PT');
-    h+=`<tr><td style="padding:3px 8px;color:var(--amber)">${this.esc(f.oldNum)}</td>`
-      +`<td style="padding:3px 8px;color:var(--g8);font-weight:600">${this.esc(f.newNum)}</td>`
-      +`<td style="padding:3px 8px;color:var(--ink3)">${ds}</td></tr>`;
+    const ds=f.dt.toLocaleDateString('pt-PT');
+    h+=`<tr><td style="padding:4px 8px;color:var(--amber);white-space:nowrap">${this.esc(f.oldNum)}</td>`
+      +`<td style="padding:4px 8px;color:var(--g8);font-weight:700;white-space:nowrap">${this.esc(f.newNum)}</td>`
+      +`<td style="padding:4px 8px;color:var(--ink3)">${ds}</td></tr>`;
   });
-  h+='</tbody></table>';
-  h+='<div style="display:flex;gap:8px;margin-top:12px">'
+  h+='</tbody></table></div>';
+  h+='<p style="font-size:.78em;color:var(--ink3);margin:8px 0 10px">⚠️ A numeração será reordenada por data dentro de cada série e ano. Esta acção não pode ser desfeita sem restaurar backup.</p>';
+  h+='<div style="display:flex;gap:8px;margin-top:4px">'
     +'<button class="btn btn-p btn-sm" onclick="A.aplicarCorrecaoNum()">✅ Aplicar Correcções</button>'
-    +'<button class="btn btn-s btn-sm" onclick="document.getElementById(\'numCorrecaoResult\').innerHTML=\'\'">Cancelar</button>'
+    +'<button class="btn btn-s btn-sm" onclick="A._limparNumResult()">Cancelar</button>'
     +'</div>';
   el.innerHTML=h;
   this._numFixes=fixes;
@@ -1529,20 +1545,26 @@ corrigirNumeracao(){
 aplicarCorrecaoNum(){
   const fixes=this._numFixes;
   if(!fixes||!fixes.length)return;
-  fixes.forEach(f=>{
-    const oldId=f.oldNum;
-    // actualizar missão
-    f.m.num=f.newNum;
-    // actualizar histórico
-    if(f.m.history){f.m.history.forEach(h=>{if(h.txt)h.txt=h.txt.replace(oldId,f.newNum);});}
+  // Build rename map oldNum→newNum
+  const renameMap=new Map(fixes.map(f=>[f.oldNum,f.newNum]));
+  this.S.missoes.forEach(m=>{
+    if(renameMap.has(m.num)){
+      const oldN=m.num;
+      m.num=renameMap.get(oldN);
+      if(m.history)m.history.forEach(h=>{if(h.txt)h.txt=h.txt.replace(oldN,m.num);});
+    }
   });
   delete this._numFixes;
   this.markDirty();
   this.renderAll();
   const el=document.getElementById('numCorrecaoResult');
-  if(el)el.innerHTML='<p style="color:var(--g8);font-size:.87em;margin:0">✅ '+fixes.length+' missões renumeradas. Guarde os dados para persistir.</p>';
+  if(el)el.innerHTML='<p style="color:var(--g8);font-size:.87em;margin:0">✅ '+fixes.length+' missões renumeradas. Guarde os dados (☁️) para persistir.</p>';
   this.showNotif('✅ '+fixes.length+' missões renumeradas');
   this.addAudit('Numeração corrigida',fixes.length+' missões actualizadas');
+},
+_limparNumResult(){
+  const el=document.getElementById('numCorrecaoResult');
+  if(el)el.innerHTML='';
 },
 genNum(serie){
   if(!serie)return'';
