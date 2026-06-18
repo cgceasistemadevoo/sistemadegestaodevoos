@@ -510,6 +510,9 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 .login-ok{color:#2E7D32;font-size:.82rem;text-align:center;min-height:18px;margin:8px 0 4px;line-height:1.4}
 /* Modal overlay — Nova Missão */
 #formNovaVooOverlay{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.52);overflow-y:auto;padding:16px 12px}
+#formNovoTripOverlay{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.52);overflow-y:auto;padding:16px 12px}
+.form-novotrip-modal{max-width:760px;margin:28px auto;background:var(--white);border-radius:16px;box-shadow:0 8px 48px rgba(0,0,0,.28);position:relative;padding:28px 24px 24px}
+#btnCloseNovoTrip{position:absolute;top:14px;right:14px;width:32px;height:32px;border:none;border-radius:8px;background:var(--surface);color:var(--ink2);font-size:1.1rem;cursor:pointer;z-index:1}
 .form-novavoo-modal{max-width:890px;margin:28px auto;background:var(--white);border-radius:16px;box-shadow:0 8px 48px rgba(0,0,0,.28);position:relative;padding:0}
 #btnCloseNovaVoo{position:absolute;top:14px;right:14px;width:32px;height:32px;border:none;border-radius:8px;background:var(--surface);color:var(--ink2);font-size:1.1rem;cursor:pointer;line-height:1;z-index:1}
 #btnCloseNovaVoo:hover{background:var(--g2)}
@@ -860,33 +863,34 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="tscroll" id="tTrip"></div>
   </div>
 
-  <div id="formNovoTripOverlay" style="display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.52);overflow-y:auto;padding:16px 12px">
-  <div style="max-width:760px;margin:28px auto;background:var(--white);border-radius:16px;box-shadow:0 8px 48px rgba(0,0,0,.28);position:relative;padding:28px 24px 24px">
-    <button onclick="A.closeNovoTrip()" style="position:absolute;top:14px;right:14px;width:32px;height:32px;border:none;border-radius:8px;background:var(--surface);color:var(--ink2);font-size:1.1rem;cursor:pointer;z-index:1" title="Fechar">✕</button>
-    <div class="form-sec" style="border:none;padding:0;margin:0">
-    <h3>👤 Novo Tripulante</h3>
-    <div class="fgrid2">
-      <div class="fg"><label>Nome Completo *</label><input id="iNome" placeholder="Nome completo"></div>
-      <div class="fg"><label>Posto *</label><input id="iPosto" placeholder="Ex: Capitão"></div>
-      <div class="fg"><label>Colocação *</label>
-        <select id="iCol"><option value="">— Selecione —</option></select>
-      </div>
-      <div class="fg"><label>NIF * (9 dígitos)</label><input id="iNIF" placeholder="123456789" maxlength="9" inputmode="numeric"></div>
-      <div class="fg"><label>✉️ Email</label><input type="email" id="iEmail" placeholder="nome@exemplo.com" inputmode="email"></div>
-      <div class="fg"><label>📋 Validade Médico</label><input type="date" id="iValMed"></div>
-      <div class="fg"><label>🎫 Validade Licença</label><input type="date" id="iValLic"></div>
-      <div class="fg" style="grid-column:1/-1">
-        <label>🎓 Cursos e Validades <span style="font-weight:400;color:var(--ink3);font-size:.85em">— adicione quantos necessitar</span></label>
-        <div id="iCursosList" style="display:flex;flex-direction:column;gap:5px;margin-top:4px"></div>
-        <button type="button" class="btn btn-s btn-sm" style="margin-top:6px;font-size:.8em" onclick="A._addCursoRow('iCursosList')">➕ Adicionar Curso</button>
-      </div>
+</div>
+
+<div id="formNovoTripOverlay">
+<div class="form-novotrip-modal">
+  <button id="btnCloseNovoTrip" onclick="A.closeNovoTrip()" title="Fechar">✕</button>
+<div class="form-sec">
+  <h3>👤 Novo Tripulante</h3>
+  <div class="fgrid2">
+    <div class="fg"><label>Nome Completo *</label><input id="iNome" placeholder="Nome completo"></div>
+    <div class="fg"><label>Posto *</label><input id="iPosto" placeholder="Ex: Capitão"></div>
+    <div class="fg"><label>Colocação *</label>
+      <select id="iCol"><option value="">— Selecione —</option></select>
     </div>
-    <div style="display:flex;gap:8px;margin-top:16px">
-      <button class="btn btn-p admin-only" onclick="A.addTrip()">✅ Adicionar Tripulante</button>
-      <button class="btn btn-s" onclick="A.closeNovoTrip()">Cancelar</button>
-    </div>
+    <div class="fg"><label>NIF * (9 dígitos)</label><input id="iNIF" placeholder="123456789" maxlength="9" inputmode="numeric"></div>
+    <div class="fg"><label>✉️ Email</label><input type="email" id="iEmail" placeholder="nome@exemplo.com" inputmode="email"></div>
+    <div class="fg"><label>📋 Validade Médico</label><input type="date" id="iValMed"></div>
+    <div class="fg"><label>🎫 Validade Licença</label><input type="date" id="iValLic"></div>
+    <div class="fg" style="grid-column:1/-1">
+      <label>🎓 Cursos e Validades <span style="font-weight:400;color:var(--ink3);font-size:.85em">— adicione quantos necessitar</span></label>
+      <div id="iCursosList" style="display:flex;flex-direction:column;gap:5px;margin-top:4px"></div>
+      <button type="button" class="btn btn-s btn-sm" style="margin-top:6px;font-size:.8em" onclick="A._addCursoRow('iCursosList')">➕ Adicionar Curso</button>
     </div>
   </div>
+  <div style="display:flex;gap:8px;margin-top:16px">
+    <button class="btn btn-p admin-only" onclick="A.addTrip()">✅ Adicionar Tripulante</button>
+    <button class="btn btn-s" onclick="A.closeNovoTrip()">Cancelar</button>
+  </div>
+</div>
 </div>
 </div>
 
