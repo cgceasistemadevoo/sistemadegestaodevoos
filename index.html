@@ -5664,7 +5664,7 @@ switchChartTab(){},
 _buildCombinedChart(){
   this._destroyCharts('cTemp');
   const ctx=document.getElementById('cTemp')?.getContext('2d');if(!ctx)return;
-  const mis=_data;
+  const mis=this.S.filtered;
   const now=new Date(),months=[],counts=[],btHours=[],ftHours=[];
   const MLBL=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   for(let i=11;i>=0;i--){
@@ -5712,7 +5712,7 @@ buildCharts(){
 
 buildAnalysisCharts(){
   this._destroyCharts('cTipo','cAero','cHor','cFunc','cTend','cBTvsDur','cCustoMes','cCancel','cDurHist','cBTTrip');
-  const mis=_data;
+  const mis=this.S.filtered;
   const SC={x:{grid:{color:this._gridColor()},ticks:{color:this._textColor()}},y:{grid:{color:this._gridColor()},ticks:{color:this._textColor(),stepSize:1},beginAtZero:true}};
   const mkChart=(id,cfg)=>{const ctx=document.getElementById(id)?.getContext('2d');if(ctx)this.S.charts[id]=new Chart(ctx,cfg);};
 
