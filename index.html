@@ -860,8 +860,11 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="tscroll" id="tTrip"></div>
   </div>
 
-  <div class="form-sec">
-    <h3>➕ Adicionar Tripulante</h3>
+  <div id="formNovoTripOverlay" style="display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.52);overflow-y:auto;padding:16px 12px">
+  <div style="max-width:760px;margin:28px auto;background:var(--white);border-radius:16px;box-shadow:0 8px 48px rgba(0,0,0,.28);position:relative;padding:28px 24px 24px">
+    <button onclick="A.closeNovoTrip()" style="position:absolute;top:14px;right:14px;width:32px;height:32px;border:none;border-radius:8px;background:var(--surface);color:var(--ink2);font-size:1.1rem;cursor:pointer;z-index:1" title="Fechar">✕</button>
+    <div class="form-sec" style="border:none;padding:0;margin:0">
+    <h3>👤 Novo Tripulante</h3>
     <div class="fgrid2">
       <div class="fg"><label>Nome Completo *</label><input id="iNome" placeholder="Nome completo"></div>
       <div class="fg"><label>Posto *</label><input id="iPosto" placeholder="Ex: Capitão"></div>
@@ -878,8 +881,13 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
         <button type="button" class="btn btn-s btn-sm" style="margin-top:6px;font-size:.8em" onclick="A._addCursoRow('iCursosList')">➕ Adicionar Curso</button>
       </div>
     </div>
-    <button class="btn btn-p admin-only" onclick="A.addTrip()">✅ Adicionar Tripulante</button>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-p admin-only" onclick="A.addTrip()">✅ Adicionar Tripulante</button>
+      <button class="btn btn-s" onclick="A.closeNovoTrip()">Cancelar</button>
+    </div>
+    </div>
   </div>
+</div>
 </div>
 
 <!-- ══════════════════════════════════════════
