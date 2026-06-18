@@ -7569,7 +7569,7 @@ importBackup(ev){
       if(cfg.metas&&typeof cfg.metas==='object') this.C.metas=cfg.metas;
       // suporte a backup antigo com metas no topo
       if(data.metas&&!cfg.metas) this.C.metas=data.metas;
-      _data=[...this.S.missoes];
+      this.S.filtered=[...this.S.missoes];
       this.markDirty();
       this.fillSelects();
       this.renderAll();
