@@ -5303,7 +5303,7 @@ async enviarReciboEmail(nome){
 
 // ─── EXPORTAR EXCEL (MISSÕES) ─────────────────────────────────
 toExcel(){
-  const _data=this._filteredVoos||_data;
+  const _data=this._filteredVoos||this.S.filtered;
   if(!_data.length){this.showNotif('⚠️ Sem dados filtrados para exportar','warn');return;}
   try{
     const wb=XLSX.utils.book_new();
@@ -5322,7 +5322,7 @@ toExcel(){
 
 // ─── EXPORTAR PDF (MISSÕES) ───────────────────────────────────
 toPDF(){
-  const _data=this._filteredVoos||_data;
+  const _data=this._filteredVoos||this.S.filtered;
   if(!_data.length){this.showNotif('⚠️ Sem dados filtrados para exportar','warn');return;}
   try{
     const{jsPDF}=window.jspdf;
