@@ -613,6 +613,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="fg"><label>Origem</label><input id="eOrigem" placeholder="ex: Praia, SAL, CV01"></div>
     <div class="fg"><label>Destino</label><input id="eDestino" placeholder="ex: SAL, Boa Vista, CV02"></div>
     <div class="fg"><label>Perna</label><select id="ePerna"><option value="">—</option><option value="1">1ª (Ida)</option><option value="2">2ª (Regresso)</option><option value="3">3ª</option><option value="4">4ª</option><option value="5">5ª</option><option value="6">6ª</option><option value="7">7ª</option><option value="8">8ª</option><option value="9">9ª</option><option value="10">10ª</option></select></div>
+    <div class="fg" id="eNPacRow" style="display:none"><label>🏥 Nº Pacientes (MEDEVAC)</label><input type="number" id="eNPac" placeholder="ex: 2" min="0" step="1" style="width:100%"></div>
     <div class="fg" style="align-self:end"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 2px;user-select:none"><input type="checkbox" id="eCatering" style="width:17px;height:17px;accent-color:#2E7D32;flex-shrink:0"><span>🍽️ Refeição fornecida por catering<br><small style="color:var(--ink3);font-weight:400">Não inclui subsídio de refeição</small></span></label></div>
     <div class="fg"><label>⛽ Comb. Adicionado (L)</label><input type="number" id="eFuelAdd" placeholder="ex: 450" min="0" step="1"></div>
     <div class="fg"><label>⛽ Comb. Consumido (L)</label><input type="number" id="eFuelUse" placeholder="ex: 380" min="0" step="1"></div>
@@ -752,6 +753,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   <div class="mgrid">
     <div class="mcard" data-ic="✅" style="border-left:4px solid #10b981"><div class="mcard-lbl">Taxa Conclusão</div><div class="mcard-val" id="mTaxaCon">0%</div><div class="mcard-sub">missões concluídas</div></div>
     <div class="mcard" data-ic="❌" style="border-left:4px solid #ef4444"><div class="mcard-lbl">Canceladas</div><div class="mcard-val" id="mCancel">0</div><div class="mcard-sub" id="mCancelSub">no período</div></div>
+    <div class="mcard" data-ic="🏥" style="border-left:4px solid #dc2626"><div class="mcard-lbl">Pacientes MEDEVAC</div><div class="mcard-val" id="mPac">0</div><div class="mcard-sub" id="mPacSub">evacuações</div></div>
   </div>
 
   <div class="cgrid">
@@ -917,12 +919,13 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 
     <div class="fgrid-compact">
       <div class="fg"><label>Data *</label><input type="date" id="iData"></div>
-      <div class="fg"><label>Tipo Missão *</label><select id="iTipo"><option value="">— Selecione —</option></select></div>
+      <div class="fg"><label>Tipo Missão *</label><select id="iTipo" onchange="A._onTipoChange(this.value,'iNPacRow')" ><option value="">— Selecione —</option></select></div>
       <div class="fg"><label>Aeronave *</label><select id="iAero"><option value="">— Selecione —</option></select></div>
       <div class="fg"><label>Origem</label><input id="iOrigem" placeholder="ex: Praia, SAL, CV01"></div>
       <div class="fg"><label>Destino</label><input id="iDestino" placeholder="ex: SAL, Boa Vista, CV02"></div>
       <div class="fg"><label>🏷️ Etiquetas</label><input id="iTags" placeholder="ex: noturno, urgente"></div>
       <div class="fg"><label>Perna</label><select id="iPerna"><option value="">—</option><option value="1">1ª (Ida)</option><option value="2">2ª (Regresso)</option><option value="3">3ª</option><option value="4">4ª</option><option value="5">5ª</option><option value="6">6ª</option><option value="7">7ª</option><option value="8">8ª</option><option value="9">9ª</option><option value="10">10ª</option></select></div>
+      <div class="fg" id="iNPacRow" style="display:none"><label>🏥 Nº Pacientes (MEDEVAC)</label><input type="number" id="iNPac" placeholder="ex: 2" min="0" step="1" style="width:100%"></div>
       <div class="fg" style="align-self:end"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 2px;user-select:none"><input type="checkbox" id="iCatering" style="width:17px;height:17px;accent-color:#2E7D32;flex-shrink:0"><span>🍽️ Refeição fornecida por catering<br><small style="color:var(--ink3);font-weight:400">Não inclui subsídio de refeição</small></span></label></div>
       <div class="fg"><label>Estado</label>
         <select id="iStatus">
@@ -1137,6 +1140,11 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   <div class="cgrid">
     <div class="card"><div class="card-hd"><h3>❌ Taxa de Cancelamento (%)</h3></div><div class="card-bd"><div class="chart-box"><canvas id="cCancel"></canvas></div></div></div>
     <div class="card"><div class="card-hd"><h3>📏 Distribuição de Duração</h3></div><div class="card-bd"><div class="chart-box"><canvas id="cDurHist"></canvas></div></div></div>
+  </div>
+  <!-- MEDEVAC: Gráfico de pacientes -->
+  <div class="cgrid">
+    <div class="card"><div class="card-hd"><h3>🏥 Pacientes MEDEVAC por Mês</h3><span style="font-size:.75em;color:var(--ink3);margin-left:4px;font-weight:400">evacuações médicas</span></div><div class="card-bd"><div class="chart-box"><canvas id="cMedevac"></canvas></div></div></div>
+    <div class="card"><div class="card-hd"><h3>🏥 Top Rotas MEDEVAC</h3><span style="font-size:.75em;color:var(--ink3);margin-left:4px;font-weight:400">origem → destino · pacientes</span></div><div id="tMedevacRotas" style="padding:10px 14px"></div></div>
   </div>
   <!-- NEW: Heatmap + Ranking BT -->
   <div class="cgrid">
@@ -2557,6 +2565,10 @@ showNotif(msg,type='ok'){
 },
 
 // ─── SERIES ───────────────────────────────────────────────────
+_onTipoChange(val,rowId){
+  const row=document.getElementById(rowId);
+  if(row)row.style.display=(val&&val.toLowerCase().includes('evacuac'))?'':'none';
+},
 onSerieChange(){
   const sel=document.getElementById('iSerie');
   const campo=document.getElementById('novaSerieCampo');
@@ -2781,6 +2793,7 @@ addMissao(){
     tags:(document.getElementById('iTags')?.value||'').split(',').map(s=>s.trim()).filter(Boolean),
     fuelAdd:document.getElementById('iFuelAdd')?.value?Number(document.getElementById('iFuelAdd').value):null,
     fuelUse:document.getElementById('iFuelUse')?.value?Number(document.getElementById('iFuelUse').value):null,
+    nPac:document.getElementById('iNPac')?.value?Number(document.getElementById('iNPac').value):null,
     obs:(document.getElementById('iObs')?.value||'').trim(),
     history:[{ts:new Date().toISOString(),action:'Missão criada'}],
   };
@@ -2804,6 +2817,8 @@ clearForm(){
   ['iData','iBOff','iTOff','iLand','iBOn','durPreview','iTags','iOrigem','iDestino','iFuelAdd','iFuelUse'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   const _iCat=document.getElementById('iCatering');if(_iCat)_iCat.checked=false;
   const _iObs=document.getElementById('iObs');if(_iObs)_iObs.value='';
+  const _iNPac=document.getElementById('iNPac');if(_iNPac)_iNPac.value='';
+  const _iNPacRow=document.getElementById('iNPacRow');if(_iNPacRow)_iNPacRow.style.display='none';
   const iS=document.getElementById('iSerie');if(iS)iS.value='';
   const iT=document.getElementById('iTipo');if(iT)iT.value='';
   const iA=document.getElementById('iAero');if(iA)iA.value='';
@@ -2836,6 +2851,11 @@ editMissao(id){
   const eOr=document.getElementById('eOrigem');if(eOr)eOr.value=m.origem||'';
   const eDe=document.getElementById('eDestino');if(eDe)eDe.value=m.destino||'';
   const ePe=document.getElementById('ePerna');if(ePe)ePe.value=m.perna||'';
+  const eNPacR=document.getElementById('eNPacRow');const eNPac=document.getElementById('eNPac');
+  const _isMEDVAC=m.tipo&&m.tipo.toLowerCase().includes('evacuac');
+  if(eNPacR)eNPacR.style.display=_isMEDVAC?'':'none';
+  if(eNPac)eNPac.value=m.nPac!=null?m.nPac:'';
+  const eTipoEl=document.getElementById('eTipo');if(eTipoEl)eTipoEl.addEventListener('change',function(){A._onTipoChange(this.value,'eNPacRow');},{once:false});
   const eCat=document.getElementById('eCatering');if(eCat)eCat.checked=m.catering||false;
   const eFa=document.getElementById('eFuelAdd');if(eFa)eFa.value=m.fuelAdd!=null?m.fuelAdd:'';
   const eFu=document.getElementById('eFuelUse');if(eFu)eFu.value=m.fuelUse!=null?m.fuelUse:'';
@@ -2889,6 +2909,7 @@ saveEdit(){
   m.origem=(document.getElementById('eOrigem')?.value||'').trim();
   m.destino=(document.getElementById('eDestino')?.value||'').trim();
   m.perna=(document.getElementById('ePerna')?.value||'').trim();
+  m.nPac=document.getElementById('eNPac')?.value?Number(document.getElementById('eNPac').value):null;
   m.catering=document.getElementById('eCatering')?.checked||false;
   m.fuelAdd=document.getElementById('eFuelAdd')?.value?Number(document.getElementById('eFuelAdd').value):null;
   m.fuelUse=document.getElementById('eFuelUse')?.value?Number(document.getElementById('eFuelUse').value):null;
@@ -4588,6 +4609,11 @@ renderMetrics(){
   if(e('mTaxaCon'))e('mTaxaCon').textContent=taxaCon+'%';
   if(e('mCancel'))e('mCancel').textContent=canc;
   if(e('mCancelSub'))e('mCancelSub').textContent=canc===1?'missão cancelada':'missões canceladas';
+  // ── Pacientes MEDEVAC ──
+  const medevac=mis.filter(m=>m.tipo&&m.tipo.toLowerCase().includes('evacuac'));
+  const totalPac=medevac.reduce((s,m)=>s+(m.nPac||0),0);
+  if(e('mPac'))e('mPac').textContent=totalPac;
+  if(e('mPacSub'))e('mPacSub').textContent=medevac.length+(medevac.length===1?' evacuação':' evacuações');
   // Block Time mês actual
   const now=new Date();let btMesMins=0;
   this.S.missoes.forEach(m=>{
@@ -5705,6 +5731,50 @@ _buildCombinedChart(){
   });
 },
 
+_buildMedevacCharts(){
+  this._destroyCharts('cMedevac');
+  const mis=this.S.filtered;
+  const tc=this._textColor();const gc=this._gridColor();
+  const MLBL=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  // Últimos 12 meses
+  const now=new Date();
+  const months=[],pacCounts=[],missCounts=[];
+  for(let i=11;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    months.push(MLBL[d.getMonth()]+' '+String(d.getFullYear()).slice(2));
+    const medevacMes=mis.filter(m=>{
+      const md=m.dt instanceof Date?m.dt:new Date(m.dt);
+      return m.tipo&&m.tipo.toLowerCase().includes('evacuac')&&md.getFullYear()===d.getFullYear()&&md.getMonth()===d.getMonth();
+    });
+    pacCounts.push(medevacMes.reduce((s,m)=>s+(m.nPac||0),0));
+    missCounts.push(medevacMes.length);
+  }
+  const ctx=document.getElementById('cMedevac')?.getContext('2d');
+  if(ctx){this.S.charts['cMedevac']=new Chart(ctx,{type:'bar',data:{labels:months,datasets:[
+    {label:'Pacientes',data:pacCounts,backgroundColor:'rgba(220,38,38,.75)',borderColor:'#dc2626',borderWidth:1.5,yAxisID:'yPac',order:1},
+    {label:'Missões MEDEVAC',data:missCounts,type:'line',borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,.12)',pointBackgroundColor:'#f59e0b',tension:.3,yAxisID:'yMis',order:0}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tc,font:{size:11}}}},scales:{
+    x:{grid:{color:gc},ticks:{color:tc,font:{size:10}}},
+    yPac:{beginAtZero:true,grid:{color:gc},ticks:{color:'#dc2626',font:{size:10},stepSize:1},title:{display:true,text:'Pacientes',color:'#dc2626',font:{size:10}}},
+    yMis:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},ticks:{color:'#f59e0b',font:{size:10},stepSize:1},title:{display:true,text:'Missões',color:'#f59e0b',font:{size:10}}}
+  }}});}
+  // Top rotas MEDEVAC
+  const rotaMap={};
+  mis.filter(m=>m.tipo&&m.tipo.toLowerCase().includes('evacuac')).forEach(m=>{
+    const key=(m.origem||'—')+' → '+(m.destino||'—');
+    if(!rotaMap[key])rotaMap[key]={miss:0,pac:0};
+    rotaMap[key].miss++;rotaMap[key].pac+=(m.nPac||0);
+  });
+  const rotaEl=document.getElementById('tMedevacRotas');
+  if(rotaEl){
+    const sorted=Object.entries(rotaMap).sort((a,b)=>b[1].pac-a[1].pac).slice(0,8);
+    if(!sorted.length){rotaEl.innerHTML='<div style="color:var(--ink3);padding:8px 0;font-size:.9em">Sem missões MEDEVAC no período</div>';return;}
+    rotaEl.innerHTML=sorted.map(([rota,v],i)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:.75em;font-weight:700;color:var(--ink3);min-width:18px">${i+1}.</span>
+      <div style="flex:1"><div style="font-size:.88em;font-weight:600;color:var(--ink)">${this.esc(rota)}</div>
+      <div style="font-size:.75em;color:var(--ink3)">${v.miss} missão(ões) · <span style="color:#dc2626;font-weight:600">${v.pac} pac.</span></div></div></div>`).join('');
+  }
+},
 buildCharts(){
   this._destroyCharts('cTemp');
   this._buildCombinedChart();
@@ -5712,6 +5782,7 @@ buildCharts(){
 
 buildAnalysisCharts(){
   this._destroyCharts('cTipo','cAero','cHor','cFunc','cTend','cBTvsDur','cCustoMes','cCancel','cDurHist','cBTTrip');
+  this._buildMedevacCharts();
   const mis=this.S.filtered;
   const SC={x:{grid:{color:this._gridColor()},ticks:{color:this._textColor()}},y:{grid:{color:this._gridColor()},ticks:{color:this._textColor(),stepSize:1},beginAtZero:true}};
   const mkChart=(id,cfg)=>{const ctx=document.getElementById(id)?.getContext('2d');if(ctx)this.S.charts[id]=new Chart(ctx,cfg);};
@@ -7549,7 +7620,7 @@ importBackup(ev){
       const data=JSON.parse(e.target.result);
       if(!data.trips||!Array.isArray(data.missoes))throw new Error('Formato inválido');
       this.S.trips=(data.trips||[]).map(t=>{if(t.valCur!==undefined&&!t.cursos){t.cursos=t.valCur?[{nome:'Curso',val:t.valCur}]:[];delete t.valCur;}else if(!t.cursos)t.cursos=[];return t;});
-      this.S.missoes=(data.missoes||[]).map(m=>({...m,dt:new Date(m.dt),status:m.status||'Concluída',serie:m.serie||'CGC-EA',history:m.history||[],tags:m.tags||[],origem:m.origem||'',destino:m.destino||'',perna:m.perna||'',obs:m.obs||'',fuelAdd:m.fuelAdd??null,fuelUse:m.fuelUse??null}));
+      this.S.missoes=(data.missoes||[]).map(m=>({...m,dt:new Date(m.dt),status:m.status||'Concluída',serie:m.serie||'CGC-EA',history:m.history||[],tags:m.tags||[],origem:m.origem||'',destino:m.destino||'',perna:m.perna||'',obs:m.obs||'',fuelAdd:m.fuelAdd??null,fuelUse:m.fuelUse??null,nPac:m.nPac??null}));
       this.S.series=data.series||[];
       this.S.colocacoes=data.colocacoes||this.S.colocacoes;
       this.S.aeros=data.aeros||[];
