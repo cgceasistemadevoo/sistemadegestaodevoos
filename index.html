@@ -178,7 +178,7 @@ body.dark #loading{background:rgba(26,28,30,.97)}
 /* ═══════════════════════════════════════════════════════
    TABLE
 ═══════════════════════════════════════════════════════ */
-.tscroll{overflow-x:auto;overflow-y:auto;max-height:520px;scrollbar-width:thin}
+.tscroll{overflow-x:auto;scrollbar-width:thin}
 table{width:100%;border-collapse:collapse;min-width:520px}
 thead th{background:var(--g0);padding:10px 14px;text-align:left;font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);border-bottom:2px solid var(--border);position:sticky;top:0;z-index:1;white-space:nowrap}
 tbody td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
@@ -831,6 +831,9 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
      TRIPULANTES
 ══════════════════════════════════════════ -->
 <div id="page-tripulantes" class="page hide">
+  <div class="admin-only" style="padding:14px 16px 4px;display:flex;gap:8px;align-items:center">
+    <button class="btn btn-p" onclick="A.openNovoTrip()" style="gap:6px">👤 Novo Tripulante</button>
+  </div>
   <div class="mgrid">
     <div class="mcard" data-ic="👥"><div class="mcard-lbl">Total</div><div class="mcard-val" id="mTt">0</div></div>
     <div class="mcard" data-ic="🪖"><div class="mcard-lbl">EA</div><div class="mcard-val" id="mEA">0</div></div>
@@ -1459,6 +1462,76 @@ overlaps(tMin,dMin,sh,eh){
   const lMin=(tMin+dMin)%1440,sm=sh*60,em=eh*60;
   return tMin<lMin?(tMin<em&&lMin>sm):(tMin<em||lMin>sm);
 },
+// ─── CORRIGIR NUMERAÇÃO ───────────────────────────────────────
+corrigirNumeracao(){
+  const el=document.getElementById('numCorrecaoResult');
+  if(!el)return;
+  // Padrão correcto: SERIE-YYYY-NNN
+  const reCorr=/^(.+)-(\d{4})-(\d+)([A-Z]?)$/;
+  // Padrão antigo: SERIE-NNN (sem ano)
+  const reOld=/^(.+?)-(\d{1,4})([A-Z]?)$/;
+  const fixes=[];
+  const usedNums=new Set(this.S.missoes.map(m=>m.num));
+  this.S.missoes.forEach(m=>{
+    if(reCorr.test(m.num||''))return; // já tem ano
+    const mo=( m.num||'').match(reOld);
+    if(!mo)return;
+    const serie=mo[1],seq=mo[2],perna=mo[3]||'';
+    const dt=m.dt instanceof Date?m.dt:new Date(m.dt);
+    const ano=isNaN(dt)?new Date().getFullYear():dt.getFullYear();
+    let newNum=serie+'-'+ano+'-'+String(seq).padStart(3,'0')+perna;
+    // evitar colisão
+    let suffix=0;
+    const baseNew=serie+'-'+ano+'-'+String(seq).padStart(3,'0');
+    while(usedNums.has(newNum)&&newNum!==m.num){
+      suffix++;
+      newNum=baseNew+'v'+suffix+(perna);
+    }
+    fixes.push({m,oldNum:m.num,newNum,ano});
+    usedNums.add(newNum);
+  });
+  if(!fixes.length){
+    el.innerHTML='<p style="color:var(--g8);font-size:.87em;margin:0">✅ Todas as missões já têm numeração correcta — nada a corrigir.</p>';
+    return;
+  }
+  let h='<p style="font-size:.84em;color:var(--ink3);margin:0 0 8px">'+fixes.length+' missão(ões) com numeração sem ano detectadas:</p>';
+  h+='<table style="width:100%;font-size:.8em;border-collapse:collapse">'
+    +'<thead><tr><th style="text-align:left;padding:4px 8px;border-bottom:1.5px solid var(--border2)">Nº Actual</th>'
+    +'<th style="text-align:left;padding:4px 8px;border-bottom:1.5px solid var(--border2)">→ Nº Corrigido</th>'
+    +'<th style="text-align:left;padding:4px 8px;border-bottom:1.5px solid var(--border2)">Data</th></tr></thead><tbody>';
+  fixes.forEach(f=>{
+    const dt=f.m.dt instanceof Date?f.m.dt:new Date(f.m.dt);
+    const ds=isNaN(dt)?'—':dt.toLocaleDateString('pt-PT');
+    h+=`<tr><td style="padding:3px 8px;color:var(--amber)">${this.esc(f.oldNum)}</td>`
+      +`<td style="padding:3px 8px;color:var(--g8);font-weight:600">${this.esc(f.newNum)}</td>`
+      +`<td style="padding:3px 8px;color:var(--ink3)">${ds}</td></tr>`;
+  });
+  h+='</tbody></table>';
+  h+='<div style="display:flex;gap:8px;margin-top:12px">'
+    +'<button class="btn btn-p btn-sm" onclick="A.aplicarCorrecaoNum()">✅ Aplicar Correcções</button>'
+    +'<button class="btn btn-s btn-sm" onclick="document.getElementById(\'numCorrecaoResult\').innerHTML=\'\'">Cancelar</button>'
+    +'</div>';
+  el.innerHTML=h;
+  this._numFixes=fixes;
+},
+aplicarCorrecaoNum(){
+  const fixes=this._numFixes;
+  if(!fixes||!fixes.length)return;
+  fixes.forEach(f=>{
+    const oldId=f.oldNum;
+    // actualizar missão
+    f.m.num=f.newNum;
+    // actualizar histórico
+    if(f.m.history){f.m.history.forEach(h=>{if(h.txt)h.txt=h.txt.replace(oldId,f.newNum);});}
+  });
+  delete this._numFixes;
+  this.markDirty();
+  this.renderAll();
+  const el=document.getElementById('numCorrecaoResult');
+  if(el)el.innerHTML='<p style="color:var(--g8);font-size:.87em;margin:0">✅ '+fixes.length+' missões renumeradas. Guarde os dados para persistir.</p>';
+  this.showNotif('✅ '+fixes.length+' missões renumeradas');
+  this.addAudit('Numeração corrigida',fixes.length+' missões actualizadas');
+},
 genNum(serie){
   if(!serie)return'';
   const y=new Date().getFullYear();
@@ -1705,6 +1778,7 @@ openSettings(){
   ${tabBtn('cfgTabColocacoes','📍 Colocações',false)}
   ${tabBtn('cfgTabMetas','🎯 Metas',false)}
   ${tabBtn('cfgTabBackup','💾 Backup',false)}
+  ${tabBtn('cfgTabFerramentas','🔧 Ferramentas',false)}
   ${this.canManageUsers()?tabBtn('cfgTabUtilizadores','👥 Utilizadores',false):''}
 </div>
 
@@ -1812,6 +1886,24 @@ openSettings(){
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
     <button class="btn btn-p" onclick="A.saveCfgMetas()">💾 Guardar Metas</button>
     <button class="btn btn-s" onclick="A.closeInfoModal()">Cancelar</button>
+  </div>
+</div>
+
+<div id="cfgTabFerramentas" class="cfg-tp" style="display:none">
+  <p style="color:var(--ink3);font-size:.84em;margin-bottom:14px">Utilitários de manutenção de dados — use apenas se necessário.</p>
+  <div style="display:grid;gap:12px">
+    <div style="padding:14px;background:var(--g0);border:1.5px solid var(--g3);border-radius:10px">
+      <b style="font-size:.9em">🔢 Corrigir Numeração de Missões</b>
+      <p style="font-size:.82em;color:var(--ink3);margin:6px 0 10px">
+        Detecta missões com números sem ano (ex: <code>CONDOR-001</code>) e propõe renomear para o formato <code>CONDOR-2024-001</code> com base na data de cada missão.<br>
+        Resolve duplicados entre anos diferentes com o mesmo número.
+      </p>
+      <button class="btn btn-p" onclick="A.corrigirNumeracao()">🔍 Analisar e Corrigir</button>
+      <div id="numCorrecaoResult" style="margin-top:12px"></div>
+    </div>
+  </div>
+  <div style="margin-top:14px;text-align:right">
+    <button class="btn btn-s" onclick="A.closeInfoModal()">Fechar</button>
   </div>
 </div>
 
@@ -4293,6 +4385,7 @@ addTrip(){
   this.renderAll();
   this.addAudit('Tripulante adicionado',n);
   this.showNotif('✅ '+n+' adicionado');
+  this.closeNovoTrip();
   ['iNome','iPosto','iNIF','iEmail','iValMed','iValLic'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('iCol').value='';
   const cl=document.getElementById('iCursosList');if(cl)cl.innerHTML='';
@@ -6423,9 +6516,16 @@ isTripulante(){return this.S.role==='tripulante';},
 openNovaVoo(){
   const ov=document.getElementById('formNovaVooOverlay');
   if(ov){ov.style.display='block';document.body.style.overflow='hidden';}
-  // preencher data com hoje se vazia
   const fd=document.getElementById('iData');
   if(fd&&!fd.value)fd.value=new Date().toISOString().slice(0,10);
+},
+openNovoTrip(){
+  const ov=document.getElementById('formNovoTripOverlay');
+  if(ov){ov.style.display='block';document.body.style.overflow='hidden';}
+},
+closeNovoTrip(){
+  const ov=document.getElementById('formNovoTripOverlay');
+  if(ov){ov.style.display='none';document.body.style.overflow='';}
 },
 closeNovaVoo(){
   const ov=document.getElementById('formNovaVooOverlay');
