@@ -6911,7 +6911,7 @@ relatorioMensalPDF(){
     const tMin=this.t2m((m.toff||'00:00').slice(0,5));const effMins=btMin||this.dur2m(m.dur);
     const mR=(this.overlaps(tMin,effMins,0,8)?mv.pa:0)+(this.overlaps(tMin,effMins,12,14)?mv.al:0)+(this.overlaps(tMin,effMins,19,24)?mv.jn:0);
     const k=m.aero||'—';if(!byAero[k])byAero[k]={mis:0,btMin:0};byAero[k].mis++;byAero[k].btMin+=btMin;
-    const t=m.tipo||'—';if(!byTipo[t])byTipo[t]={mis:0};byTipo[t].mis++;
+    const t=m.tipo||'—';if(!byTipo[t])byTipo[t]={mis:0,pac:0};byTipo[t].mis++;byTipo[t].pac+=(m.nPac||0);
     (m.crew||[]).forEach(c=>{
       const cv=(vPF[c.fn]||1500)*(effMins/60)+mR;totCVE+=cv;
       if(!byTrip[c.nome])byTrip[c.nome]={nome:c.nome,fn:c.fn,mis:0,btMin:0,cve:0};
@@ -6971,11 +6971,11 @@ relatorioMensalPDF(){
     doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(22,101,52);
     doc.text('Missões por Tipo',lm,y);y+=5;
     doc.setTextColor(0,0,0);
-    doc.autoTable({startY:y,head:[['Tipo de Missão','Missões','%']],
-      body:tipoKeys.map(k=>[k,byTipo[k].mis,ms.length?Math.round(byTipo[k].mis/ms.length*100)+'%':'—']),
+    doc.autoTable({startY:y,head:[['Tipo de Missão','Missões','Pac.','%']],
+      body:tipoKeys.map(k=>[k,byTipo[k].mis,byTipo[k].pac||0,ms.length?Math.round(byTipo[k].mis/ms.length*100)+'%':'—']),
       styles:{fontSize:8.5,cellPadding:2.5},headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold'},
       alternateRowStyles:{fillColor:[240,248,240]},margin:{left:lm,right:lm},
-      columnStyles:{0:{cellWidth:80},1:{cellWidth:25,halign:'center'},2:{cellWidth:25,halign:'center'}},
+      columnStyles:{0:{cellWidth:74},1:{cellWidth:22,halign:'center'},2:{cellWidth:16,halign:'center'},3:{cellWidth:20,halign:'center'}},
     });
     y=doc.lastAutoTable.finalY+8;
   }
@@ -7057,7 +7057,7 @@ relatorioAnualPDF(){
     const tMin=this.t2m((m.toff||'00:00').slice(0,5));const effMins=btMin||this.dur2m(m.dur);
     const mR=(this.overlaps(tMin,effMins,0,8)?mv.pa:0)+(this.overlaps(tMin,effMins,12,14)?mv.al:0)+(this.overlaps(tMin,effMins,19,24)?mv.jn:0);
     const k=m.aero||'—';if(!byAero[k])byAero[k]={mis:0,btMin:0};byAero[k].mis++;byAero[k].btMin+=btMin;
-    const t=m.tipo||'—';if(!byTipo[t])byTipo[t]={mis:0};byTipo[t].mis++;
+    const t=m.tipo||'—';if(!byTipo[t])byTipo[t]={mis:0,pac:0};byTipo[t].mis++;byTipo[t].pac+=(m.nPac||0);
     (m.crew||[]).forEach(c=>{
       const cv=(vPF[c.fn]||1500)*(effMins/60)+mR;totCVE+=cv;byMes[mo].cve+=cv;
       if(!byTrip[c.nome])byTrip[c.nome]={nome:c.nome,fn:c.fn,mis:0,btMin:0,cve:0};
@@ -7118,13 +7118,13 @@ relatorioAnualPDF(){
     doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(22,101,52);
     doc.text('Por Tipo de Missão',148,ySubLbl);doc.setTextColor(0,0,0);
     doc.autoTable({startY:ySubTbl,
-      head:[['Tipo de Missão','Qtd','%']],
-      body:tipoKeys.map(k=>[k,byTipo[k].mis,ms.length?Math.round(byTipo[k].mis/ms.length*100)+'%':'—']),
+      head:[['Tipo de Missão','Qtd','Pac.','%']],
+      body:tipoKeys.map(k=>[k,byTipo[k].mis,byTipo[k].pac||0,ms.length?Math.round(byTipo[k].mis/ms.length*100)+'%':'—']),
       styles:{fontSize:8,cellPadding:2.5},
       headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold'},
       alternateRowStyles:{fillColor:[232,245,233]},
       margin:{left:148,right:lm},
-      columnStyles:{0:{cellWidth:85},1:{cellWidth:20,halign:'center'},2:{cellWidth:20,halign:'center'}},
+      columnStyles:{0:{cellWidth:72},1:{cellWidth:16,halign:'center'},2:{cellWidth:14,halign:'center'},3:{cellWidth:16,halign:'center'}},
     });
     yTipoFinal=doc.lastAutoTable.finalY;
   }
@@ -7218,7 +7218,7 @@ dashboardExecutivoPDF(){
   });
   // Aggregate por tipo
   const byTipo={};
-  msMes.forEach(m=>{const t=m.tipo||'—';if(!byTipo[t])byTipo[t]={total:0,concl:0,plan:0,canc:0,btMin:0};byTipo[t].total++;if(m.status==='Concluída'){byTipo[t].concl++;byTipo[t].btMin+=_effMin(m);}if(m.status==='Planeada')byTipo[t].plan++;if(m.status==='Cancelada')byTipo[t].canc++;});
+  msMes.forEach(m=>{const t=m.tipo||'—';if(!byTipo[t])byTipo[t]={total:0,concl:0,plan:0,canc:0,btMin:0,pac:0};byTipo[t].total++;byTipo[t].pac+=(m.nPac||0);if(m.status==='Concluída'){byTipo[t].concl++;byTipo[t].btMin+=_effMin(m);}if(m.status==='Planeada')byTipo[t].plan++;if(m.status==='Cancelada')byTipo[t].canc++;});
   // Aggregate por série
   const bySerie={};
   msMes.forEach(m=>{const s=m.serie||'—';if(!bySerie[s])bySerie[s]={total:0,concl:0,btMin:0};bySerie[s].total++;if(m.status==='Concluída'){bySerie[s].concl++;bySerie[s].btMin+=_effMin(m);}});
@@ -7370,10 +7370,10 @@ dashboardExecutivoPDF(){
   if(tipoKeys.length){
     y=_sec('POR TIPO DE MISSÃO',[46,125,50],y);
     doc.autoTable({startY:y,
-      head:[['Tipo de Missão','Total','Concluídas','Planeadas','Canceladas','Block Time','% do Total']],
-      body:tipoKeys.map(k=>{const t=byTipo[k];return[k,t.total,t.concl,t.plan,t.canc,fmtM(t.btMin),msMes.length?Math.round(t.total/msMes.length*100)+'%':'—'];}),
+      head:[['Tipo de Missão','Total','Concluídas','Planeadas','Canceladas','Block Time','Pac.','% do Total']],
+      body:tipoKeys.map(k=>{const t=byTipo[k];return[k,t.total,t.concl,t.plan,t.canc,fmtM(t.btMin),t.pac||0,msMes.length?Math.round(t.total/msMes.length*100)+'%':'—'];}),
       styles:{fontSize:8,cellPadding:2.5},headStyles:HS,alternateRowStyles:AS,margin:{left:lm,right:lm},
-      columnStyles:{0:{cellWidth:80},1:{cellWidth:22,halign:'center'},2:{cellWidth:30,halign:'center'},3:{cellWidth:30,halign:'center'},4:{cellWidth:30,halign:'center'},5:{cellWidth:34,halign:'center'},6:{cellWidth:24,halign:'center'}},
+      columnStyles:{0:{cellWidth:72},1:{cellWidth:18,halign:'center'},2:{cellWidth:26,halign:'center'},3:{cellWidth:26,halign:'center'},4:{cellWidth:26,halign:'center'},5:{cellWidth:28,halign:'center'},6:{cellWidth:14,halign:'center'},7:{cellWidth:20,halign:'center'}},
     });
     y=doc.lastAutoTable.finalY+6;
   }
