@@ -746,7 +746,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 
   <div class="mgrid">
     <div class="mcard" data-ic="✈️"><div class="mcard-lbl">Total Missões</div><div class="mcard-val" id="mTot">0</div><div class="mcard-sub" id="mTotSub">registadas</div></div>
-    <div class="mcard" data-ic="⏱️"><div class="mcard-lbl">Horas de Voo</div><div class="mcard-val" id="mHr">0h 0m</div><div class="mcard-sub">tempo total</div></div>
+    <div class="mcard" data-ic="⏱️"><div class="mcard-lbl">Block Time</div><div class="mcard-val" id="mHr">0h 0m</div><div class="mcard-sub">tempo total (BT)</div></div>
     <div class="mcard" data-ic="👥"><div class="mcard-lbl">Tripulantes</div><div class="mcard-val" id="mTrip">0</div><div class="mcard-sub">em missões</div></div>
     <div class="mcard" data-ic="📊"><div class="mcard-lbl">Média/Missão</div><div class="mcard-val" id="mMed">0h 0m</div><div class="mcard-sub">duração média</div></div>
   </div>
@@ -4597,7 +4597,7 @@ renderMetrics(){
   if(e('mTot'))e('mTot').textContent=mis.length;
   if(e('mTotSub'))e('mTotSub').textContent='de '+this.S.missoes.length+' total';
   let tot=0;
-  mis.forEach(m=>{const p=(m.dur||'0:0').split(':').map(Number);if(!isNaN(p[0])&&!isNaN(p[1]))tot+=p[0]*60+(p[1]||0);});
+  mis.forEach(m=>{const bt=this.calcBT(m.boff,m.bon);if(bt&&bt!=='—'){const[bh,bm]=bt.split(':').map(Number);tot+=bh*60+(bm||0);}else{const p=(m.dur||'0:0').split(':').map(Number);if(!isNaN(p[0])&&!isNaN(p[1]))tot+=p[0]*60+(p[1]||0);}});
   if(e('mHr'))e('mHr').textContent=Math.floor(tot/60)+'h '+tot%60+'m';
   const trSet=new Set();mis.forEach(m=>(m.crew||[]).forEach(c=>trSet.add(c.nome)));
   if(e('mTrip'))e('mTrip').textContent=trSet.size;
@@ -7789,9 +7789,10 @@ renderMetas(){
   const vPF=this.getVPF();const mv=this.getMealVals();
   concl.forEach(x=>{
     const bt=this.calcBT(x.boff,x.bon);
-    if(bt&&bt!=='—'){const[bh,bm]=bt.split(':').map(Number);totBtMin+=bh*60+(bm||0);}
+    const _btMn=bt&&bt!=='—'?(()=>{const[bh,bm]=bt.split(':').map(Number);return bh*60+(bm||0);})():0;
+    if(_btMn)totBtMin+=_btMn;
     totFuel+=(x.fuelUse||0);
-    const tMin=this.t2m((x.toff||'00:00').slice(0,5));const effMins=this.dur2m(x.dur);
+    const tMin=this.t2m((x.toff||'00:00').slice(0,5));const effMins=_btMn||this.dur2m(x.dur);
     const mR=(this.overlaps(tMin,effMins,0,8)?mv.pa:0)+(this.overlaps(tMin,effMins,12,14)?mv.al:0)+(this.overlaps(tMin,effMins,19,24)?mv.jn:0);
     (x.crew||[]).forEach(c=>{totCVE+=(vPF[c.fn]||1500)*(effMins/60)+mR;});
   });
@@ -7818,7 +7819,7 @@ renderMetas(){
   };
   let h='';
   h+=_bar('🎯 Missões Concluídas',totMis,m.mis,v=>v);
-  h+=_bar('⏱️ Horas de Voo (BT)',+totHr.toFixed(1),m.hr,v=>v+'h');
+  h+=_bar('⏱️ Block Time',+totHr.toFixed(1),m.hr,v=>v+'h');
   h+=_bar('⛽ Combustível Consumido (L)',totFuel,m.fuel,v=>v+'L');
   h+=_bar('💰 Custo Total',Math.round(totCVE),m.cve,v=>this.cve(v));
   if(!h)h='<div style="color:var(--ink3);font-size:.85em;padding:6px 0">Configure metas em ⚙️ Configurações → 🎯 Metas.</div>';
