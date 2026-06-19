@@ -5378,11 +5378,13 @@ toPDF(){
       doc.setTextColor(0,0,0);sy+=12;
     }
     const rows=_data.slice().sort((a,b)=>b.dt-a.dt).map(m=>[
-      m.num,m.serie,m.dt.toLocaleDateString('pt-PT'),m.status||'Concluída',m.tipo.slice(0,20),m.aero,m.origem||'—',m.destino||'—',m.dur?.slice(0,5)||'—',this.calcBT(m.boff,m.bon),(m.crew||[]).map(c=>(n=>{const p=n.trim().split(/\s+/);return p.length>1?p[0][0].toUpperCase()+'. '+p[p.length-1]:n;})(c.nome)+' ('+c.fn+')').join('\n')
+      m.num,m.serie,m.dt.toLocaleDateString('pt-PT'),m.status||'Concluída',m.tipo.slice(0,20),m.aero,m.origem||'—',m.destino||'—',m.dur?.slice(0,5)||'—',this.calcBT(m.boff,m.bon),
+      (m.tipo&&m.tipo.toLowerCase().includes('medvac')&&m.nPac!=null)?String(m.nPac):'—',
+      (m.crew||[]).map(c=>(n=>{const p=n.trim().split(/\s+/);return p.length>1?p[0][0].toUpperCase()+'. '+p[p.length-1]:n;})(c.nome)+' ('+c.fn+')').join('\n')
     ]);
     doc.autoTable({
       startY:sy,
-      head:[['Nº Missão','Série','Data','Estado','Tipo','Aeronave','Origem','Destino','Flight Time','BT','Tripulação']],
+      head:[['Nº Missão','Série','Data','Estado','Tipo','Aeronave','Origem','Destino','Flight Time','BT','Pac.','Tripulação']],
       body:rows,
       styles:{fontSize:7,cellPadding:2,valign:'middle',overflow:'linebreak'},
       headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold',halign:'center'},
@@ -5398,7 +5400,8 @@ toPDF(){
         7:{cellWidth:18,halign:'center'},
         8:{cellWidth:14,halign:'center'},
         9:{cellWidth:14,halign:'center'},
-        10:{cellWidth:81,halign:'left'},
+        10:{cellWidth:12,halign:'center'},
+        11:{cellWidth:69,halign:'left'},
       },
       margin:{left:10,right:10},
     });
@@ -6998,16 +7001,17 @@ relatorioMensalPDF(){
     doc.text('Lista de Missões — '+mesNome+' '+ano,lm,y);y+=5;
     doc.setTextColor(0,0,0);
     doc.autoTable({startY:y,
-      head:[['Nº Missão','Data','Estado','Tipo','Aeronave','Block Time','Tripulação']],
+      head:[['Nº Missão','Data','Estado','Tipo','Aeronave','Block Time','Pac.','Tripulação']],
       body:ms.sort((a,b)=>a.dt-b.dt).map(m=>{
         const dt=m.dt instanceof Date?m.dt:new Date(m.dt);
         const bt=this.calcBT(m.boff,m.bon);
         const crew=(m.crew||[]).map(c=>{const p=c.nome.trim().split(/\s+/);return(p.length>1?p[0][0]+'. '+p[p.length-1]:c.nome)+' ('+c.fn+')'}).join(', ');
-        return[m.num,dt.toLocaleDateString('pt-PT'),m.status,m.tipo,m.aero||'—',bt,crew];
+        const pac=(m.tipo&&m.tipo.toLowerCase().includes('medvac')&&m.nPac!=null)?String(m.nPac):'—';
+        return[m.num,dt.toLocaleDateString('pt-PT'),m.status,m.tipo,m.aero||'—',bt,pac,crew];
       }),
       styles:{fontSize:7.5,cellPadding:2},headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold'},
       alternateRowStyles:{fillColor:[240,248,240]},margin:{left:lm,right:lm},
-      columnStyles:{0:{cellWidth:28},1:{cellWidth:22},2:{cellWidth:22},3:{cellWidth:30},4:{cellWidth:22},5:{cellWidth:18,halign:'center'},6:{cellWidth:43}},
+      columnStyles:{0:{cellWidth:26},1:{cellWidth:20},2:{cellWidth:20},3:{cellWidth:28},4:{cellWidth:20},5:{cellWidth:18,halign:'center'},6:{cellWidth:12,halign:'center'},7:{cellWidth:38}},
     });
   }
   // ── Rodapé em todas as páginas ──
@@ -7509,6 +7513,9 @@ missaoPDF(id){
   row('SÉRIE',m.serie||'—',col2,y);y+=14;
   row('TIPO DE MISSÃO',m.tipo||'—',col1,y);
   row('ESTADO',m.status||'—',col2,y);y+=14;
+  if(m.tipo&&m.tipo.toLowerCase().includes('medvac')){
+    row('Nº PACIENTES (MEDEVAC)',m.nPac!=null?String(m.nPac):'—',col1,y);y+=14;
+  }
   row('AERONAVE',m.aero||'—',col1,y);
   row('PERNA',m.perna||'—',col2,y);y+=14;
   row('BLOCKS OFF',m.boff||'—',col1,y);
