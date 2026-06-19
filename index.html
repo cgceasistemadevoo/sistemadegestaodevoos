@@ -2568,7 +2568,7 @@ showNotif(msg,type='ok'){
 // ─── SERIES ───────────────────────────────────────────────────
 _onTipoChange(val,rowId){
   const row=document.getElementById(rowId);
-  if(row)row.style.display=(val&&val.toLowerCase().includes('evacuac'))?'':'none';
+  if(row)row.style.display=(val&&val.toLowerCase().includes('medvac'))?'':'none';
 },
 onSerieChange(){
   const sel=document.getElementById('iSerie');
@@ -2853,7 +2853,7 @@ editMissao(id){
   const eDe=document.getElementById('eDestino');if(eDe)eDe.value=m.destino||'';
   const ePe=document.getElementById('ePerna');if(ePe)ePe.value=m.perna||'';
   const eNPacR=document.getElementById('eNPacRow');const eNPacInp=document.getElementById('eNPac');
-  const _isMEDVAC=m.tipo&&m.tipo.toLowerCase().includes('evacuac');
+  const _isMEDVAC=m.tipo&&m.tipo.toLowerCase().includes('medvac');
   if(eNPacR)eNPacR.style.display=_isMEDVAC?'':'none';
   if(eNPacInp)eNPacInp.value=m.nPac!=null?m.nPac:'';
   const eTipoEl=document.getElementById('eTipo');if(eTipoEl)eTipoEl.onchange=function(){A._onTipoChange(this.value,'eNPacRow');};
@@ -4611,7 +4611,7 @@ renderMetrics(){
   if(e('mCancel'))e('mCancel').textContent=canc;
   if(e('mCancelSub'))e('mCancelSub').textContent=canc===1?'missão cancelada':'missões canceladas';
   // ── Pacientes MEDEVAC ──
-  const medevac=mis.filter(m=>m.tipo&&m.tipo.toLowerCase().includes('evacuac'));
+  const medevac=mis.filter(m=>m.tipo&&m.tipo.toLowerCase().includes('medvac'));
   const totalPac=medevac.reduce((s,m)=>s+(m.nPac||0),0);
   if(e('mPac'))e('mPac').textContent=totalPac;
   if(e('mPacSub'))e('mPacSub').textContent=medevac.length+(medevac.length===1?' evacuação':' evacuações');
@@ -5747,7 +5747,7 @@ _buildMedevacCharts(){
     months.push(MLBL[d.getMonth()]+' '+String(d.getFullYear()).slice(2));
     const medevacMes=mis.filter(m=>{
       const md=m.dt instanceof Date?m.dt:new Date(m.dt);
-      return m.tipo&&m.tipo.toLowerCase().includes('evacuac')&&md.getFullYear()===d.getFullYear()&&md.getMonth()===d.getMonth();
+      return m.tipo&&m.tipo.toLowerCase().includes('medvac')&&md.getFullYear()===d.getFullYear()&&md.getMonth()===d.getMonth();
     });
     pacCounts.push(medevacMes.reduce((s,m)=>s+(m.nPac||0),0));
     missCounts.push(medevacMes.length);
@@ -5763,7 +5763,7 @@ _buildMedevacCharts(){
   }}});}
   // Top rotas MEDEVAC
   const rotaMap={};
-  mis.filter(m=>m.tipo&&m.tipo.toLowerCase().includes('evacuac')).forEach(m=>{
+  mis.filter(m=>m.tipo&&m.tipo.toLowerCase().includes('medvac')).forEach(m=>{
     const key=(m.origem||'—')+' → '+(m.destino||'—');
     if(!rotaMap[key])rotaMap[key]={miss:0,pac:0};
     rotaMap[key].miss++;rotaMap[key].pac+=(m.nPac||0);
