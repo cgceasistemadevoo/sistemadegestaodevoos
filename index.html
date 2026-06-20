@@ -1171,7 +1171,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
         <select id="dashMes" style="margin-top:3px"></select>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;padding-bottom:1px">
-        <button class="btn btn-ex btn-sm" onclick="A.dashboardExecutivoPDF()">📊 Dashboard Executivo</button>
+        <button class="btn btn-pdf btn-sm" onclick="A.dashboardExecutivoPDF()">📊 Dashboard Executivo</button>
         <button class="btn btn-ex btn-sm" style="background:#166534;border-color:#166534" onclick="A.exportExcelCompleto(document.getElementById('dashMes').value,document.getElementById('dashAno').value)">📊 Relatório Excel</button>
       </div>
     </div>
@@ -7163,7 +7163,7 @@ renderDashSelectors(){
   const selM=document.getElementById('dashMes');
   if(!selA||!selM)return;
   const curA=selA.value?Number(selA.value):now.getFullYear();
-  selA.innerHTML=anos.map(y=>`<option value="${y}"${y===curA?' selected':''}>${y}</option>`).join('');
+  selA.innerHTML='<option value="">— Todos os anos —</option>'+anos.map(y=>`<option value="${y}"${y===curA?' selected':''}>${y}</option>`).join('');
   const curM=selM.value!==''?Number(selM.value):now.getMonth()+1;
   selM.innerHTML=`<option value="0"${curM===0?' selected':''}>Todos os meses</option>`+
     this.C.NM.map((n,i)=>`<option value="${i+1}"${i+1===curM?' selected':''}>${n}</option>`).join('');
