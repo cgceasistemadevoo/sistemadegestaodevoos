@@ -1064,7 +1064,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     </div>
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
       <button class="btn btn-ex btn-sm" onclick="A.pagExcel()">📊 Excel Pagamentos</button>
-      <button class="btn btn-ex btn-sm" style="background:#166534;border-color:#166534" onclick="A.openRelatorioExcel()">📊 Relatório Excel</button>
       <button class="btn btn-pdf btn-sm" onclick="A.pagPDF()">📄 PDF</button>
     </div>
   </div>
@@ -1117,6 +1116,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
       <div style="display:flex;gap:6px;align-items:flex-end">
         <button class="btn btn-p btn-sm" onclick="A._syncAnaFilters();A.applyF();A.buildAnalysisCharts();A.renderTop();A.renderHorasTrip();">🔍 Filtrar</button>
         <button class="btn btn-s btn-sm" onclick="A._clearAnaFilters()">⟲ Limpar</button>
+        <button class="btn btn-ex btn-sm" style="background:#166534;border-color:#166534" onclick="A.openRelatorioExcel()">📊 Relatório Excel</button>
       </div>
     </div>
   </div>
@@ -7668,11 +7668,15 @@ importBackup(ev){
 openRelatorioExcel(){
   const now=new Date();const mo=now.getMonth()+1;const yr=now.getFullYear();
   const mOpts=this.C.NM.map((n,i)=>`<option value="${i+1}"${i+1===mo?'selected':''}>${n}</option>`).join('');
+  const anos=[...new Set(this.S.missoes.map(m=>{if(!m.dt)return null;return(m.dt instanceof Date?m.dt:new Date(m.dt)).getFullYear();}).filter(Boolean))].sort((a,b)=>b-a);
+  if(!anos.includes(yr))anos.unshift(yr);
+  const yOpts=anos.map(a=>`<option value="${a}"${a===yr?'selected':''}>${a}</option>`).join('');
+  const sEl='padding:9px 10px;border:1.5px solid var(--border2);border-radius:8px;background:var(--white);color:var(--ink);font-size:.9em;width:100%';
   const html='<h3 style="margin-bottom:14px">📊 Relatório Excel — 5 Folhas</h3>'
     +'<p style="color:var(--ink3);font-size:.88em;margin-bottom:16px">Selecione o período para filtrar as missões e horas. Tripulantes, validades e manutenção são sempre exportados na totalidade.</p>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px">'
-    +'<div class="fg"><label>Mês (opcional)</label><select id="relMes" style="padding:9px 10px;border:1.5px solid var(--border2);border-radius:8px;background:var(--white);color:var(--ink);font-size:.9em;width:100%"><option value="">— Todos os meses —</option>'+mOpts+'</select></div>'
-    +'<div class="fg"><label>Ano</label><input type="number" id="relAno" value="'+yr+'" min="2020" max="2035" style="padding:9px 10px;border:1.5px solid var(--border2);border-radius:8px;background:var(--white);color:var(--ink);font-size:.9em;width:100%;box-sizing:border-box"></div>'
+    +'<div class="fg"><label>Mês (opcional)</label><select id="relMes" style="'+sEl+'"><option value="">— Todos os meses —</option>'+mOpts+'</select></div>'
+    +'<div class="fg"><label>Ano</label><select id="relAno" style="'+sEl+'">'+yOpts+'</select></div>'
     +'</div>'
     +'<p style="color:var(--ink3);font-size:.8em;margin-bottom:16px">Deixe o mês em branco para exportar todo o ano.</p>'
     +'<div style="display:flex;gap:8px">'
