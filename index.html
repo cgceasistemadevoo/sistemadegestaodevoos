@@ -7107,7 +7107,7 @@ relatorioAnualPDF(){
   _k('Block Time',fmtM(totBT),lm+116,y,[0,105,92]);
   _k('Combustível',totFuel?totFuel+'L':'—',lm+174,y,[230,81,0]);
   _k('Pagto de Subsídio',this.cve(Math.round(totCVE)),lm+232,y,[27,94,32]);
-  y+=26;
+  y+=22;
   // Tabela mensal
   doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(22,101,52);
   doc.text('Resumo Mensal',lm,y);y+=4;doc.setTextColor(0,0,0);
@@ -7224,6 +7224,7 @@ dashboardExecutivoPDF(){
   const msPrev=todosOsMeses?[]:this.S.missoes.filter(m=>{const d=m.dt instanceof Date?m.dt:new Date(m.dt);return d.getFullYear()===anoPrev&&d.getMonth()+1===moPrev&&m.status==='Concluída';});
   // Helpers
   const _btMin=(arr)=>{let t=0;arr.forEach(m=>{const bt=this.calcBT(m.boff,m.bon);if(bt&&bt!=='—'){const[bh,bm]=bt.split(':').map(Number);t+=bh*60+(bm||0);}});return t;};
+  const _durMin=(arr)=>{let t=0;arr.forEach(m=>{t+=this.dur2m(m.dur)||0;});return t;};
   const _effMin=(m)=>{const bt=this.calcBT(m.boff,m.bon);let btMin=0;if(bt&&bt!=='—'){const[bh,bm]=bt.split(':').map(Number);btMin=bh*60+(bm||0);}return btMin||this.dur2m(m.dur);};
   const _cve=(arr)=>{let t=0;arr.forEach(m=>{const eff=_effMin(m);const tMin=this.t2m((m.toff||'00:00').slice(0,5));const mR=(this.overlaps(tMin,eff,0,8)?mv.pa:0)+(this.overlaps(tMin,eff,12,14)?mv.al:0)+(this.overlaps(tMin,eff,19,24)?mv.jn:0);(m.crew||[]).forEach(c=>{t+=(vPF[c.fn]||1500)*(eff/60)+mR;});});return t;};
   const delta=(a,b)=>{if(!b)return'';const d=Math.round((a-b)/b*100);return(d>=0?'▲':'▼')+Math.abs(d)+'%';};
@@ -7238,17 +7239,17 @@ dashboardExecutivoPDF(){
   const byAero={};
   msMesConcl.forEach(m=>{
     const btMin=_effMin(m);const k=m.aero||'—';
-    if(!byAero[k])byAero[k]={mis:0,btMin:0,fuelAdd:0,fuelUse:0,tipos:{}};
-    byAero[k].mis++;byAero[k].btMin+=btMin;
+    if(!byAero[k])byAero[k]={mis:0,btMin:0,durMin:0,fuelAdd:0,fuelUse:0,tipos:{}};
+    byAero[k].mis++;byAero[k].btMin+=btMin;byAero[k].durMin+=this.dur2m(m.dur)||0;
     byAero[k].fuelAdd+=(m.fuelAdd||0);byAero[k].fuelUse+=(m.fuelUse||0);
     byAero[k].tipos[m.tipo]=(byAero[k].tipos[m.tipo]||0)+1;
   });
   // Aggregate por tipo
   const byTipo={};
-  msMes.forEach(m=>{const t=m.tipo||'—';if(!byTipo[t])byTipo[t]={total:0,concl:0,plan:0,canc:0,btMin:0,pac:0};byTipo[t].total++;byTipo[t].pac+=(m.nPac||0);if(m.status==='Concluída'){byTipo[t].concl++;byTipo[t].btMin+=_effMin(m);}if(m.status==='Planeada')byTipo[t].plan++;if(m.status==='Cancelada')byTipo[t].canc++;});
+  msMes.forEach(m=>{const t=m.tipo||'—';if(!byTipo[t])byTipo[t]={total:0,concl:0,plan:0,canc:0,btMin:0,durMin:0,pac:0};byTipo[t].total++;byTipo[t].pac+=(m.nPac||0);if(m.status==='Concluída'){byTipo[t].concl++;byTipo[t].btMin+=_effMin(m);byTipo[t].durMin+=this.dur2m(m.dur)||0;}if(m.status==='Planeada')byTipo[t].plan++;if(m.status==='Cancelada')byTipo[t].canc++;});
   // Aggregate por série
   const bySerie={};
-  msMes.forEach(m=>{const s=m.serie||'—';if(!bySerie[s])bySerie[s]={total:0,concl:0,btMin:0};bySerie[s].total++;if(m.status==='Concluída'){bySerie[s].concl++;bySerie[s].btMin+=_effMin(m);}});
+  msMes.forEach(m=>{const s=m.serie||'—';if(!bySerie[s])bySerie[s]={total:0,concl:0,btMin:0,durMin:0};bySerie[s].total++;if(m.status==='Concluída'){bySerie[s].concl++;bySerie[s].btMin+=_effMin(m);bySerie[s].durMin+=this.dur2m(m.dur)||0;}});
   // Tripulantes completos
   const byTrip={};
   msMesConcl.forEach(m=>{
@@ -7256,8 +7257,8 @@ dashboardExecutivoPDF(){
     const hasPA=this.overlaps(tMin,eff,0,8),hasA=this.overlaps(tMin,eff,12,14),hasJ=this.overlaps(tMin,eff,19,24);
     const mR=(hasPA?mv.pa:0)+(hasA?mv.al:0)+(hasJ?mv.jn:0);
     (m.crew||[]).forEach(c=>{
-      if(!byTrip[c.nome])byTrip[c.nome]={nome:c.nome,fn:c.fn,mis:0,btMin:0,cve:0,pa:0,al:0,jn:0,vR:0};
-      const p=byTrip[c.nome];p.mis++;p.btMin+=_btMin([m]);
+      if(!byTrip[c.nome])byTrip[c.nome]={nome:c.nome,fn:c.fn,mis:0,btMin:0,durMin:0,cve:0,pa:0,al:0,jn:0,vR:0};
+      const p=byTrip[c.nome];p.mis++;p.btMin+=_btMin([m]);p.durMin+=this.dur2m(m.dur)||0;
       p.cve+=(vPF[c.fn]||1500)*(eff/60)+mR;
       if(hasPA)p.pa++;if(hasA)p.al++;if(hasJ)p.jn++;p.vR+=mR;
     });
@@ -7296,48 +7297,48 @@ dashboardExecutivoPDF(){
 
   let y=52;
   // ── KPIs do mês (linha 1: missões) ──
-  const bx=cw/5-2;
+  const bx=46,kpiGap=3,kpiH=18;
+  const kpiGroupW=5*bx+4*kpiGap;
+  const kpiStart=(pw-kpiGroupW)/2;
   const _kpi=(lbl,val,dlt,cx,cy,bg)=>{
-    const h=22;
-    // Fundo branco com borda cinza suave
+    const mx=cx+bx/2;
+    // Fundo branco com borda cinza
     doc.setFillColor(255,255,255);
-    doc.roundedRect(cx,cy,bx,h,1.5,1.5,'F');
+    doc.roundedRect(cx,cy,bx,kpiH,1.5,1.5,'F');
     doc.setDrawColor(210,210,210);doc.setLineWidth(0.25);
-    doc.roundedRect(cx,cy,bx,h,1.5,1.5,'S');
-    // Faixa colorida à esquerda
-    doc.setFillColor(...bg);
-    doc.rect(cx,cy,2.5,h,'F');
-    // Arredondar canto esquerdo por cima da faixa
-    doc.setDrawColor(255,255,255);doc.setLineWidth(0);
-    // Label em cima (pequeno, cinza escuro)
+    doc.roundedRect(cx,cy,bx,kpiH,1.5,1.5,'S');
+    // Faixa colorida esquerda (fina)
+    doc.setFillColor(...bg);doc.setDrawColor(...bg);
+    doc.roundedRect(cx,cy,1.5,kpiH,0.8,0.8,'F');
+    // Label centrado em cima
     doc.setTextColor(90,90,90);doc.setFont('helvetica','bold');doc.setFontSize(5.5);
-    doc.text(lbl.toUpperCase(),cx+5,cy+5.5);
-    // Valor grande na cor do acento
-    doc.setTextColor(...bg);doc.setFont('helvetica','bold');doc.setFontSize(13);
-    doc.text(String(val),cx+5,cy+14);
-    // Delta em baixo
+    doc.text(lbl.toUpperCase(),mx,cy+5,{align:'center'});
+    // Valor centrado (grande, cor do acento)
+    doc.setTextColor(...bg);doc.setFont('helvetica','bold');doc.setFontSize(12);
+    doc.text(String(val),mx,cy+12,{align:'center'});
+    // Delta centrado em baixo
     if(dlt){
       const dcol=dlt.startsWith('▲')?[22,101,52]:[185,28,28];
-      doc.setTextColor(...dcol);doc.setFontSize(6);doc.setFont('helvetica','normal');
-      doc.text(dlt,cx+5,cy+19.5);
+      doc.setTextColor(...dcol);doc.setFontSize(5.5);doc.setFont('helvetica','normal');
+      doc.text(dlt,mx,cy+16.5,{align:'center'});
     }
     doc.setTextColor(0,0,0);doc.setDrawColor(0,0,0);doc.setLineWidth(0.2);
   };
-  const step=bx+2;
-  _kpi('Total Missões',msMes.length,delta(msMes.length,msPrev.length),lm,y,[46,125,50]);
-  _kpi('Concluídas',msMesConcl.length,delta(msMesConcl.length,msPrev.length),lm+step,y,[21,101,192]);
-  _kpi('Planeadas',msMesPlan.length,'',lm+step*2,y,[103,58,183]);
-  _kpi('Em Curso',msMesCur.length,'',lm+step*3,y,[230,81,0]);
-  _kpi('Canceladas',msMesCanc.length,'',lm+step*4,y,[198,40,40]);
-  y+=26;
+  const step=bx+kpiGap;
+  _kpi('Total Missões',msMes.length,delta(msMes.length,msPrev.length),kpiStart,y,[46,125,50]);
+  _kpi('Concluídas',msMesConcl.length,delta(msMesConcl.length,msPrev.length),kpiStart+step,y,[21,101,192]);
+  _kpi('Planeadas',msMesPlan.length,'',kpiStart+step*2,y,[103,58,183]);
+  _kpi('Em Curso',msMesCur.length,'',kpiStart+step*3,y,[230,81,0]);
+  _kpi('Canceladas',msMesCanc.length,'',kpiStart+step*4,y,[198,40,40]);
+  y+=22;
   // ── KPIs (linha 2: operacionais) ──
   const taxaConc=msMes.length?Math.round(msMesConcl.length/msMes.length*100):0;
-  _kpi('Block Time',fmtM(btMes),delta(btMes,btPrev),lm,y,[0,105,92]);
-  _kpi('Combustível Adicionado',fuelAdd?fuelAdd+'L':'—','',lm+step,y,[230,81,0]);
-  _kpi('Combustível Usado',fuelUse?fuelUse+'L':'—','',lm+step*2,y,[180,50,0]);
-  _kpi('Pagto de Subsídio',this.cve(Math.round(cveMes)),delta(cveMes,cvePrev),lm+step*3,y,[27,94,32]);
-  _kpi('Taxa Conclusão',taxaConc+'%','',lm+step*4,y,taxaConc>=75?[22,101,52]:taxaConc>=50?[161,98,7]:[185,28,28]);
-  y+=26;
+  _kpi('Block Time',fmtM(btMes),delta(btMes,btPrev),kpiStart,y,[0,105,92]);
+  _kpi('Combustível Adicionado',fuelAdd?fuelAdd+'L':'—','',kpiStart+step,y,[230,81,0]);
+  _kpi('Combustível Usado',fuelUse?fuelUse+'L':'—','',kpiStart+step*2,y,[180,50,0]);
+  _kpi('Pagto de Subsídio',this.cve(Math.round(cveMes)),delta(cveMes,cvePrev),kpiStart+step*3,y,[27,94,32]);
+  _kpi('Taxa Conclusão',taxaConc+'%','',kpiStart+step*4,y,taxaConc>=75?[22,101,52]:taxaConc>=50?[161,98,7]:[185,28,28]);
+  y+=22;
   // ── Acumulado Ano ──
   doc.setFillColor(232,240,254);doc.roundedRect(lm,y,cw,7,1.5,1.5,'F');
   doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(21,101,192);
@@ -7367,21 +7368,21 @@ dashboardExecutivoPDF(){
     y=_sec('EVOLUÇÃO MENSAL — '+ano+' (missões concluídas)',[46,125,50],y);
     for(let m_=1;m_<=12;m_++){
       const arr=this.S.missoes.filter(x=>{const dx=x.dt instanceof Date?x.dt:new Date(x.dt);return dx.getFullYear()===ano&&dx.getMonth()+1===m_&&x.status==='Concluída';});
-      const bt_=_btMin(arr),cve_=_cve(arr),fuel_=arr.reduce((s,x)=>s+(x.fuelUse||0),0);
-      evoRows.push([this.C.NM[m_-1],arr.length,fmtM(bt_),fuel_?fuel_+'L':'—',this.cve(Math.round(cve_))]);
+      const bt_=_btMin(arr),dur_=_durMin(arr),cve_=_cve(arr),fuel_=arr.reduce((s,x)=>s+(x.fuelUse||0),0);
+      evoRows.push([this.C.NM[m_-1],arr.length,fmtM(bt_),fmtM(dur_),fuel_?fuel_+'L':'—',this.cve(Math.round(cve_))]);
     }
   }else{
     y=_sec('EVOLUÇÃO — ÚLTIMOS 6 MESES (missões concluídas)',[46,125,50],y);
     for(let i=5;i>=0;i--){
       const dd=new Date(ano,mo-1-i,1);const y_=dd.getFullYear(),m_=dd.getMonth()+1;
       const arr=this.S.missoes.filter(x=>{const dx=x.dt instanceof Date?x.dt:new Date(x.dt);return dx.getFullYear()===y_&&dx.getMonth()+1===m_&&x.status==='Concluída';});
-      const bt_=_btMin(arr),cve_=_cve(arr),fuel_=arr.reduce((s,x)=>s+(x.fuelUse||0),0);
-      evoRows.push([this.C.NM[m_-1]+' '+y_,arr.length,fmtM(bt_),fuel_?fuel_+'L':'—',this.cve(Math.round(cve_))]);
+      const bt_=_btMin(arr),dur_=_durMin(arr),cve_=_cve(arr),fuel_=arr.reduce((s,x)=>s+(x.fuelUse||0),0);
+      evoRows.push([this.C.NM[m_-1]+' '+y_,arr.length,fmtM(bt_),fmtM(dur_),fuel_?fuel_+'L':'—',this.cve(Math.round(cve_))]);
     }
   }
-  doc.autoTable({startY:y,head:[['Mês','Missões Concluídas','Block Time','Comb. Usado','Pagto de Subsídio']],body:evoRows,
+  doc.autoTable({startY:y,head:[['Mês','Missões Concluídas','Block Time','Flight Time','Comb. Usado','Pagto de Subsídio']],body:evoRows,
     styles:{fontSize:8,cellPadding:2.5},headStyles:HS,alternateRowStyles:AS,margin:{left:lm,right:lm},
-    columnStyles:{0:{cellWidth:50},1:{cellWidth:36,halign:'center'},2:{cellWidth:36,halign:'center'},3:{cellWidth:32,halign:'center'},4:{cellWidth:44,halign:'right'}},
+    columnStyles:{0:{cellWidth:44},1:{cellWidth:32,halign:'center'},2:{cellWidth:30,halign:'center'},3:{cellWidth:30,halign:'center'},4:{cellWidth:30,halign:'center'},5:{cellWidth:44,halign:'right'}},
   });
 
   // ══════════════ PÁGINA 2: AERONAVES + TIPOS + SÉRIES ══════════════
@@ -7396,12 +7397,12 @@ dashboardExecutivoPDF(){
   const aeroKeys=Object.keys(byAero).sort();
   if(aeroKeys.length){
     doc.autoTable({startY:y,
-      head:[['Aeronave','Missões','Block Time','% BT','Comb. Adicionado','Comb. Usado','Eficiência (BT/mis)','Tipos de Missão']],
+      head:[['Aeronave','Missões','Block Time','Flight Time','% BT','Comb. Adicionado','Comb. Usado','Eficiência (BT/mis)','Tipos de Missão']],
       body:aeroKeys.map(k=>{
         const a=byAero[k];
         const ef=a.mis?fmtM(Math.round(a.btMin/a.mis)):'—';
         const tipos=Object.entries(a.tipos).sort((x,z)=>z[1]-x[1]).map(([t,q])=>t+' ('+q+')').join(', ');
-        return[k,a.mis,fmtM(a.btMin),btMes?Math.round(a.btMin/btMes*100)+'%':'—',a.fuelAdd?a.fuelAdd+'L':'—',a.fuelUse?a.fuelUse+'L':'—',ef,tipos];
+        return[k,a.mis,fmtM(a.btMin),fmtM(a.durMin),btMes?Math.round(a.btMin/btMes*100)+'%':'—',a.fuelAdd?a.fuelAdd+'L':'—',a.fuelUse?a.fuelUse+'L':'—',ef,tipos];
       }),
       styles:{fontSize:7.5,cellPadding:2.5},headStyles:HS,alternateRowStyles:AS,margin:{left:lm,right:lm},
       columnStyles:{0:{cellWidth:36},1:{cellWidth:18,halign:'center'},2:{cellWidth:26,halign:'center'},3:{cellWidth:14,halign:'center'},4:{cellWidth:30,halign:'center'},5:{cellWidth:28,halign:'center'},6:{cellWidth:30,halign:'center'},7:{cellWidth:89}},
@@ -7414,8 +7415,8 @@ dashboardExecutivoPDF(){
   if(tipoKeys.length){
     y=_sec('POR TIPO DE MISSÃO',[46,125,50],y);
     doc.autoTable({startY:y,
-      head:[['Tipo de Missão','Total','Concluídas','Planeadas','Canceladas','Block Time','Pac.','% do Total']],
-      body:tipoKeys.map(k=>{const t=byTipo[k];return[k,t.total,t.concl,t.plan,t.canc,fmtM(t.btMin),t.pac||0,msMes.length?Math.round(t.total/msMes.length*100)+'%':'—'];}),
+      head:[['Tipo de Missão','Total','Concluídas','Planeadas','Canceladas','Block Time','Flight Time','Pac.','% do Total']],
+      body:tipoKeys.map(k=>{const t=byTipo[k];return[k,t.total,t.concl,t.plan,t.canc,fmtM(t.btMin),fmtM(t.durMin),t.pac||0,msMes.length?Math.round(t.total/msMes.length*100)+'%':'—'];}),
       styles:{fontSize:8,cellPadding:2.5},headStyles:HS,alternateRowStyles:AS,margin:{left:lm,right:lm},
       columnStyles:{0:{cellWidth:72},1:{cellWidth:18,halign:'center'},2:{cellWidth:26,halign:'center'},3:{cellWidth:26,halign:'center'},4:{cellWidth:26,halign:'center'},5:{cellWidth:28,halign:'center'},6:{cellWidth:14,halign:'center'},7:{cellWidth:20,halign:'center'}},
     });
@@ -7426,8 +7427,8 @@ dashboardExecutivoPDF(){
   if(serieKeys.length){
     y=_sec('POR SÉRIE',[46,125,50],y);
     doc.autoTable({startY:y,
-      head:[['Série','Total','Concluídas','Block Time','% Conclusão']],
-      body:serieKeys.map(k=>{const s=bySerie[k];return[k,s.total,s.concl,fmtM(s.btMin),s.total?Math.round(s.concl/s.total*100)+'%':'—'];}),
+      head:[['Série','Total','Concluídas','Block Time','Flight Time','% Conclusão']],
+      body:serieKeys.map(k=>{const s=bySerie[k];return[k,s.total,s.concl,fmtM(s.btMin),fmtM(s.durMin),s.total?Math.round(s.concl/s.total*100)+'%':'—'];}),
       styles:{fontSize:8,cellPadding:2.5},headStyles:HS,alternateRowStyles:AS,margin:{left:lm,right:lm},
       columnStyles:{0:{cellWidth:70},1:{cellWidth:22,halign:'center'},2:{cellWidth:30,halign:'center'},3:{cellWidth:34,halign:'center'},4:{cellWidth:28,halign:'center'}},
     });
@@ -7443,9 +7444,9 @@ dashboardExecutivoPDF(){
   y=_sec('TODOS OS TRIPULANTES EM MISSÕES — '+periodoLabel,[46,125,50],y);
   if(tripLista.length){
     doc.autoTable({startY:y,
-      head:[['#','Tripulante','Função','Missões','Block Time','BT Médio/Mis','PA','Alm','Jan','Val. Refeições','Val. Horas','Total Estimado']],
+      head:[['#','Tripulante','Função','Missões','Block Time','Flight Time','BT Médio/Mis','PA','Alm','Jan','Val. Refeições','Val. Horas','Total Estimado']],
       body:tripLista.map((p,i)=>[
-        i+1,p.nome,p.fn,p.mis,fmtM(p.btMin),
+        i+1,p.nome,p.fn,p.mis,fmtM(p.btMin),fmtM(p.durMin),
         p.mis?fmtM(Math.round(p.btMin/p.mis)):'—',
         p.pa,p.al,p.jn,
         this.cve(p.vR),
