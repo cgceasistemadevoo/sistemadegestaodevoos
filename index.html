@@ -7405,7 +7405,7 @@ dashboardExecutivoPDF(){
         return[k,a.mis,fmtM(a.btMin),fmtM(a.durMin),btMes?Math.round(a.btMin/btMes*100)+'%':'—',a.fuelAdd?a.fuelAdd+'L':'—',a.fuelUse?a.fuelUse+'L':'—',ef,tipos];
       }),
       styles:{fontSize:7.5,cellPadding:2.5},headStyles:HS,alternateRowStyles:AS,margin:{left:lm,right:lm},
-      columnStyles:{0:{cellWidth:36},1:{cellWidth:18,halign:'center'},2:{cellWidth:26,halign:'center'},3:{cellWidth:14,halign:'center'},4:{cellWidth:30,halign:'center'},5:{cellWidth:28,halign:'center'},6:{cellWidth:30,halign:'center'},7:{cellWidth:89}},
+      columnStyles:{0:{cellWidth:30},1:{cellWidth:16,halign:'center'},2:{cellWidth:24,halign:'center'},3:{cellWidth:24,halign:'center'},4:{cellWidth:12,halign:'center'},5:{cellWidth:24,halign:'center'},6:{cellWidth:22,halign:'center'},7:{cellWidth:24,halign:'center'},8:{cellWidth:77}},
     });
     y=doc.lastAutoTable.finalY+8;
   }else{doc.setTextColor(120,120,120);doc.setFont('helvetica','italic');doc.setFontSize(8);doc.text('Sem aeronaves no período',lm,y+4);y+=10;doc.setTextColor(0,0,0);}
@@ -7456,19 +7456,20 @@ dashboardExecutivoPDF(){
       styles:{fontSize:7.5,cellPadding:2},headStyles:HS,alternateRowStyles:AS,margin:{left:lm,right:lm},
       columnStyles:{
         0:{cellWidth:8,halign:'center'},
-        1:{cellWidth:52},
-        2:{cellWidth:38},
-        3:{cellWidth:16,halign:'center'},
-        4:{cellWidth:24,halign:'center'},
-        5:{cellWidth:24,halign:'center'},
-        6:{cellWidth:8,halign:'center'},
+        1:{cellWidth:46},
+        2:{cellWidth:30},
+        3:{cellWidth:14,halign:'center'},
+        4:{cellWidth:22,halign:'center'},
+        5:{cellWidth:22,halign:'center'},
+        6:{cellWidth:22,halign:'center'},
         7:{cellWidth:8,halign:'center'},
         8:{cellWidth:8,halign:'center'},
-        9:{cellWidth:28,halign:'right'},
-        10:{cellWidth:30,halign:'right'},
-        11:{cellWidth:30,halign:'right',fontStyle:'bold'},
+        9:{cellWidth:8,halign:'center'},
+        10:{cellWidth:24,halign:'right'},
+        11:{cellWidth:24,halign:'right'},
+        12:{cellWidth:24,halign:'right',fontStyle:'bold'},
       },
-      foot:[['','','','','','','','','','TOTAL','',this.cve(Math.round(cveMes))]],
+      foot:[['','','','','','','','','','','TOTAL','',this.cve(Math.round(cveMes))]],
       footStyles:{fillColor:[200,230,201],textColor:[27,94,32],fontStyle:'bold'},
     });
     y=doc.lastAutoTable.finalY+10;
