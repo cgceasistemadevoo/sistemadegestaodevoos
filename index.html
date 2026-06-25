@@ -3302,10 +3302,10 @@ delContacto(id){
     else{sigY=lastY?lastY+14:(pageH<240?170:252);}
     const s=(rm-lm)/3;
     const c1=lm+s/2;const c2=lm+s+s/2;const c3=lm+2*s+s/2;
-    const g=4;
-    doc.setDrawColor(180,180,180);doc.setLineWidth(0.25);
+    const g=22;
+    doc.setDrawColor(200,200,200);doc.setLineWidth(0.1);
     doc.line(lm,sigY-2,rm,sigY-2);
-    doc.setDrawColor(180,180,180);doc.setLineWidth(0.1);
+    doc.setDrawColor(200,200,200);doc.setLineWidth(0.1);
     doc.line(lm+g,sigY+12,lm+s-g,sigY+12);
     doc.line(lm+s+g,sigY+12,lm+2*s-g,sigY+12);
     doc.line(lm+2*s+g,sigY+12,rm-g,sigY+12);
@@ -5195,22 +5195,24 @@ gerarRecibo(nome){
         8:{cellWidth:16,halign:'right'},
         9:{cellWidth:16,halign:'right',fontStyle:'bold'},
       },
-      foot:[['','','','','','','','','Subtotal',this.cve(totVH+totVR)]],
-      footStyles:{fillColor:[200,230,201],textColor:[27,94,32],fontStyle:'bold',halign:'right'},
+      foot:[[{content:'',colSpan:7},{content:'Subtotal: '+this.cve(totVH+totVR),colSpan:3}]],
+      footStyles:{fillColor:[200,230,201],textColor:[27,94,32],fontStyle:'bold',halign:'right',fontSize:7},
       margin:{left:10,right:10},tableWidth:'fixed',
     });
     // Caixa de resumo
     y=doc.lastAutoTable.finalY+8;
-    if(y+46>270){doc.addPage();y=15;}
-    doc.setFillColor(232,245,233);doc.roundedRect(10,y,190,28,3,3,'F');
+    if(y+52>270){doc.addPage();y=15;}
+    doc.setFillColor(232,245,233);doc.roundedRect(10,y,190,34,3,3,'F');
     doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(27,94,32);
     doc.text('RESUMO',14,y+7);
     doc.setFont('helvetica','normal');doc.setTextColor(0,0,0);doc.setFontSize(8.5);
-    const _serC=Object.entries(mMes.reduce((a,m)=>{const s=m.serie||'—';a[s]=(a[s]||0)+1;return a;},{})).sort((a,b)=>a[0].localeCompare(b[0])).map(([s,n])=>s+' ('+n+')').join('  |  ');
-    doc.text('Séries: '+_serC+'   |   Voos: '+mMes.length,14,y+12);
-    doc.text('Block Time: '+Math.floor(totBTMin/60)+'h '+(totBTMin%60<10?'0':'')+(totBTMin%60)+'m   |   Valor/Horas: '+this.cve(totVH)+'   |   Refeições: '+this.cve(totVR),14,y+20);
-    doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(27,94,32);
-    doc.text('TOTAL A PAGAR: '+this.cve(totVH+totVR),195,y+14,{align:'right'});
+    const _serObj=mMes.reduce((a,m)=>{const s=m.serie||'—';if(!a[s])a[s]={mis:new Set(),voos:0};a[s].mis.add(m.num);a[s].voos++;return a;},{});
+    const _serC=Object.entries(_serObj).sort((a,b)=>a[0].localeCompare(b[0])).map(([s,x])=>s+': '+x.mis.size+' mis./'+x.voos+' voos').join('  |  ');
+    doc.text('Séries — '+_serC,14,y+12);
+    doc.text('Total: '+new Set(mMes.map(m=>m.num)).size+' missões / '+mMes.length+' voos',14,y+19);
+    doc.text('Block Time: '+Math.floor(totBTMin/60)+'h '+(totBTMin%60<10?'0':'')+(totBTMin%60)+'m   |   Valor/Horas: '+this.cve(totVH)+'   |   Refeições: '+this.cve(totVR),14,y+27);
+    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(27,94,32);
+    doc.text('TOTAL A PAGAR: '+this.cve(totVH+totVR),195,y+27,{align:'right'});
     // Assinaturas e Rodapé
     this._pdfSigRecibo(doc,10,200,297,y+36);
     doc.setPage(doc.internal.getNumberOfPages());
@@ -5321,21 +5323,23 @@ async enviarReciboEmail(nome){
         headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold',fontSize:7.5,halign:'center'},
         alternateRowStyles:{fillColor:[240,248,240]},
         columnStyles:{0:{cellWidth:20,halign:'left'},1:{cellWidth:17,halign:'center'},2:{cellWidth:32,halign:'left'},3:{cellWidth:25,halign:'left'},4:{cellWidth:16,halign:'center'},5:{cellWidth:16,halign:'center'},6:{cellWidth:16,halign:'center'},7:{cellWidth:16,halign:'right'},8:{cellWidth:16,halign:'right'},9:{cellWidth:16,halign:'right',fontStyle:'bold'}},
-        foot:[['','','','','','','','','Subtotal',this.cve(totVH+totVR)]],
-        footStyles:{fillColor:[200,230,201],textColor:[27,94,32],fontStyle:'bold',halign:'right'},
+        foot:[[{content:'',colSpan:7},{content:'Subtotal: '+this.cve(totVH+totVR),colSpan:3}]],
+        footStyles:{fillColor:[200,230,201],textColor:[27,94,32],fontStyle:'bold',halign:'right',fontSize:7},
         margin:{left:10,right:10},tableWidth:'fixed',
       });
       y=doc.lastAutoTable.finalY+8;
-      if(y+46>270){doc.addPage();y=15;}
-      doc.setFillColor(232,245,233);doc.roundedRect(10,y,190,28,3,3,'F');
+      if(y+52>270){doc.addPage();y=15;}
+      doc.setFillColor(232,245,233);doc.roundedRect(10,y,190,34,3,3,'F');
       doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(27,94,32);
       doc.text('RESUMO',14,y+7);
       doc.setFont('helvetica','normal');doc.setTextColor(0,0,0);doc.setFontSize(8.5);
-      const _serC=Object.entries(mMes.reduce((a,m)=>{const s=m.serie||'—';a[s]=(a[s]||0)+1;return a;},{})).sort((a,b)=>a[0].localeCompare(b[0])).map(([s,n])=>s+' ('+n+')').join('  |  ');
-      doc.text('Series: '+_serC+'   |   Voos: '+mMes.length,14,y+12);
-      doc.text('Block Time: '+Math.floor(totBTMin/60)+'h '+(totBTMin%60<10?'0':'')+(totBTMin%60)+'m   |   Valor/Horas: '+this.cve(totVH)+'   |   Refeicoes: '+this.cve(totVR),14,y+20);
-      doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(27,94,32);
-      doc.text('TOTAL A PAGAR: '+this.cve(totVH+totVR),195,y+14,{align:'right'});
+      const _serObj=mMes.reduce((a,m)=>{const s=m.serie||'—';if(!a[s])a[s]={mis:new Set(),voos:0};a[s].mis.add(m.num);a[s].voos++;return a;},{});
+      const _serC=Object.entries(_serObj).sort((a,b)=>a[0].localeCompare(b[0])).map(([s,x])=>s+': '+x.mis.size+' mis./'+x.voos+' voos').join('  |  ');
+      doc.text('Series — '+_serC,14,y+12);
+      doc.text('Total: '+new Set(mMes.map(m=>m.num)).size+' missoes / '+mMes.length+' voos',14,y+19);
+      doc.text('Block Time: '+Math.floor(totBTMin/60)+'h '+(totBTMin%60<10?'0':'')+(totBTMin%60)+'m   |   Valor/Horas: '+this.cve(totVH)+'   |   Refeicoes: '+this.cve(totVR),14,y+27);
+      doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(27,94,32);
+      doc.text('TOTAL A PAGAR: '+this.cve(totVH+totVR),195,y+27,{align:'right'});
       doc.setPage(doc.internal.getNumberOfPages());
       doc.setFontSize(7.5);doc.setTextColor(120,120,120);doc.setFont('helvetica','normal');
       doc.text('Documento gerado em: '+new Date().toLocaleString('pt-PT'),10,290);
