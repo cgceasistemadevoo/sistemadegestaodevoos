@@ -3305,7 +3305,7 @@ delContacto(id){
     const g=4;
     doc.setDrawColor(180,180,180);doc.setLineWidth(0.25);
     doc.line(lm,sigY-2,rm,sigY-2);
-    doc.setDrawColor(0,0,0);doc.setLineWidth(0.5);
+    doc.setDrawColor(150,150,150);doc.setLineWidth(0.25);
     doc.line(lm+g,sigY+12,lm+s-g,sigY+12);
     doc.line(lm+s+g,sigY+12,lm+2*s-g,sigY+12);
     doc.line(lm+2*s+g,sigY+12,rm-g,sigY+12);
@@ -5150,7 +5150,7 @@ gerarRecibo(nome){
     totMin+=effMs;totVH+=vH;totVR+=vR;totBTMin+=btMs;
     const _dm=m.dt instanceof Date?m.dt:new Date(m.dt);
     const durR=(m.toff&&m.land)?this.calcDur(m.toff.slice(0,5),m.land.slice(0,5)).slice(0,5):(m.dur?.slice(0,5)||'—');
-    return[m.num,_dm.toLocaleDateString('pt-PT'),m.tipo,crewM?.fn||'—',m.aero,durR,bt,this.cve(vH),hasPA?this.cve(_mv.pa):'',hasA?this.cve(_mv.al):'',hasJ?this.cve(_mv.jn):'',this.cve(vR),this.cve(vH+vR)];
+    return[m.num,_dm.toLocaleDateString('pt-PT'),m.tipo,crewM?.fn||'—',m.aero,durR,bt,this.cve(vH),this.cve(vR),this.cve(vH+vR)];
   });
   try{
     const{jsPDF}=window.jspdf;
@@ -5178,27 +5178,24 @@ gerarRecibo(nome){
     y+=24;
     doc.autoTable({
       startY:y,
-      head:[['Missão','Data','Tipo','Função','Aeronave','Flight time','Block time','Val/Hora','PA','Alm','Jan','Refeições','Total']],
+      head:[['Missão','Data','Tipo','Função','Aeronave','Flight time','Block time','Val/Hora','Refeições','Total']],
       body:rows,
-      styles:{fontSize:7,cellPadding:2,valign:'middle'},
-      headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold',fontSize:7,halign:'center'},
+      styles:{fontSize:7.5,cellPadding:2,valign:'middle'},
+      headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold',fontSize:7.5,halign:'center'},
       alternateRowStyles:{fillColor:[240,248,240]},
       columnStyles:{
-        0:{cellWidth:20,halign:'left'},
-        1:{cellWidth:15,halign:'center'},
-        2:{cellWidth:28,halign:'left'},
-        3:{cellWidth:18,halign:'left'},
-        4:{cellWidth:13,halign:'center'},
-        5:{cellWidth:13,halign:'center'},
-        6:{cellWidth:13,halign:'center'},
-        7:{cellWidth:16,halign:'right'},
-        8:{cellWidth:9,halign:'right'},
-        9:{cellWidth:9,halign:'right'},
-        10:{cellWidth:9,halign:'right'},
-        11:{cellWidth:16,halign:'right'},
-        12:{cellWidth:16,halign:'right',fontStyle:'bold'},
+        0:{cellWidth:22,halign:'left'},
+        1:{cellWidth:18,halign:'center'},
+        2:{cellWidth:35,halign:'left'},
+        3:{cellWidth:28,halign:'left'},
+        4:{cellWidth:18,halign:'center'},
+        5:{cellWidth:18,halign:'center'},
+        6:{cellWidth:18,halign:'center'},
+        7:{cellWidth:17,halign:'right'},
+        8:{cellWidth:17,halign:'right'},
+        9:{cellWidth:17,halign:'right',fontStyle:'bold'},
       },
-      foot:[['','','','','','','','','','','','Subtotal',this.cve(totVH+totVR)]],
+      foot:[['','','','','','','','','Subtotal',this.cve(totVH+totVR)]],
       footStyles:{fillColor:[200,230,201],textColor:[27,94,32],fontStyle:'bold',halign:'right'},
       margin:{left:10,right:10},
     });
@@ -5209,8 +5206,9 @@ gerarRecibo(nome){
     doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(27,94,32);
     doc.text('RESUMO',14,y+7);
     doc.setFont('helvetica','normal');doc.setTextColor(0,0,0);doc.setFontSize(8.5);
-    doc.text('Missões: '+mMes.length+'   |   Block Time: '+Math.floor(totBTMin/60)+'h '+(totBTMin%60<10?'0':'')+(totBTMin%60)+'m   |   Valor/Horas: '+this.cve(totVH),14,y+14);
-    doc.text('Refeições: PA='+pa+'  Almoço='+al+'  Jantar='+jn+'   |   Total refeições: '+this.cve(totVR),14,y+21);
+    const _serC=Object.entries(mMes.reduce((a,m)=>{const s=m.serie||'—';a[s]=(a[s]||0)+1;return a;},{})).sort((a,b)=>a[0].localeCompare(b[0])).map(([s,n])=>s+' ('+n+')').join('  |  ');
+    doc.text('Séries: '+_serC+'   |   Voos: '+mMes.length,14,y+12);
+    doc.text('Block Time: '+Math.floor(totBTMin/60)+'h '+(totBTMin%60<10?'0':'')+(totBTMin%60)+'m   |   Valor/Horas: '+this.cve(totVH)+'   |   Refeições: '+this.cve(totVR),14,y+20);
     doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(27,94,32);
     doc.text('TOTAL A PAGAR: '+this.cve(totVH+totVR),195,y+14,{align:'right'});
     // Assinaturas e Rodapé
@@ -5292,7 +5290,7 @@ async enviarReciboEmail(nome){
         totMin+=effMs;totVH+=vH;totVR+=vR;totBTMin+=btMs;
         const _dm=m.dt instanceof Date?m.dt:new Date(m.dt);
         const durR=(m.toff&&m.land)?this.calcDur(m.toff.slice(0,5),m.land.slice(0,5)).slice(0,5):(m.dur?.slice(0,5)||'—');
-        return[m.num,_dm.toLocaleDateString('pt-PT'),m.tipo,crewM?.fn||'—',m.aero,durR,bt,this.cve(vH),hasPA?this.cve(_mv.pa):'',hasA?this.cve(_mv.al):'',hasJ?this.cve(_mv.jn):'',this.cve(vR),this.cve(vH+vR)];
+        return[m.num,_dm.toLocaleDateString('pt-PT'),m.tipo,crewM?.fn||'—',m.aero,durR,bt,this.cve(vH),this.cve(vR),this.cve(vH+vR)];
       });
       const{jsPDF}=window.jspdf;
       const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
@@ -5317,13 +5315,13 @@ async enviarReciboEmail(nome){
       y+=24;
       doc.autoTable({
         startY:y,
-        head:[['Missao','Data','Tipo','Funcao','Aeronave','Flight time','Block time','Val/Hora','PA','Alm','Jan','Refeicoes','Total']],
+        head:[['Missao','Data','Tipo','Funcao','Aeronave','Flight time','Block time','Val/Hora','Refeicoes','Total']],
         body:rows,
-        styles:{fontSize:7,cellPadding:2,valign:'middle'},
-        headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold',fontSize:7,halign:'center'},
+        styles:{fontSize:7.5,cellPadding:2,valign:'middle'},
+        headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold',fontSize:7.5,halign:'center'},
         alternateRowStyles:{fillColor:[240,248,240]},
-        columnStyles:{0:{cellWidth:20,halign:'left'},1:{cellWidth:15,halign:'center'},2:{cellWidth:28,halign:'left'},3:{cellWidth:18,halign:'left'},4:{cellWidth:13,halign:'center'},5:{cellWidth:13,halign:'center'},6:{cellWidth:13,halign:'center'},7:{cellWidth:16,halign:'right'},8:{cellWidth:9,halign:'right'},9:{cellWidth:9,halign:'right'},10:{cellWidth:9,halign:'right'},11:{cellWidth:16,halign:'right'},12:{cellWidth:16,halign:'right',fontStyle:'bold'}},
-        foot:[['','','','','','','','','','','','Subtotal',this.cve(totVH+totVR)]],
+        columnStyles:{0:{cellWidth:22,halign:'left'},1:{cellWidth:18,halign:'center'},2:{cellWidth:35,halign:'left'},3:{cellWidth:28,halign:'left'},4:{cellWidth:18,halign:'center'},5:{cellWidth:18,halign:'center'},6:{cellWidth:18,halign:'center'},7:{cellWidth:17,halign:'right'},8:{cellWidth:17,halign:'right'},9:{cellWidth:17,halign:'right',fontStyle:'bold'}},
+        foot:[['','','','','','','','','Subtotal',this.cve(totVH+totVR)]],
         footStyles:{fillColor:[200,230,201],textColor:[27,94,32],fontStyle:'bold',halign:'right'},
         margin:{left:10,right:10},
       });
@@ -5333,8 +5331,9 @@ async enviarReciboEmail(nome){
       doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(27,94,32);
       doc.text('RESUMO',14,y+7);
       doc.setFont('helvetica','normal');doc.setTextColor(0,0,0);doc.setFontSize(8.5);
-      doc.text('Missoes: '+mMes.length+'   |   Block Time: '+Math.floor(totBTMin/60)+'h '+(totBTMin%60<10?'0':'')+(totBTMin%60)+'m   |   Valor/Horas: '+this.cve(totVH),14,y+14);
-      doc.text('Refeicoes: PA='+pa+'  Almoco='+al+'  Jantar='+jn+'   |   Total refeicoes: '+this.cve(totVR),14,y+21);
+      const _serC=Object.entries(mMes.reduce((a,m)=>{const s=m.serie||'—';a[s]=(a[s]||0)+1;return a;},{})).sort((a,b)=>a[0].localeCompare(b[0])).map(([s,n])=>s+' ('+n+')').join('  |  ');
+      doc.text('Series: '+_serC+'   |   Voos: '+mMes.length,14,y+12);
+      doc.text('Block Time: '+Math.floor(totBTMin/60)+'h '+(totBTMin%60<10?'0':'')+(totBTMin%60)+'m   |   Valor/Horas: '+this.cve(totVH)+'   |   Refeicoes: '+this.cve(totVR),14,y+20);
       doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(27,94,32);
       doc.text('TOTAL A PAGAR: '+this.cve(totVH+totVR),195,y+14,{align:'right'});
       doc.setPage(doc.internal.getNumberOfPages());
