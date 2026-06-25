@@ -5204,6 +5204,7 @@ gerarRecibo(nome){
     });
     // Caixa de resumo
     y=doc.lastAutoTable.finalY+8;
+    if(y+46>200){doc.addPage();y=15;}
     doc.setFillColor(232,245,233);doc.roundedRect(10,y,277,28,3,3,'F');
     doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(27,94,32);
     doc.text('RESUMO',14,y+7);
@@ -5327,6 +5328,7 @@ async enviarReciboEmail(nome){
         margin:{left:10,right:10},
       });
       y=doc.lastAutoTable.finalY+8;
+      if(y+46>200){doc.addPage();y=15;}
       doc.setFillColor(232,245,233);doc.roundedRect(10,y,277,28,3,3,'F');
       doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(27,94,32);
       doc.text('RESUMO',14,y+7);
