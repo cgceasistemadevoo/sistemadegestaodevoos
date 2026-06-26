@@ -6240,7 +6240,7 @@ _quadroFullscreen(){
   if(!w){this.showNotif('⚠️ Permita pop-ups neste browser para abrir em nova janela.','warn');return;}
   this._quadroWin=w;
   const css=Array.from(document.querySelectorAll('style')).map(s=>s.textContent).join('\n');
-  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CGC\u00B7EA \u2014 Quadro Operacional</title><style>'+css+'body,html{background:#030712!important;margin:0;padding:14px}</style></head><body><div id="qdMissoes" style="border-radius:14px"></div><div id="qdCanceladas"></div><div id="qdVazio" class="hide" style="text-align:center;padding:60px;color:#64748b"><div style="font-size:3em;margin-bottom:12px">\u{1F4CB}</div><div style="font-size:1.1em">Sem miss\u00F5es activas</div></div></body></html>');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CGC\u00B7EA \u2014 Quadro Operacional</title><style>'+css+'body,html{background:#030712!important;margin:0;padding:14px}</style></head><body><div id="qdMissoes" style="border-radius:14px"></div><div id="qdCanceladas"></div><div id="qdVazio" style="display:none;text-align:center;padding:60px;color:#64748b"><div style="font-size:3em;margin-bottom:12px">\u{1F4CB}</div><div style="font-size:1.1em">Sem miss\u00F5es activas</div></div></body></html>');
   w.document.close();
   const _push=()=>{
     if(w.closed){clearInterval(this._quadroWinT);this._quadroWin=null;return;}
@@ -6250,7 +6250,7 @@ _quadroFullscreen(){
       const sv=document.getElementById('qdVazio'),dv=w.document.getElementById('qdVazio');
       if(s1&&d1)d1.innerHTML=s1.innerHTML;
       if(s2&&d2)d2.innerHTML=s2.innerHTML;
-      if(sv&&dv)dv.className=sv.className;
+      if(sv&&dv)dv.style.display=sv.style.display;
     }catch(e){}
   };
   setTimeout(_push,120);
@@ -6298,8 +6298,8 @@ renderQuadro(){
   const el=document.getElementById('qdMissoes');
   const vz=document.getElementById('qdVazio');
   if(!el)return;
-  if(!missoes.length){el.innerHTML='';if(vz)vz.classList.remove('hide');return;}
-  if(vz)vz.classList.add('hide');
+  if(!missoes.length){el.innerHTML='';if(vz)vz.style.display='';return;}
+  if(vz)vz.style.display='none';
   const SC={
     'Em Curso': {dot:'#fbbf24',label:'EM CURSO',  rowBg:'rgba(251,191,36,.08)',rowBd:'#fbbf24'},
     'Planeada': {dot:'#60a5fa',label:'PLANEADA',  rowBg:'rgba(96,165,250,.06)',rowBd:'#60a5fa'},
