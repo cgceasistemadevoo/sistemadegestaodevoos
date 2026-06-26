@@ -1286,7 +1286,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
         <option value="semana">Esta semana</option>
         <option value="todas">Todas activas</option>
       </select>
-      <button class="btn btn-p btn-sm" onclick="A._quadroFullscreen()">Ecrã Completo</button>
+      <button class="btn btn-p btn-sm" onclick="A._quadroFullscreen()">↗ Nova Janela</button>
     </div>
   </div>
   <div id="qdMissoes" style="overflow-x:auto;border-radius:14px"></div>
@@ -1294,6 +1294,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div style="font-size:3em;margin-bottom:12px">📋</div>
     <div style="font-size:1.1em;font-weight:600">Sem missões para o período seleccionado</div>
   </div>
+  <div id="qdCanceladas"></div>
 </div>
 
 <!-- ══════════════════════════════════════════
@@ -6234,9 +6235,27 @@ toggleNav(){
 
 // ─── QUADRO OPERACIONAL ───────────────────────────────────────
 _quadroFullscreen(){
-  const el=document.getElementById('page-quadro');
-  if(el.requestFullscreen)el.requestFullscreen();
-  else if(el.webkitRequestFullscreen)el.webkitRequestFullscreen();
+  if(this._quadroWin&&!this._quadroWin.closed){this._quadroWin.focus();return;}
+  const w=window.open('','CGC_EA_Quadro','width=1400,height=900,resizable=yes,scrollbars=yes');
+  if(!w){this.showNotif('⚠️ Permita pop-ups neste browser para abrir em nova janela.','warn');return;}
+  this._quadroWin=w;
+  const css=Array.from(document.querySelectorAll('style')).map(s=>s.textContent).join('\n');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CGC\u00B7EA \u2014 Quadro Operacional</title><style>'+css+'body,html{background:#030712!important;margin:0;padding:14px}</style></head><body><div id="qdMissoes" style="border-radius:14px"></div><div id="qdCanceladas"></div><div id="qdVazio" class="hide" style="text-align:center;padding:60px;color:#64748b"><div style="font-size:3em;margin-bottom:12px">\u{1F4CB}</div><div style="font-size:1.1em">Sem miss\u00F5es activas</div></div></body></html>');
+  w.document.close();
+  const _push=()=>{
+    if(w.closed){clearInterval(this._quadroWinT);this._quadroWin=null;return;}
+    try{
+      const s1=document.getElementById('qdMissoes'),d1=w.document.getElementById('qdMissoes');
+      const s2=document.getElementById('qdCanceladas'),d2=w.document.getElementById('qdCanceladas');
+      const sv=document.getElementById('qdVazio'),dv=w.document.getElementById('qdVazio');
+      if(s1&&d1)d1.innerHTML=s1.innerHTML;
+      if(s2&&d2)d2.innerHTML=s2.innerHTML;
+      if(sv&&dv)dv.className=sv.className;
+    }catch(e){}
+  };
+  setTimeout(_push,120);
+  this._quadroWinT=setInterval(()=>{this.renderQuadro();setTimeout(_push,200);},30000);
+  w.addEventListener('beforeunload',()=>{clearInterval(this._quadroWinT);this._quadroWin=null;});
 },
 renderQuadro(){
   const now=new Date();
@@ -6295,7 +6314,7 @@ renderQuadro(){
   h+='<div style="background:#0b0f1e;overflow-x:auto">';
   h+='<table style="width:100%;border-collapse:collapse;font-family:var(--mono)">';
   h+='<thead><tr style="background:#0f172a">';
-  ['ESTADO','MISSÃO','TIPO','AERONAVE','ROTA','T/OFF','LDG','BLK','TRIPULAÇÃO'].forEach(c=>{
+  ['MISSÃO','TIPO','AERONAVE','ROTA','T/OFF','LDG','BLK','TRIPULAÇÃO','ESTADO'].forEach(c=>{
     h+='<th style="padding:9px 14px;text-align:left;font-size:.62em;letter-spacing:.13em;color:#475569;font-weight:700;white-space:nowrap;border-bottom:1px solid rgba(255,255,255,.06)">'+c+'</th>';
   });
   h+='</tr></thead><tbody>';
@@ -6308,10 +6327,6 @@ renderQuadro(){
     const rota=(m.origem||m.destino)?(this.esc(m.origem||'?')+' → '+this.esc(m.destino||'?')):'—';
     const fade=st==='Concluída'?'opacity:.55;':'';
     h+='<tr style="'+fade+'border-left:3px solid '+sc.rowBd+'33;border-bottom:1px solid rgba(255,255,255,.04);background:'+sc.rowBg+'">';
-    h+='<td style="padding:11px 14px;white-space:nowrap">';
-    h+='<span style="width:7px;height:7px;border-radius:50%;background:'+sc.dot+';display:inline-block;margin-right:7px'+(st==='Em Curso'?';box-shadow:0 0 7px '+sc.dot:'')+'"></span>';
-    h+='<span style="font-size:.65em;font-weight:800;letter-spacing:.1em;color:'+sc.dot+'">'+sc.label+'</span>';
-    h+='</td>';
     h+='<td style="padding:11px 14px"><span style="color:#e2e8f0;font-weight:700;font-size:.85em">'+this.esc(m.num||'—')+'</span></td>';
     h+='<td style="padding:11px 14px"><span style="color:#94a3b8;font-size:.78em">'+this.esc(tipo)+'</span></td>';
     h+='<td style="padding:11px 14px"><span style="color:#e2e8f0;font-size:.82em;background:rgba(255,255,255,.05);padding:2px 8px;border-radius:5px">'+this.esc(m.aero||'—')+'</span></td>';
@@ -6320,6 +6335,10 @@ renderQuadro(){
     h+='<td style="padding:11px 14px"><span style="color:#fde68a;font-size:.92em;font-weight:700">'+(m.land?(m.land+':00').slice(0,5):'—')+'</span></td>';
     h+='<td style="padding:11px 14px"><span style="color:#a78bfa;font-size:.85em">'+this.esc(bt)+'</span></td>';
     h+='<td style="padding:11px 14px"><span style="color:#94a3b8;font-size:.76em">'+this.esc(crew)+'</span></td>';
+    h+='<td style="padding:11px 14px;white-space:nowrap">';
+    h+='<span style="width:7px;height:7px;border-radius:50%;background:'+sc.dot+';display:inline-block;margin-right:7px'+(st==='Em Curso'?';box-shadow:0 0 7px '+sc.dot:'')+'"></span>';
+    h+='<span style="font-size:.65em;font-weight:800;letter-spacing:.1em;color:'+sc.dot+'">'+sc.label+'</span>';
+    h+='</td>';
     h+='</tr>';
   });
   h+='</tbody></table>';
@@ -6330,6 +6349,34 @@ renderQuadro(){
     const s=document.createElement('style');s.id='_fidsKf';
     s.textContent='@keyframes _fPulse{0%,100%{opacity:.08}50%{opacity:.14}}';
     document.head.appendChild(s);
+  }
+  // Painel de cancelados do dia de hoje
+  const cancToday=this.S.missoes.filter(m=>(m.status||'')==='Cancelada'&&_dtStr(m)===todayStr);
+  const cdEl=document.getElementById('qdCanceladas');
+  if(cdEl){
+    if(!cancToday.length){cdEl.innerHTML='';}
+    else{
+      const TH='padding:7px 14px;text-align:left;font-size:.6em;letter-spacing:.12em;color:#ef4444;font-weight:700;border-bottom:1px solid rgba(239,68,68,.2)';
+      const TD='padding:9px 14px';
+      let ch='<div style="margin-top:14px;border-radius:10px;overflow:hidden;border:1px solid rgba(239,68,68,.3);background:#0b0f1e">';
+      ch+='<div style="background:rgba(239,68,68,.1);padding:8px 16px;font-size:.7em;font-weight:700;letter-spacing:.14em;color:#ef4444;font-family:var(--mono)">⚠ CANCELADOS HOJE</div>';
+      ch+='<table style="width:100%;border-collapse:collapse;font-family:var(--mono)">';
+      ch+='<thead><tr style="background:#0f172a"><th style="'+TH+'">MISSÃO</th><th style="'+TH+'">TIPO</th><th style="'+TH+'">AERONAVE</th><th style="'+TH+'">ROTA</th><th style="'+TH+'">TRIPULAÇÃO</th></tr></thead><tbody>';
+      cancToday.forEach(m=>{
+        const cr=(m.crew||[]).map(c=>c.nome.split(' ')[0]).join(', ')||'—';
+        const tp=(m.tipo||'—').length>24?(m.tipo||'—').slice(0,22)+'…':(m.tipo||'—');
+        const rt=(m.origem||m.destino)?(this.esc(m.origem||'?')+' → '+this.esc(m.destino||'?')):'—';
+        ch+='<tr style="border-bottom:1px solid rgba(255,255,255,.04)">';
+        ch+='<td style="'+TD+'"><span style="color:#fca5a5;font-weight:700;font-size:.82em">'+this.esc(m.num||'—')+'</span></td>';
+        ch+='<td style="'+TD+'"><span style="color:#94a3b8;font-size:.75em">'+this.esc(tp)+'</span></td>';
+        ch+='<td style="'+TD+'"><span style="color:#fca5a5;font-size:.8em">'+this.esc(m.aero||'—')+'</span></td>';
+        ch+='<td style="'+TD+'"><span style="color:#7dd3fc;font-size:.78em">'+rt+'</span></td>';
+        ch+='<td style="'+TD+'"><span style="color:#94a3b8;font-size:.73em">'+this.esc(cr)+'</span></td>';
+        ch+='</tr>';
+      });
+      ch+='</tbody></table></div>';
+      cdEl.innerHTML=ch;
+    }
   }
 },
 
