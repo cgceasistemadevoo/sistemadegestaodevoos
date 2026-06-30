@@ -6477,10 +6477,6 @@ renderQuadro(){
 // ──────────────────────────────────────────────────────────────
 _escVista(v){
   this._escView=v||this._escView||'mensal';
-  document.getElementById('escBtnMensal').style.background=this._escView==='mensal'?'var(--g8)':'var(--white)';
-  document.getElementById('escBtnMensal').style.color=this._escView==='mensal'?'var(--white)':'var(--ink3)';
-  document.getElementById('escBtnSemanal').style.background=this._escView==='semanal'?'var(--g8)':'var(--white)';
-  document.getElementById('escBtnSemanal').style.color=this._escView==='semanal'?'var(--white)':'var(--ink3)';
   this.renderEscala();
 },
 
@@ -6503,7 +6499,11 @@ renderEscala(){
     for(let y=now.getFullYear()+1;y>=now.getFullYear()-3;y--)ys.insertAdjacentHTML('beforeend','<option value="'+y+'">'+y+'</option>');
     ys.value=String(now.getFullYear());
   }
-  this._escVista(this._escView);
+  // Actualizar estilo dos botões de vista
+  const bm=document.getElementById('escBtnMensal');
+  const bs=document.getElementById('escBtnSemanal');
+  if(bm){bm.style.background=this._escView==='mensal'?'var(--g8)':'var(--white)';bm.style.color=this._escView==='mensal'?'var(--white)':'var(--ink3)';}
+  if(bs){bs.style.background=this._escView==='semanal'?'var(--g8)':'var(--white)';bs.style.color=this._escView==='semanal'?'var(--white)':'var(--ink3)';}
   const selM=parseInt(ms?.value||String(new Date().getMonth()+1));
   const selY=parseInt(ys?.value||String(new Date().getFullYear()));
   if(this._escView==='mensal') this._escRenderMensal(selY,selM);
