@@ -701,7 +701,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   <div class="ntab" data-p="aeronaves">🛩️ Aeronaves</div>
   <div class="ntab" data-p="quadro">📋 Quadro Ops</div>
   <div class="ntab" data-p="mapa">🗺️ Mapa</div>
-  <div class="ntab" data-p="escala">🗓️ Escala</div>
+  <div class="ntab" data-p="escala">👥 Escala</div>
   <div class="ntab" data-p="incidentes">⚠️ Incidentes</div>
   <div class="ntab" data-p="contactos">📞 Contactos Úteis</div>
 </nav>
@@ -1304,7 +1304,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 <div id="page-escala" class="page hide">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
     <div>
-      <h2 style="font-size:1.2em;font-weight:800;color:var(--ink);margin:0">🗓️ Escala de Serviço</h2>
+      <h2 style="font-size:1.2em;font-weight:800;color:var(--ink);margin:0">👥 Escala de Serviço</h2>
       <div style="font-size:.78em;color:var(--ink3);margin-top:2px">Gestão de turnos e disponibilidade da tripulação</div>
     </div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -1340,7 +1340,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 <div class="modal" id="modalEscala">
 <div class="modal-box" style="max-width:480px">
   <div class="modal-hd">
-    <h3 id="escModalTit">📆 Nova Entrada de Escala</h3>
+    <h3 id="escModalTit">👥 Nova Entrada de Escala</h3>
     <span class="modal-x" onclick="A.escFecharModal()">×</span>
   </div>
   <input type="hidden" id="escEntradaIdx">
@@ -6519,17 +6519,12 @@ _escRenderMensal(year,month){
   const vazio=document.getElementById('escVazio');
   if(!grid)return;
 
-  // Build row list: S.trips + names present in S.escala this month (in case of mismatch)
-  const tripNomesSet=new Set((this.S.trips||[]).map(t=>t.nome));
-  const escNomesThisMes=new Set((this.S.escala||[])
-    .filter(e=>e.nome&&e.dtFim>=monthStr+'-01'&&e.dtIni<=lastDay)
-    .map(e=>e.nome));
-  const allNomes=[...new Set([...tripNomesSet,...escNomesThisMes])].sort((a,b)=>a.localeCompare(b,'pt'));
+  // Collect all entries for this month
+  const entradas=this._escEntradasMes(year,month);
+  // Só mostrar tripulantes que têm pelo menos uma entrada no mês
+  const allNomes=[...new Set(entradas.map(e=>e.nome))].sort((a,b)=>a.localeCompare(b,'pt'));
   // Store names for safe onclick (index-based)
   this._escRowNomes=allNomes;
-
-  // Collect all entries for this month (escala + missões)
-  const entradas=this._escEntradasMes(year,month);
 
   const dayLabels=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
   let h='<div style="min-width:'+(Math.max(600,160+daysInMonth*38))+'px">';
@@ -6566,9 +6561,10 @@ _escRenderMensal(year,month){
         h+='<div style="background:'+bg+';padding:2px;min-height:32px;display:flex;flex-direction:column;gap:1px;cursor:pointer" onclick="A._escClickCell('+ti+',\''+dateStr+'\')" title="'+this.esc(ttip)+'">';
         cell.forEach(c=>{
           const col=this._escColor(c.tipo);
-          const short=c.tipo==='Prontidão'?'Pron':c.tipo==='Formação'?'Form':c.tipo==='Serviço'?'Serv':c.tipo.slice(0,4);
+          const shortMap={'Missão':'M','Férias':'F','Serviço':'S','Prontidão':'P','Formação':'Fo'};
+          const short=shortMap[c.tipo]||c.tipo.slice(0,1).toUpperCase();
           const ttipC=this.esc(c.tipo+(c.turno?' — '+c.turno:'')+(c.funcao?' | '+c.funcao:''));
-          h+='<div style="background:'+col+';border-radius:2px;padding:1px 2px;font-size:.58em;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+ttipC+'">'+short+(c.turno?'\u00b7'+c.turno.slice(0,1):'')+'</div>';
+          h+='<div style="background:'+col+';border-radius:2px;padding:1px 2px;font-size:.65em;font-weight:800;color:#fff;text-align:center" title="'+ttipC+'">'+short+'</div>';
         });
         h+='</div>';
       }
@@ -6713,7 +6709,7 @@ escNovaEntrada(dateStr,nomePresel){
   if(!this.isAdmin()){this.showNotif('❌ Sem permissão — apenas administradores e gestores','err');return;}
   const modal=document.getElementById('modalEscala');
   if(!modal)return;
-  document.getElementById('escModalTit').textContent='📆 Nova Entrada de Escala';
+  document.getElementById('escModalTit').textContent='👥 Nova Entrada de Escala';
   document.getElementById('escEntradaIdx').value='';
   document.getElementById('escBtnDel').style.display='none';
   // Fill tripulante select
