@@ -701,7 +701,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   <div class="ntab" data-p="aeronaves">🛩️ Aeronaves</div>
   <div class="ntab" data-p="quadro">📋 Quadro Ops</div>
   <div class="ntab" data-p="mapa">🗺️ Mapa</div>
-  <div class="ntab" data-p="escala">👥 Escala</div>
+  <div class="ntab" data-p="escala">⏰ Escala</div>
   <div class="ntab" data-p="incidentes">⚠️ Incidentes</div>
   <div class="ntab" data-p="contactos">📞 Contactos Úteis</div>
 </nav>
@@ -1302,58 +1302,68 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
      ESCALA DE SERVIÇO
 ════════════════════════════════════════════ -->
 <div id="page-escala" class="page hide">
-  <div style="background:#0d1b2a;border-radius:14px;padding:22px 24px;min-height:480px">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
-      <div>
-        <h2 style="color:#fff;font-size:1.18em;font-weight:800;margin:0">👥 Escala Semanal de Pilotos</h2>
-        <div id="escPeriodoTxt" style="color:#6b8fa8;font-size:.78em;margin-top:4px">Período: —</div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <select id="escAno" onchange="A.renderEscala()" style="padding:6px 10px;border:1px solid #1e3448;border-radius:8px;font-size:.82em;background:#162032;color:#cbd5e1;outline:none"></select>
-        <button class="admin-only" onclick="A.escNovaSemana()" style="background:#e74c3c;color:#fff;border:none;border-radius:8px;padding:7px 15px;font-size:.82em;font-weight:700;cursor:pointer">✎ Editar</button>
-        <button onclick="A.escPDF()" style="background:transparent;color:#cbd5e1;border:1.5px solid #334e68;border-radius:8px;padding:7px 15px;font-size:.82em;font-weight:600;cursor:pointer">⬇ Exportar</button>
-        <button class="admin-only" onclick="A.escValidar()" style="background:transparent;color:#2ecc71;border:1.5px solid #2ecc71;border-radius:8px;padding:7px 15px;font-size:.82em;font-weight:600;cursor:pointer">✓ Validar</button>
-      </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+    <div>
+      <h2 style="font-size:1.2em;font-weight:800;color:var(--ink);margin:0">⏰ Escala Semanal de Pilotos</h2>
+      <div id="escPeriodoTxt" style="font-size:.78em;color:var(--ink3);margin-top:2px">Período: —</div>
     </div>
-    <div id="escGrid" style="overflow-x:auto;border-radius:10px;overflow:hidden"></div>
-    <div id="escVazio" style="display:none;text-align:center;padding:60px 20px;color:#6b8fa8">
-      <div style="font-size:2.5em;margin-bottom:12px">👥</div>
-      <div style="font-size:1em;font-weight:600;color:#8fafc8">Sem escala para este ano</div>
-      <div style="font-size:.8em;margin-top:6px">Clique em <b style="color:#e74c3c">✎ Editar</b> para adicionar semanas</div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <select id="escAno" onchange="A.renderEscala()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85em;background:var(--white);color:var(--ink);outline:none"></select>
+      <button class="btn btn-p btn-sm admin-only" onclick="A.escNovaSemana()">＋ Nova Semana</button>
+      <button class="btn btn-sm admin-only" onclick="A.escValidar()" style="font-size:.82em">✓ Validar</button>
+      <button class="btn btn-sm" onclick="A.escPDF()" style="font-size:.82em">📄 PDF</button>
     </div>
-    <div id="escValMsg" style="display:none;margin-top:16px;padding:10px 16px;background:#1a4a2e;border:1px solid #2ecc71;border-radius:8px;color:#2ecc71;font-size:.82em;font-weight:600"></div>
+  </div>
+  <div class="mgrid" style="margin-bottom:16px">
+    <div class="mcard" data-ic="📅"><div class="mcard-lbl">Semanas</div><div class="mcard-val" id="escTotSem">0</div><div class="mcard-sub">programadas</div></div>
+    <div class="mcard" data-ic="✅"><div class="mcard-lbl">Validadas</div><div class="mcard-val" id="escValSem">0</div><div class="mcard-sub">confirmadas</div></div>
+    <div class="mcard" data-ic="👨‍✈️"><div class="mcard-lbl">Pilotos</div><div class="mcard-val" id="escPilSem">0</div><div class="mcard-sub">diferentes escalados</div></div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><h3>⏰ Escala de Serviço</h3></div>
+    <div style="overflow-x:auto">
+      <div id="escGrid"></div>
+    </div>
+    <div id="escVazio" style="display:none;text-align:center;padding:60px 20px;color:var(--ink3)">
+      <div style="font-size:3em;margin-bottom:12px">⏰</div>
+      <div style="font-size:1.1em;font-weight:600">Sem escala para este ano</div>
+      <div style="font-size:.85em;margin-top:6px">Clique em <b>＋ Nova Semana</b> para adicionar</div>
+    </div>
+    <div id="escValMsg" style="display:none;margin:12px 16px;padding:10px 14px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;color:#16a34a;font-size:.82em;font-weight:600"></div>
   </div>
 </div>
 
 <!-- Modal Escala -->
 <div class="modal" id="modalEscala">
-<div class="modal-box" style="max-width:560px;background:#0f1e2e;color:#e2e8f0">
-  <div class="modal-hd" style="border-bottom:1px solid #1e3448;padding-bottom:12px">
-    <h3 id="escModalTit" style="color:#fff;margin:0">👥 Nova Semana de Escala</h3>
-    <span class="modal-x" onclick="A.escFecharModal()" style="color:#8fa9bd">×</span>
+<div class="modal-box" style="max-width:560px">
+  <div class="modal-hd">
+    <h3 id="escModalTit">⏰ Nova Semana de Escala</h3>
+    <span class="modal-x" onclick="A.escFecharModal()">×</span>
   </div>
   <input type="hidden" id="escEntradaIdx">
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
-    <div><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Data Início (Seg) *</label><input type="date" id="escDtIni" style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none;box-sizing:border-box"></div>
-    <div><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Data Fim (Dom) *</label><input type="date" id="escDtFim" style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none;box-sizing:border-box"></div>
-    <div><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Posto 1</label><input id="escPosto1" placeholder="Ex: COR.REF." style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none;box-sizing:border-box"></div>
-    <div><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Piloto 1</label><select id="escPiloto1" style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none"></select></div>
-    <div><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Função Piloto 1</label><input id="escFuncao1" placeholder="Ex: Piloto de Referência" style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none;box-sizing:border-box"></div>
-    <div><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Posto 2</label><input id="escPosto2" placeholder="Ex: MAJ." style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none;box-sizing:border-box"></div>
-    <div><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Piloto 2</label><select id="escPiloto2" style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none"></select></div>
-    <div><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Função Piloto 2</label><input id="escFuncao2" placeholder="Ex: Piloto de Referência" style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none;box-sizing:border-box"></div>
-    <div><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Posto</label><input id="escPosto" placeholder="Ex: 1ºTEN" style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none;box-sizing:border-box"></div>
-    <div><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Standby</label><select id="escStandby" style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none"></select></div>
-    <div style="grid-column:1/-1"><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Observações</label><input id="escObs" placeholder="Notas adicionais…" style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none;box-sizing:border-box"></div>
+  <div class="fgrid2">
+    <div class="fg"><label>Data Início (Seg) *</label><input type="date" id="escDtIni"></div>
+    <div class="fg"><label>Data Fim (Dom) *</label><input type="date" id="escDtFim"></div>
+    <div class="fg"><label>Posto 1</label><input id="escPosto1" placeholder="Ex: COR.REF."></div>
+    <div class="fg"><label>Piloto 1</label><select id="escPiloto1" style="width:100%"></select></div>
+    <div class="fg"><label>Função Piloto 1</label><input id="escFuncao1" placeholder="Ex: Piloto de Referência"></div>
+    <div class="fg"><label>Posto 2</label><input id="escPosto2" placeholder="Ex: MAJ."></div>
+    <div class="fg"><label>Piloto 2</label><select id="escPiloto2" style="width:100%"></select></div>
+    <div class="fg"><label>Função Piloto 2</label><input id="escFuncao2" placeholder="Ex: Piloto de Referência"></div>
+    <div class="fg"><label>Posto</label><input id="escPosto" placeholder="Ex: 1ºTEN"></div>
+    <div class="fg"><label>Standby</label><select id="escStandby" style="width:100%"></select></div>
+    <div class="fg" style="grid-column:1/-1"><label>Observações</label><input id="escObs" placeholder="Notas adicionais…"></div>
   </div>
   <div style="display:flex;gap:8px;justify-content:space-between;margin-top:16px;flex-wrap:wrap">
-    <button id="escBtnDel" onclick="A.escEliminar()" style="display:none;background:#7f1d1d;color:#fca5a5;border:none;border-radius:8px;padding:8px 14px;font-size:.82em;font-weight:600;cursor:pointer">🗑 Eliminar</button>
+    <button class="btn btn-d" id="escBtnDel" onclick="A.escEliminar()" style="display:none">🗑 Eliminar</button>
     <div style="display:flex;gap:8px;margin-left:auto">
-      <button onclick="A.escFecharModal()" style="background:#1e3448;color:#8fa9bd;border:none;border-radius:8px;padding:8px 14px;font-size:.82em;cursor:pointer">Cancelar</button>
-      <button onclick="A.escGuardar()" style="background:#1abc9c;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:.82em;font-weight:700;cursor:pointer">💾 Guardar</button>
+      <button class="btn btn-s" onclick="A.escFecharModal()">Cancelar</button>
+      <button class="btn btn-p" onclick="A.escGuardar()">💾 Guardar</button>
     </div>
   </div>
 </div>
+</div>
+
 </div>
 
 </div>
@@ -6448,17 +6458,17 @@ renderQuadro(){
 
 // ──────────────────────────────────────────────────────────────
 // ESCALA DE SERVIÇO
-// ── ESCALA SEMANAL ──────────────────────────────────────────────
+// ── ESCALA SEMANAL ─────────────────────────────────────────────
 _escPostoBg(posto){
-  if(!posto)return'#1abc9c';
+  if(!posto)return'var(--g8)';
   const p=posto.toUpperCase();
-  if(p.includes('REF'))return'#1abc9c';
-  if(p.includes('RES'))return'#17a589';
-  if(p.includes('MAJ'))return'#1a9dab';
-  if(p.includes('TEN'))return'#2471a3';
-  if(p.includes('SAR'))return'#6c3483';
-  if(p.includes('CAB'))return'#117a65';
-  return'#1abc9c';
+  if(p.includes('REF'))return'#0f766e';
+  if(p.includes('RES'))return'#0e7490';
+  if(p.includes('MAJ'))return'#1d4ed8';
+  if(p.includes('TEN'))return'#7c3aed';
+  if(p.includes('SAR'))return'#b45309';
+  if(p.includes('CAB'))return'#047857';
+  return'var(--g8)';
 },
 
 renderEscala(){
@@ -6472,44 +6482,52 @@ renderEscala(){
   const vazio=document.getElementById('escVazio');
   if(!grid)return;
   const semanas=(this.S.escala||[]).filter(e=>e.dtIni&&e.dtIni.startsWith(String(selY))).sort((a,b)=>a.dtIni.localeCompare(b.dtIni));
-  if(!semanas.length){
-    grid.innerHTML='';grid.style.display='none';
-    if(vazio)vazio.style.display='';
-    return;
-  }
-  if(vazio)vazio.style.display='none';
-  grid.style.display='';
+  // Stats
+  const totEl=document.getElementById('escTotSem');
+  const valEl=document.getElementById('escValSem');
+  const pilEl=document.getElementById('escPilSem');
+  if(totEl)totEl.textContent=semanas.length;
+  if(valEl)valEl.textContent=semanas.filter(s=>s.validado).length;
+  if(pilEl){const pils=new Set(semanas.flatMap(s=>[s.piloto1,s.piloto2,s.standby].filter(Boolean)));pilEl.textContent=pils.size;}
+  // Period text
   const pt=document.getElementById('escPeriodoTxt');
   if(pt&&semanas.length){
     const di=new Date(semanas[0].dtIni+'T12:00:00');
     const df=new Date(semanas[semanas.length-1].dtFim+'T12:00:00');
     const fmt=d=>d.toLocaleDateString('pt-PT',{day:'numeric',month:'long',year:'numeric'});
     pt.textContent='Período: '+fmt(di)+' a '+fmt(df);
+  } else if(pt){pt.textContent='Período: —';}
+  if(!semanas.length){
+    grid.innerHTML='';
+    if(vazio)vazio.style.display='';
+    return;
   }
+  if(vazio)vazio.style.display='none';
+  // Build table
   const cols=['Período','Posto 1','Piloto 1','Posto 2','Piloto 2','Posto','Standby'];
-  let h='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:720px">';
-  h+='<thead><tr style="background:#0f2537">';
-  cols.forEach(c=>h+='<th style="padding:10px 14px;text-align:left;font-size:.74em;font-weight:700;color:#4a7fa0;letter-spacing:.06em;white-space:nowrap;border-bottom:1px solid #1e3448">'+c+'</th>');
+  let h='<table style="width:100%;border-collapse:collapse;min-width:680px">';
+  h+='<thead><tr style="background:var(--g9)">';
+  cols.forEach(c=>h+='<th style="padding:9px 12px;text-align:left;font-size:.74em;font-weight:700;color:var(--white);letter-spacing:.04em;white-space:nowrap">'+c+'</th>');
   h+='</tr></thead><tbody>';
   semanas.forEach((s,i)=>{
-    const rowBg=i%2===0?'#0f1e2e':'#112436';
-    const vb=s.validado?'border-left:3px solid #2ecc71':'border-left:3px solid transparent';
+    const rowBg=i%2===0?'var(--white)':'var(--g0)';
     const di=new Date(s.dtIni+'T12:00:00');
     const df=new Date(s.dtFim+'T12:00:00');
     const per=this._escFmtPeriodo(di,df);
-    h+='<tr style="background:'+rowBg+';'+vb+';cursor:pointer" onclick="A.escEditarSemana('+i+')" title="Clique para editar">';
-    h+='<td style="padding:12px 14px;white-space:nowrap"><span style="color:#8fafc8;font-size:.83em;font-weight:700">📅 '+this.esc(per)+'</span></td>';
+    const valStyle=s.validado?'border-left:3px solid #16a34a':'border-left:3px solid transparent';
+    h+='<tr style="background:'+rowBg+';'+valStyle+';cursor:pointer;border-bottom:1px solid var(--border)" onclick="A.escEditarSemana('+i+')" title="Clique para editar">';
+    h+='<td style="padding:10px 12px;white-space:nowrap"><span style="font-size:.83em;font-weight:700;color:var(--ink)">📅 '+this.esc(per)+'</span>'+(s.validado?'<span style="margin-left:6px;font-size:.68em;background:#dcfce7;color:#16a34a;padding:1px 6px;border-radius:10px;font-weight:700">✓ Validado</span>':'')+'</td>';
     const bg1=this._escPostoBg(s.posto1);
-    h+='<td style="padding:12px 14px">'+(s.posto1?'<span style="background:'+bg1+';color:#fff;font-size:.72em;font-weight:800;padding:3px 10px;border-radius:20px;white-space:nowrap">'+this.esc(s.posto1)+'</span>':'<span style="color:#2a4a62">—</span>')+'</td>';
-    h+='<td style="padding:12px 14px"><div style="color:#1abc9c;font-weight:700;font-size:.88em">'+this.esc(s.piloto1||'—')+'</div>'+(s.funcao1?'<div style="color:#6b8fa8;font-size:.72em;margin-top:2px">'+this.esc(s.funcao1)+'</div>':'')+'</td>';
+    h+='<td style="padding:10px 12px">'+(s.posto1?'<span style="background:'+bg1+';color:#fff;font-size:.72em;font-weight:800;padding:2px 9px;border-radius:20px;white-space:nowrap">'+this.esc(s.posto1)+'</span>':'<span style="color:var(--ink3)">—</span>')+'</td>';
+    h+='<td style="padding:10px 12px"><div style="font-weight:700;font-size:.88em;color:var(--ink)">'+this.esc(s.piloto1||'—')+'</div>'+(s.funcao1?'<div style="color:var(--ink3);font-size:.72em;margin-top:1px">'+this.esc(s.funcao1)+'</div>':'')+'</td>';
     const bg2=this._escPostoBg(s.posto2);
-    h+='<td style="padding:12px 14px">'+(s.posto2?'<span style="background:'+bg2+';color:#fff;font-size:.72em;font-weight:800;padding:3px 10px;border-radius:20px;white-space:nowrap">'+this.esc(s.posto2)+'</span>':'<span style="color:#2a4a62">—</span>')+'</td>';
-    h+='<td style="padding:12px 14px"><div style="color:#e2e8f0;font-weight:600;font-size:.88em">'+this.esc(s.piloto2||'—')+'</div>'+(s.funcao2?'<div style="color:#6b8fa8;font-size:.72em;margin-top:2px">'+this.esc(s.funcao2)+'</div>':'')+'</td>';
-    h+='<td style="padding:12px 14px;white-space:nowrap"><span style="color:#8fafc8;font-size:.84em;font-weight:600">'+this.esc(s.posto||'—')+'</span></td>';
-    h+='<td style="padding:12px 14px">'+(s.standby?'<span style="background:#7d5a0a;color:#fde68a;font-size:.74em;font-weight:800;padding:3px 10px;border-radius:20px;white-space:nowrap">'+this.esc(s.standby)+'</span>':'<span style="color:#2a4a62">—</span>')+'</td>';
+    h+='<td style="padding:10px 12px">'+(s.posto2?'<span style="background:'+bg2+';color:#fff;font-size:.72em;font-weight:800;padding:2px 9px;border-radius:20px;white-space:nowrap">'+this.esc(s.posto2)+'</span>':'<span style="color:var(--ink3)">—</span>')+'</td>';
+    h+='<td style="padding:10px 12px"><div style="font-weight:600;font-size:.88em;color:var(--ink)">'+this.esc(s.piloto2||'—')+'</div>'+(s.funcao2?'<div style="color:var(--ink3);font-size:.72em;margin-top:1px">'+this.esc(s.funcao2)+'</div>':'')+'</td>';
+    h+='<td style="padding:10px 12px;white-space:nowrap"><span style="font-size:.82em;font-weight:600;color:var(--ink2)">'+this.esc(s.posto||'—')+'</span></td>';
+    h+='<td style="padding:10px 12px">'+(s.standby?'<span style="background:#92400e;color:#fde68a;font-size:.73em;font-weight:800;padding:2px 9px;border-radius:20px;white-space:nowrap">'+this.esc(s.standby)+'</span>':'<span style="color:var(--ink3)">—</span>')+'</td>';
     h+='</tr>';
   });
-  h+='</tbody></table></div>';
+  h+='</tbody></table>';
   grid.innerHTML=h;
 },
 
@@ -6521,7 +6539,7 @@ _escFmtPeriodo(di,df){
 escNovaSemana(){
   if(!this.isAdmin()){this.showNotif('❌ Sem permissão — apenas administradores e gestores','err');return;}
   const modal=document.getElementById('modalEscala');if(!modal)return;
-  document.getElementById('escModalTit').textContent='👥 Nova Semana de Escala';
+  document.getElementById('escModalTit').textContent='⏰ Nova Semana de Escala';
   document.getElementById('escEntradaIdx').value='';
   document.getElementById('escBtnDel').style.display='none';
   ['escPosto1','escFuncao1','escPosto2','escFuncao2','escPosto','escObs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
@@ -6545,7 +6563,7 @@ escEditarSemana(idx){
   const s=semanas[idx];if(!s)return;
   const realIdx=(this.S.escala||[]).indexOf(s);
   const modal=document.getElementById('modalEscala');if(!modal)return;
-  document.getElementById('escModalTit').textContent='👥 Editar Semana de Escala';
+  document.getElementById('escModalTit').textContent='⏰ Editar Semana de Escala';
   document.getElementById('escEntradaIdx').value=String(realIdx);
   document.getElementById('escBtnDel').style.display='';
   document.getElementById('escDtIni').value=s.dtIni||'';
@@ -6631,7 +6649,7 @@ escValidar(){
   this.S.dirty=true;
   this.renderEscala();
   const vm=document.getElementById('escValMsg');
-  if(vm){vm.textContent='✅ Escala validada com sucesso — '+semanas.length+' semana(s)';vm.style.display='';}
+  if(vm){vm.textContent='✅ Escala validada com sucesso — '+semanas.length+' semana(s) confirmada(s)';vm.style.display='';}
   this.showNotif('✅ Escala validada','ok');
   this.saveToCloud();
 },
@@ -6642,46 +6660,54 @@ escFecharModal(){
 },
 
 escPDF(){
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-  const ys=document.getElementById('escAno');
-  const selY=parseInt(ys?.value||String(new Date().getFullYear()));
-  const semanas=(this.S.escala||[]).filter(e=>e.dtIni&&e.dtIni.startsWith(String(selY))).sort((a,b)=>a.dtIni.localeCompare(b.dtIni));
-  const pw=297,lm=10,usable=277;
-  doc.setFillColor(13,27,42);doc.rect(0,0,pw,210,'F');
-  doc.setFontSize(13);doc.setFont(undefined,'bold');doc.setTextColor(255,255,255);
-  doc.text('CGC-EA — Escala Semanal de Pilotos — '+selY,lm,14);
-  doc.setFontSize(7);doc.setFont(undefined,'normal');doc.setTextColor(107,137,168);
-  doc.text('Gerado em '+new Date().toLocaleString('pt-PT'),pw-lm,14,{align:'right'});
-  const cols=['Período','Posto 1','Piloto 1','Posto 2','Piloto 2','Posto','Standby'];
-  const colW=[38,25,55,25,55,22,55];
-  const headY=20;const rowH=9;
-  doc.setFillColor(15,37,55);doc.rect(lm,headY,usable,rowH,'F');
-  doc.setFontSize(6);doc.setFont(undefined,'bold');doc.setTextColor(74,127,160);
-  let cx=lm;
-  cols.forEach((c,i)=>{doc.text(c,cx+2,headY+5.5);cx+=colW[i];});
-  const mns=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  semanas.forEach((s,ri)=>{
-    const y=headY+rowH*(ri+1);
-    if(y>195)return;
-    const bg=ri%2===0?[15,30,46]:[17,36,54];
-    doc.setFillColor(...bg);doc.rect(lm,y,usable,rowH,'F');
-    const di=new Date(s.dtIni+'T12:00:00');
-    const df=new Date(s.dtFim+'T12:00:00');
-    const per=di.getDate()+' '+mns[di.getMonth()]+' – '+df.getDate()+' '+mns[df.getMonth()];
-    const vals=[per,s.posto1||'—',s.piloto1||'—',s.posto2||'—',s.piloto2||'—',s.posto||'—',s.standby||'—'];
-    cx=lm;
-    vals.forEach((v,i)=>{
-      const r=i===2?26:i===6?253:226;
-      const g=i===2?188:i===6?212:232;
-      const b=i===2?156:i===6?98:240;
-      doc.setTextColor(r,g,b);
-      doc.setFontSize(6.5);doc.setFont(undefined,i===2?'bold':'normal');
-      doc.text(String(v).slice(0,22),cx+2,y+5.5);cx+=colW[i];
-    });
-  });
-  window.savePDF(doc,'Escala_CGC_EA_'+selY+'.pdf');
+  try{
+    if(!window.jspdf){this.showNotif('❌ Biblioteca PDF não carregada','err');return;}
+    const{jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    const ys=document.getElementById('escAno');
+    const selY=parseInt(ys?.value||String(new Date().getFullYear()));
+    const semanas=(this.S.escala||[]).filter(e=>e.dtIni&&e.dtIni.startsWith(String(selY))).sort((a,b)=>a.dtIni.localeCompare(b.dtIni));
+    // Header bar — same green as other PDFs
+    doc.setFillColor(46,125,50);doc.rect(0,0,297,20,'F');
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(13);
+    doc.text('CGC-EA — Escala Semanal de Pilotos — '+selY,148.5,10,{align:'center'});
+    doc.setFontSize(8);doc.setFont('helvetica','normal');
+    doc.text('Gerado em: '+new Date().toLocaleString('pt-PT'),148.5,16,{align:'center'});
+    doc.setTextColor(0,0,0);
+    if(!semanas.length){
+      doc.setFontSize(11);doc.text('Sem escala registada para '+selY+'.',10,35);
+    } else {
+      const mns=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+      const rows=semanas.map(s=>{
+        const di=new Date(s.dtIni+'T12:00:00');
+        const df=new Date(s.dtFim+'T12:00:00');
+        const per=di.getDate()+' '+mns[di.getMonth()]+' – '+df.getDate()+' '+mns[df.getMonth()];
+        return[per,s.posto1||'—',s.piloto1||'—'+(s.funcao1?' / '+s.funcao1:''),s.posto2||'—',s.piloto2||'—'+(s.funcao2?' / '+s.funcao2:''),s.posto||'—',s.standby||'—',s.validado?'Sim':'Não'];
+      });
+      doc.autoTable({
+        startY:26,
+        head:[['Período','Posto 1','Piloto 1','Posto 2','Piloto 2','Posto','Standby','Validado']],
+        body:rows,
+        styles:{fontSize:8,cellPadding:3,valign:'middle'},
+        headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold',halign:'center'},
+        alternateRowStyles:{fillColor:[245,250,245]},
+        columnStyles:{
+          0:{cellWidth:36,halign:'center'},
+          1:{cellWidth:22,halign:'center'},
+          2:{cellWidth:52},
+          3:{cellWidth:22,halign:'center'},
+          4:{cellWidth:52},
+          5:{cellWidth:20,halign:'center'},
+          6:{cellWidth:45},
+          7:{cellWidth:18,halign:'center'}
+        },
+        margin:{left:10,right:10}
+      });
+    }
+    window.savePDF(doc,'Escala_CGC_EA_'+selY+'.pdf');
+  }catch(e){this.showNotif('❌ Erro ao gerar PDF: '+e.message,'err');}
 },
+
 
 
 renderMapa(){
