@@ -5425,7 +5425,10 @@ async enviarReciboEmail(nome){
       const nomeArq='Recibo_'+nome.split(' ')[0]+'_'+mesNome+'_'+ano+'.pdf';
       const assunto='Recibo de Pagamento — '+mesNome+' '+ano+' — CGC-EA';
       const corpo='Exmo(a) '+nome+',\n\nSegue em anexo o recibo de pagamento referente ao mes de '+mesNome+' '+ano+'.\n\nTotal a receber: '+this.cve(totVH+totVR)+'\n\nEste documento foi gerado automaticamente pelo Sistema de Gestao de Voo da Esquadrilha Aerea da Guarda Costeira de Cabo Verde.\n\nCom os melhores cumprimentos,\nEsquadrilha Aerea — CGC';
-      const res=await this.apiCall({action:'sendEmail',to:dest,subject:assunto,body:corpo,pdfBase64:pdfB64,fileName:nomeArq});
+      const _gasUrl=getApiUrl();
+	  if(!_gasUrl){this.showNotif('❌ URL do servidor não configurado','err');return;}
+	  const _resp=await fetch(_gasUrl,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify({action:'sendEmail',to:dest,subject:assunto,body:corpo,pdfBase64:pdfB64,fileName:nomeArq})});
+	  const res=await _resp.json();
       if(res?.ok){
         this.showNotif('✅ Recibo enviado para '+dest);
         this.addAudit('Recibo enviado por email',nome+' → '+dest);
