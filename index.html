@@ -1331,6 +1331,48 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     </div>
     <div id="escValMsg" style="display:none;margin:12px 16px;padding:10px 14px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;color:#16a34a;font-size:.82em;font-weight:600"></div>
   </div>
+
+<!-- Escala de Pessoal de Cabine -->
+<div class="card" style="margin-top:20px">
+  <div class="card-hd" style="flex-wrap:wrap;gap:8px">
+    <h3>🧑‍✈️ Escala de Pessoal de Cabine</h3>
+    <div style="display:flex;gap:8px;align-items:center;margin-left:auto;flex-wrap:wrap">
+      <select id="escCabMes" onchange="A.renderEscalaCabine()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:7px;font-size:.82em;background:var(--white);color:var(--ink);outline:none"></select>
+      <select id="escCabAno" onchange="A.renderEscalaCabine()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:7px;font-size:.82em;background:var(--white);color:var(--ink);outline:none"></select>
+      <button class="btn btn-p btn-sm admin-only" onclick="A.escCabineNova()">＋ Adicionar</button>
+      <button class="btn btn-sm" onclick="A.escCabinePDF()" style="font-size:.82em">📄 PDF Cabine</button>
+    </div>
+  </div>
+  <div id="escCabGrid" style="padding:4px 0"></div>
+  <div id="escCabVazio" style="text-align:center;padding:40px 20px;color:var(--ink3)">
+    <div style="font-size:2.5em;margin-bottom:8px">🧑‍✈️</div>
+    <div style="font-size:.95em;font-weight:600">Sem pessoal de cabine para este mês</div>
+    <div style="font-size:.82em;margin-top:4px">Clique em <b>＋ Adicionar</b> para inserir</div>
+  </div>
+</div>
+</div>
+
+<!-- Modal Escala Cabine -->
+<div class="modal" id="modalEscCabine">
+<div class="modal-box" style="max-width:400px">
+  <div class="modal-hd">
+    <h3 id="escCabModalTit">➕ Adicionar Pessoal de Cabine</h3>
+    <span class="modal-x" onclick="A.escCabineFecharModal()">×</span>
+  </div>
+  <input type="hidden" id="escCabEntradaKey">
+  <div class="fgrid2">
+    <div class="fg" style="grid-column:1/-1"><label>Tripulante *</label><select id="escCabNome" style="width:100%" onchange="A._escCabAutoPosto()"></select></div>
+    <div class="fg"><label>Posto</label><input id="escCabPosto" placeholder="Auto-preenchido" readonly style="background:var(--g0)"></div>
+    <div class="fg"><label>Função</label><select id="escCabFuncao" style="width:100%"></select></div>
+  </div>
+  <div style="display:flex;gap:8px;justify-content:space-between;margin-top:16px;flex-wrap:wrap">
+    <button class="btn btn-d" id="escCabBtnDel" onclick="A.escCabineEliminar()" style="display:none">🗑 Eliminar</button>
+    <div style="display:flex;gap:8px;margin-left:auto">
+      <button class="btn btn-s" onclick="A.escCabineFecharModal()">Cancelar</button>
+      <button class="btn btn-p" onclick="A.escCabineGuardar()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
 </div>
 
 <!-- Modal Escala -->
@@ -1496,7 +1538,7 @@ const A = {
 // ─── ESTADO ───────────────────────────────────────────────────
 S:{
   trips:[], missoes:[], filtered:[], series:[],
-  aeros:[], incidentes:[], contactos:[], escala:[],
+  aeros:[], incidentes:[], contactos:[], escala:[], escalaCabine:[],
   auditLog:[], templates:[], charts:{}, viewMode:'table', hrLimit:80, hrLimitYear:800, dirty:false,
   lastSave:null, role:null, currentUser:null, sessionToken:null, usersCache:null,
 },
@@ -1782,6 +1824,7 @@ async saveToCloud(){
       incidentes:this.S.incidentes,
       contactos:this.S.contactos,
       escala:this.S.escala,
+      escalaCabine:this.S.escalaCabine,
       config:{
         funcoes:this.C.funcoes,
         fnRates:this.C.vPF,
@@ -1838,6 +1881,7 @@ async loadFromCloud(){
       this.S.incidentes=d.incidentes||[];
       this.S.contactos=d.contactos||[];
       this.S.escala=d.escala||[];
+      this.S.escalaCabine=d.escalaCabine||[];
       // ── Restaurar configurações guardadas no Drive ──
       if(d.config){
         const cfg=d.config;
@@ -2602,7 +2646,7 @@ navTo(p){
   if(p==='calendario')this.renderCalendar();
   if(p==='analises'){this.renderTop();this.renderHorasTrip();this.buildAnalysisCharts();this.renderDashSelectors();}
   if(p==='quadro'){this.renderQuadro();if(!this._quadroTimer)this._quadroTimer=setInterval(()=>{if(!document.getElementById('page-quadro').classList.contains('hide'))this.renderQuadro();},30000);}
-  if(p==='escala')this.renderEscala();
+  if(p==='escala'){this.renderEscala();this.renderEscalaCabine();}
   if(p==='mapa')this.renderMapa();
   if(p==='incidentes')this.renderIncidentes();
   if(p==='contactos')this.renderContactos();
@@ -5426,9 +5470,9 @@ async enviarReciboEmail(nome){
       const assunto='Recibo de Pagamento — '+mesNome+' '+ano+' — CGC-EA';
       const corpo='Exmo(a) '+nome+',\n\nSegue em anexo o recibo de pagamento referente ao mes de '+mesNome+' '+ano+'.\n\nTotal a receber: '+this.cve(totVH+totVR)+'\n\nEste documento foi gerado automaticamente pelo Sistema de Gestao de Voo da Esquadrilha Aerea da Guarda Costeira de Cabo Verde.\n\nCom os melhores cumprimentos,\nEsquadrilha Aerea — CGC';
       const _gasUrl=getApiUrl();
-	  if(!_gasUrl){this.showNotif('❌ URL do servidor não configurado','err');return;}
-	  const _resp=await fetch(_gasUrl,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify({action:'sendEmail',to:dest,subject:assunto,body:corpo,pdfBase64:pdfB64,fileName:nomeArq})});
-	  const res=await _resp.json();
+      if(!_gasUrl){this.showNotif('❌ URL do servidor não configurado','err');return;}
+      const _resp=await fetch(_gasUrl,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify({action:'sendEmail',to:dest,subject:assunto,body:corpo,pdfBase64:pdfB64,fileName:nomeArq})});
+      const res=await _resp.json();
       if(res?.ok){
         this.showNotif('✅ Recibo enviado para '+dest);
         this.addAudit('Recibo enviado por email',nome+' → '+dest);
@@ -6736,6 +6780,242 @@ escPDF(){
     }
     window.savePDF(doc,'Escala_CGC_EA_'+selY+'.pdf');
   }catch(e){this.showNotif('❌ Erro ao gerar PDF: '+e.message,'err');}
+},
+
+// ─── ESCALA DE PESSOAL DE CABINE ──────────────────────────────────────────
+
+renderEscalaCabine(){
+  const msEl=document.getElementById('escCabMes');
+  const anoEl=document.getElementById('escCabAno');
+  const curY=new Date().getFullYear();
+  if(msEl&&!msEl.options.length){
+    const mns=['Janeiro','Fevereiro','Mar\u00e7o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    mns.forEach((m,i)=>msEl.insertAdjacentHTML('beforeend','<option value="'+(i+1)+'"'+(i+1===new Date().getMonth()+1?' selected':'')+'>'+m+'</option>'));
+  }
+  if(anoEl&&!anoEl.options.length){
+    for(let y=curY+1;y>=curY-2;y--)anoEl.insertAdjacentHTML('beforeend','<option value="'+y+'"'+(y===curY?' selected':'')+'>'+y+'</option>');
+  }
+  const mes=parseInt(msEl?.value||String(new Date().getMonth()+1));
+  const ano=parseInt(anoEl?.value||String(curY));
+  const grid=document.getElementById('escCabGrid');
+  const vazio=document.getElementById('escCabVazio');
+  if(!grid)return;
+  if(!this.S.escalaCabine)this.S.escalaCabine=[];
+  const entradas=this.S.escalaCabine.filter(e=>e.mes===mes&&e.ano===ano);
+  if(!entradas.length){grid.innerHTML='';if(vazio)vazio.style.display='';return;}
+  if(vazio)vazio.style.display='none';
+  const diasNoMes=new Date(ano,mes,0).getDate();
+  const dowNames=['D','S','T','Q','Q','S','S'];
+  const mns=['Janeiro','Fevereiro','Mar\u00e7o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  let h='<div style="overflow-x:auto"><table style="border-collapse:collapse;font-size:.72em;width:100%">';
+  // Row 1 — month header
+  h+='<thead><tr>';
+  h+='<th colspan="3" style="border:1.5px solid #90caf9;padding:5px 8px;background:#e3f2fd"></th>';
+  h+='<th colspan="'+diasNoMes+'" style="border:1.5px solid #90caf9;padding:5px;background:#ffff00;color:#000;font-weight:800;font-size:1.05em;text-align:center;letter-spacing:2px">'+mns[mes-1].toUpperCase()+' '+ano+'</th>';
+  h+='</tr>';
+  // Row 2 — column labels
+  h+='<tr style="background:#bbdefb">';
+  h+='<th style="border:1.5px solid #90caf9;padding:5px 8px;white-space:nowrap;font-style:italic;text-decoration:underline">N/O</th>';
+  h+='<th style="border:1.5px solid #90caf9;padding:5px 8px;white-space:nowrap;font-style:italic;text-decoration:underline">POSTO</th>';
+  h+='<th style="border:1.5px solid #90caf9;padding:5px 10px;white-space:nowrap;font-style:italic;text-decoration:underline">NOME E APELIDO</th>';
+  for(let d=1;d<=diasNoMes;d++){
+    const dow=new Date(ano,mes-1,d).getDay();
+    const isWe=dow===0||dow===6;
+    h+='<th style="border:1.5px solid #90caf9;padding:3px 1px;text-align:center;min-width:20px;font-weight:700;'+(isWe?'background:#e3f2fd':'background:#bbdefb')+'">'+d+'</th>';
+  }
+  h+='</tr>';
+  // Row 3 — day-of-week letters
+  h+='<tr style="background:#bbdefb">';
+  h+='<th colspan="3" style="border:1.5px solid #90caf9;background:#bbdefb"></th>';
+  for(let d=1;d<=diasNoMes;d++){
+    const dow=new Date(ano,mes-1,d).getDay();
+    const isWe=dow===0||dow===6;
+    h+='<th style="border:1.5px solid #90caf9;padding:2px 1px;text-align:center;font-size:.85em;font-weight:600;'+(isWe?'background:#e3f2fd':'background:#bbdefb')+'">'+dowNames[dow]+'</th>';
+  }
+  h+='</tr></thead><tbody>';
+  // Data rows
+  entradas.forEach((e,i)=>{
+    const ne=e.nome||'';
+    const nq=ne.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const rowBg=i%2===0?'#e3f2fd':'#bbdefb';
+    h+='<tr style="background:'+rowBg+'">';
+    h+='<td style="border:1.5px solid #90caf9;padding:4px 8px;text-align:center;font-weight:700">'+(i+1)+'</td>';
+    h+='<td style="border:1.5px solid #90caf9;padding:4px 8px;white-space:nowrap;font-style:italic;font-weight:600">'+this.esc(e.posto||'\u2014')+'</td>';
+    h+='<td style="border:1.5px solid #90caf9;padding:4px 10px;white-space:nowrap;cursor:pointer" onclick="A.escCabineEditar(\''+nq+'\','+e.mes+','+e.ano+')" title="Clique para editar">'+this.esc(ne)+(e.funcao?'<span style="color:#1565c0;font-size:.8em;margin-left:5px">('+this.esc(e.funcao)+')</span>':'')+'</td>';
+    for(let d=1;d<=diasNoMes;d++){
+      const dow=new Date(ano,mes-1,d).getDay();
+      const isWe=dow===0||dow===6;
+      const marcado=(e.dias||[]).includes(d);
+      h+='<td style="border:1.5px solid #90caf9;padding:3px 1px;text-align:center;cursor:pointer;'+(isWe?'background:#c9e4f8;':'')+(marcado?'font-weight:800;color:#0d47a1;':'color:var(--ink3)')+'" onclick="A.escCabineToggleDia(\''+nq+'\','+d+','+mes+','+ano+')">'+(marcado?'X':'')+'</td>';
+    }
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  grid.innerHTML=h;
+},
+
+escCabineToggleDia(nome,dia,mes,ano){
+  if(!this.isAdmin()){this.showNotif('\u274c Sem permiss\u00e3o','err');return;}
+  if(!this.S.escalaCabine)this.S.escalaCabine=[];
+  const e=this.S.escalaCabine.find(x=>x.nome===nome&&x.mes===mes&&x.ano===ano);
+  if(!e)return;
+  if(!e.dias)e.dias=[];
+  const idx=e.dias.indexOf(dia);
+  if(idx>=0)e.dias.splice(idx,1);else e.dias.push(dia);
+  e.dias.sort((a,b)=>a-b);
+  this.S.dirty=true;
+  this.renderEscalaCabine();
+  this.saveToCloud();
+},
+
+escCabineNova(){
+  if(!this.isAdmin()){this.showNotif('\u274c Sem permiss\u00e3o','err');return;}
+  const modal=document.getElementById('modalEscCabine');if(!modal)return;
+  document.getElementById('escCabModalTit').textContent='\u2795 Adicionar Pessoal de Cabine';
+  document.getElementById('escCabEntradaKey').value='';
+  document.getElementById('escCabPosto').value='';
+  const delBtn=document.getElementById('escCabBtnDel');if(delBtn)delBtn.style.display='none';
+  this._escCabFillSelects('','');
+  modal.style.display='flex';document.body.style.overflow='hidden';
+},
+
+escCabineEditar(nome,mes,ano){
+  if(!this.isAdmin()){this.showNotif('\u274c Sem permiss\u00e3o','err');return;}
+  if(!this.S.escalaCabine)this.S.escalaCabine=[];
+  const e=this.S.escalaCabine.find(x=>x.nome===nome&&x.mes===mes&&x.ano===ano);
+  if(!e)return;
+  const modal=document.getElementById('modalEscCabine');if(!modal)return;
+  document.getElementById('escCabModalTit').textContent='\u270f\ufe0f Editar Pessoal de Cabine';
+  document.getElementById('escCabEntradaKey').value=nome+'|'+mes+'|'+ano;
+  document.getElementById('escCabPosto').value=e.posto||'';
+  const delBtn=document.getElementById('escCabBtnDel');if(delBtn)delBtn.style.display='';
+  this._escCabFillSelects(nome,e.funcao||'');
+  modal.style.display='flex';document.body.style.overflow='hidden';
+},
+
+_escCabFillSelects(nomeVal,funcaoVal){
+  const trips=[...this.S.trips].sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  const nomeSel=document.getElementById('escCabNome');
+  if(nomeSel){
+    nomeSel.innerHTML='<option value="">\u2014 Selecionar \u2014</option>';
+    trips.forEach(t=>{const opt=document.createElement('option');opt.value=t.nome;opt.textContent=t.nome;if(t.nome===nomeVal)opt.selected=true;nomeSel.appendChild(opt);});
+  }
+  const funcSel=document.getElementById('escCabFuncao');
+  if(funcSel){
+    funcSel.innerHTML='<option value="">\u2014 Nenhuma \u2014</option>';
+    (this.C.funcoes||[]).forEach(f=>{const opt=document.createElement('option');opt.value=f;opt.textContent=f;if(f===funcaoVal)opt.selected=true;funcSel.appendChild(opt);});
+  }
+},
+
+_escCabAutoPosto(){
+  const nomeSel=document.getElementById('escCabNome');
+  const postoEl=document.getElementById('escCabPosto');
+  if(!nomeSel||!postoEl)return;
+  const nome=nomeSel.value;
+  if(!nome)return;
+  const trip=(this.S.trips||[]).find(t=>t.nome===nome);
+  if(trip&&trip.posto)postoEl.value=trip.posto;
+},
+
+escCabineGuardar(){
+  const key=document.getElementById('escCabEntradaKey').value;
+  const nome=document.getElementById('escCabNome').value;
+  const posto=document.getElementById('escCabPosto').value.trim();
+  const funcao=document.getElementById('escCabFuncao').value;
+  if(!nome){this.showNotif('\u26a0\ufe0f Selecione um tripulante','warn');return;}
+  const msEl=document.getElementById('escCabMes');
+  const anoEl=document.getElementById('escCabAno');
+  const mes=parseInt(msEl?.value||String(new Date().getMonth()+1));
+  const ano=parseInt(anoEl?.value||String(new Date().getFullYear()));
+  if(!this.S.escalaCabine)this.S.escalaCabine=[];
+  if(key){
+    const[kN,kM,kA]=key.split('|');
+    const e=this.S.escalaCabine.find(x=>x.nome===kN&&x.mes===parseInt(kM)&&x.ano===parseInt(kA));
+    if(e){e.nome=nome;e.posto=posto;e.funcao=funcao;}
+  }else{
+    if(this.S.escalaCabine.find(x=>x.nome===nome&&x.mes===mes&&x.ano===ano)){this.showNotif('\u26a0\ufe0f Tripulante j\u00e1 est\u00e1 nesta escala','warn');return;}
+    this.S.escalaCabine.push({nome,posto,funcao,mes,ano,dias:[]});
+  }
+  this.S.dirty=true;
+  this.escCabineFecharModal();
+  this.renderEscalaCabine();
+  this.showNotif('\u2705 Guardado');
+  this.saveToCloud();
+},
+
+escCabineEliminar(){
+  const key=document.getElementById('escCabEntradaKey').value;
+  if(!key)return;
+  if(!confirm('Eliminar este registo de cabine?'))return;
+  const[kN,kM,kA]=key.split('|');
+  this.S.escalaCabine=(this.S.escalaCabine||[]).filter(x=>!(x.nome===kN&&x.mes===parseInt(kM)&&x.ano===parseInt(kA)));
+  this.S.dirty=true;
+  this.escCabineFecharModal();
+  this.renderEscalaCabine();
+  this.showNotif('\U0001f5d1 Eliminado','warn');
+  this.saveToCloud();
+},
+
+escCabineFecharModal(){
+  const m=document.getElementById('modalEscCabine');if(m)m.style.display='none';
+  document.body.style.overflow='';
+},
+
+escCabinePDF(){
+  try{
+    if(!window.jspdf){this.showNotif('\u274c Biblioteca PDF n\u00e3o carregada','err');return;}
+    const{jsPDF}=window.jspdf;
+    const msEl=document.getElementById('escCabMes');
+    const anoEl=document.getElementById('escCabAno');
+    const mes=parseInt(msEl?.value||String(new Date().getMonth()+1));
+    const ano=parseInt(anoEl?.value||String(new Date().getFullYear()));
+    const mns=['Janeiro','Fevereiro','Mar\u00e7o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const mesNome=mns[mes-1];
+    if(!this.S.escalaCabine)this.S.escalaCabine=[];
+    const entradas=this.S.escalaCabine.filter(e=>e.mes===mes&&e.ano===ano);
+    const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    doc.setFillColor(30,136,229);doc.rect(0,0,297,20,'F');
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(13);
+    doc.text('CGC-EA \u2014 Escala de Pessoal de Cabine \u2014 '+mesNome.toUpperCase()+' '+ano,148.5,10,{align:'center'});
+    doc.setFontSize(8);doc.setFont('helvetica','normal');
+    doc.text('Gerado em: '+new Date().toLocaleString('pt-PT'),148.5,17,{align:'center'});
+    doc.setTextColor(0,0,0);
+    if(!entradas.length){
+      doc.setFontSize(11);doc.text('Sem escala registada para '+mesNome+' '+ano+'.',10,35);
+    }else{
+      const diasNoMes=new Date(ano,mes,0).getDate();
+      const dowAbbr=['D','S','T','Q','Q','S','S'];
+      const head1=['N/O','Posto','Nome / Fun\u00e7\u00e3o'];
+      for(let d=1;d<=diasNoMes;d++){
+        const dow=new Date(ano,mes-1,d).getDay();
+        head1.push(String(d)+' '+dowAbbr[dow]);
+      }
+      const body=entradas.map((e,i)=>{
+        const row=[String(i+1),e.posto||'\u2014',(e.nome||'\u2014')+(e.funcao?' / '+e.funcao:'')];
+        for(let d=1;d<=diasNoMes;d++)row.push((e.dias||[]).includes(d)?'X':'');
+        return row;
+      });
+      doc.autoTable({
+        startY:24,
+        head:[head1],
+        body,
+        styles:{fontSize:5.5,cellPadding:1.5,halign:'center',valign:'middle'},
+        headStyles:{fillColor:[30,136,229],textColor:255,fontStyle:'bold',fontSize:5.5},
+        alternateRowStyles:{fillColor:[227,242,253]},
+        columnStyles:{0:{cellWidth:7},1:{cellWidth:16},2:{cellWidth:32,halign:'left'}},
+        margin:{left:8,right:8},
+        didParseCell:(data)=>{
+          if(data.column.index>2){
+            const d=data.column.index-2;
+            const dow=new Date(ano,mes-1,d).getDay();
+            if(dow===0||dow===6){data.cell.styles.fillColor=data.row.index%2===0?[144,202,249]:[187,222,251];}
+            if(data.section==='body'&&data.cell.text[0]==='X')data.cell.styles.fontStyle='bold';
+          }
+        }
+      });
+    }
+    window.savePDF(doc,'EscalaCabine_CGC_EA_'+mesNome+'_'+ano+'.pdf');
+  }catch(e){this.showNotif('\u274c Erro ao gerar PDF: '+e.message,'err');}
 },
 
 
