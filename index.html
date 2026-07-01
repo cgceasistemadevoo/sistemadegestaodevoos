@@ -1315,7 +1315,21 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="card-hd" style="flex-wrap:wrap;gap:8px">
       <h3>⏰ Escala de Serviço Semanal de Pilotos</h3>
       <div style="display:flex;gap:8px;align-items:center;margin-left:auto;flex-wrap:wrap">
-        <select id="escMes" onchange="A.renderEscala()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:7px;font-size:.82em;background:var(--white);color:var(--ink);outline:none"></select>
+        <select id="escMes" onchange="A.renderEscala()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:7px;font-size:.82em;background:var(--white);color:var(--ink);outline:none">
+          <option value="0">Todos os meses</option>
+          <option value="1">Janeiro</option>
+          <option value="2">Fevereiro</option>
+          <option value="3">Março</option>
+          <option value="4">Abril</option>
+          <option value="5">Maio</option>
+          <option value="6">Junho</option>
+          <option value="7">Julho</option>
+          <option value="8">Agosto</option>
+          <option value="9">Setembro</option>
+          <option value="10">Outubro</option>
+          <option value="11">Novembro</option>
+          <option value="12">Dezembro</option>
+        </select>
         <select id="escAno" onchange="A.renderEscala()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:7px;font-size:.82em;background:var(--white);color:var(--ink);outline:none"></select>
         <button class="btn btn-p btn-sm admin-only" onclick="A.escNovaSemana()">＋ Nova Semana</button>
         <button class="btn btn-sm admin-only" onclick="A.escValidar()" style="font-size:.82em">✓ Validar</button>
@@ -6527,11 +6541,7 @@ renderEscala(){
   if(ys&&!ys.options.length){
     for(let y=curY+3;y>=curY-2;y--)ys.insertAdjacentHTML('beforeend','<option value="'+y+'"'+(y===curY?' selected':'')+'>'+y+'</option>');
   }
-  if(ms&&!ms.options.length){
-    const mns=['Janeiro','Fevereiro','Mar\u00e7o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-    ms.insertAdjacentHTML('beforeend','<option value="0">Todos os meses</option>');
-    mns.forEach((m,i)=>ms.insertAdjacentHTML('beforeend','<option value="'+(i+1)+'"'+(i+1===curM?' selected':'')+'>'+m+'</option>'));
-  }
+  if(ms&&ms.value==='0'&&!ms.dataset.init){ms.value=String(curM);ms.dataset.init='1';}
   const selY=parseInt(ys?.value||String(curY));
   const selM=parseInt(ms?.value||'0');
   const grid=document.getElementById('escGrid');
