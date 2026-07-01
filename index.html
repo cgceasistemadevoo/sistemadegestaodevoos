@@ -1345,11 +1345,11 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="fg"><label>Data Início (Seg) *</label><input type="date" id="escDtIni"></div>
     <div class="fg"><label>Data Fim (Dom) *</label><input type="date" id="escDtFim"></div>
     <div class="fg"><label>Posto 1</label><input id="escPosto1" placeholder="Ex: COR.REF."></div>
-    <div class="fg"><label>Piloto 1</label><select id="escPiloto1" style="width:100%"></select></div>
-    <div class="fg"><label>Função Piloto 1</label><input id="escFuncao1" placeholder="Ex: Piloto de Referência"></div>
+    <div class="fg"><label>Piloto 1</label><select id="escPiloto1" style="width:100%" onchange="A._escAutoPosto(1)"></select></div>
+    <div class="fg"><label>Função Piloto 1</label><select id="escFuncao1" style="width:100%"></select></div>
     <div class="fg"><label>Posto 2</label><input id="escPosto2" placeholder="Ex: MAJ."></div>
-    <div class="fg"><label>Piloto 2</label><select id="escPiloto2" style="width:100%"></select></div>
-    <div class="fg"><label>Função Piloto 2</label><input id="escFuncao2" placeholder="Ex: Piloto de Referência"></div>
+    <div class="fg"><label>Piloto 2</label><select id="escPiloto2" style="width:100%" onchange="A._escAutoPosto(2)"></select></div>
+    <div class="fg"><label>Função Piloto 2</label><select id="escFuncao2" style="width:100%"></select></div>
     <div class="fg"><label>Posto</label><input id="escPosto" placeholder="Ex: 1ºTEN"></div>
     <div class="fg"><label>Standby</label><select id="escStandby" style="width:100%"></select></div>
     <div class="fg" style="grid-column:1/-1"><label>Observações</label><input id="escObs" placeholder="Notas adicionais…"></div>
@@ -6503,11 +6503,18 @@ renderEscala(){
     return;
   }
   if(vazio)vazio.style.display='none';
-  // Build table
-  const cols=['Período','Posto 1','Piloto 1','Posto 2','Piloto 2','Posto','Standby'];
-  let h='<table style="width:100%;border-collapse:collapse;min-width:680px">';
-  h+='<thead><tr style="background:var(--g9)">';
-  cols.forEach(c=>h+='<th style="padding:9px 12px;text-align:left;font-size:.74em;font-weight:700;color:var(--white);letter-spacing:.04em;white-space:nowrap">'+c+'</th>');
+  // Build table — hide columns with no data
+  const _hP1=semanas.some(s=>s.posto1);
+  const _hPi1=semanas.some(s=>s.piloto1);
+  const _hP2=semanas.some(s=>s.posto2);
+  const _hPi2=semanas.some(s=>s.piloto2);
+  const _hPs=semanas.some(s=>s.posto);
+  const _hSb=semanas.some(s=>s.standby);
+  const colDefs=[['Per\u00edodo',true],['Posto 1',_hP1],['Piloto 1',_hPi1],['Posto 2',_hP2],['Piloto 2',_hPi2],['Posto',_hPs],['Standby',_hSb]];
+  const visCols=colDefs.filter(c=>c[1]).map(c=>c[0]);
+  let h='<table style="width:100%;border-collapse:collapse;min-width:480px">';
+  h+='<thead><tr style="background:var(--g1);border-bottom:2px solid var(--border)">';
+  visCols.forEach(c=>h+='<th style="padding:9px 12px;text-align:left;font-size:.74em;font-weight:700;color:var(--ink2);letter-spacing:.04em;white-space:nowrap">'+c+'</th>');
   h+='</tr></thead><tbody>';
   semanas.forEach((s,i)=>{
     const rowBg=i%2===0?'var(--white)':'var(--g0)';
@@ -6516,15 +6523,13 @@ renderEscala(){
     const per=this._escFmtPeriodo(di,df);
     const valStyle=s.validado?'border-left:3px solid #16a34a':'border-left:3px solid transparent';
     h+='<tr style="background:'+rowBg+';'+valStyle+';cursor:pointer;border-bottom:1px solid var(--border)" onclick="A.escEditarSemana('+i+')" title="Clique para editar">';
-    h+='<td style="padding:10px 12px;white-space:nowrap"><span style="font-size:.83em;font-weight:700;color:var(--ink)">📅 '+this.esc(per)+'</span>'+(s.validado?'<span style="margin-left:6px;font-size:.68em;background:#dcfce7;color:#16a34a;padding:1px 6px;border-radius:10px;font-weight:700">✓ Validado</span>':'')+'</td>';
-    const bg1=this._escPostoBg(s.posto1);
-    h+='<td style="padding:10px 12px">'+(s.posto1?'<span style="background:'+bg1+';color:#fff;font-size:.72em;font-weight:800;padding:2px 9px;border-radius:20px;white-space:nowrap">'+this.esc(s.posto1)+'</span>':'<span style="color:var(--ink3)">—</span>')+'</td>';
-    h+='<td style="padding:10px 12px"><div style="font-weight:700;font-size:.88em;color:var(--ink)">'+this.esc(s.piloto1||'—')+'</div>'+(s.funcao1?'<div style="color:var(--ink3);font-size:.72em;margin-top:1px">'+this.esc(s.funcao1)+'</div>':'')+'</td>';
-    const bg2=this._escPostoBg(s.posto2);
-    h+='<td style="padding:10px 12px">'+(s.posto2?'<span style="background:'+bg2+';color:#fff;font-size:.72em;font-weight:800;padding:2px 9px;border-radius:20px;white-space:nowrap">'+this.esc(s.posto2)+'</span>':'<span style="color:var(--ink3)">—</span>')+'</td>';
-    h+='<td style="padding:10px 12px"><div style="font-weight:600;font-size:.88em;color:var(--ink)">'+this.esc(s.piloto2||'—')+'</div>'+(s.funcao2?'<div style="color:var(--ink3);font-size:.72em;margin-top:1px">'+this.esc(s.funcao2)+'</div>':'')+'</td>';
-    h+='<td style="padding:10px 12px;white-space:nowrap"><span style="font-size:.82em;font-weight:600;color:var(--ink2)">'+this.esc(s.posto||'—')+'</span></td>';
-    h+='<td style="padding:10px 12px">'+(s.standby?'<span style="background:#92400e;color:#fde68a;font-size:.73em;font-weight:800;padding:2px 9px;border-radius:20px;white-space:nowrap">'+this.esc(s.standby)+'</span>':'<span style="color:var(--ink3)">—</span>')+'</td>';
+    h+='<td style="padding:10px 12px;white-space:nowrap"><span style="font-size:.83em;font-weight:700;color:var(--ink)">\ud83d\udcc5 '+this.esc(per)+'</span>'+(s.validado?'<span style="margin-left:6px;font-size:.68em;background:#dcfce7;color:#16a34a;padding:1px 6px;border-radius:10px;font-weight:700">\u2713 Validado</span>':'')+'</td>';
+    if(_hP1){const bg1=this._escPostoBg(s.posto1);h+='<td style="padding:10px 12px">'+(s.posto1?'<span style="background:'+bg1+';color:#fff;font-size:.72em;font-weight:800;padding:2px 9px;border-radius:20px;white-space:nowrap">'+this.esc(s.posto1)+'</span>':'')+'</td>';}
+    if(_hPi1){h+='<td style="padding:10px 12px"><div style="font-weight:700;font-size:.88em;color:var(--ink)">'+this.esc(s.piloto1||'')+'</div>'+(s.funcao1?'<div style="color:var(--ink3);font-size:.72em;margin-top:1px">'+this.esc(s.funcao1)+'</div>':'')+'</td>';}
+    if(_hP2){const bg2=this._escPostoBg(s.posto2);h+='<td style="padding:10px 12px">'+(s.posto2?'<span style="background:'+bg2+';color:#fff;font-size:.72em;font-weight:800;padding:2px 9px;border-radius:20px;white-space:nowrap">'+this.esc(s.posto2)+'</span>':'')+'</td>';}
+    if(_hPi2){h+='<td style="padding:10px 12px"><div style="font-weight:600;font-size:.88em;color:var(--ink)">'+this.esc(s.piloto2||'')+'</div>'+(s.funcao2?'<div style="color:var(--ink3);font-size:.72em;margin-top:1px">'+this.esc(s.funcao2)+'</div>':'')+'</td>';}
+    if(_hPs){h+='<td style="padding:10px 12px;white-space:nowrap"><span style="font-size:.82em;font-weight:600;color:var(--ink2)">'+this.esc(s.posto||'')+'</span></td>';}
+    if(_hSb){h+='<td style="padding:10px 12px">'+(s.standby?'<span style="background:#92400e;color:#fde68a;font-size:.73em;font-weight:800;padding:2px 9px;border-radius:20px;white-space:nowrap">'+this.esc(s.standby)+'</span>':'')+'</td>';}
     h+='</tr>';
   });
   h+='</tbody></table>';
@@ -6551,7 +6556,7 @@ escNovaSemana(){
   const fmt=d=>d.toISOString().slice(0,10);
   document.getElementById('escDtIni').value=fmt(mon);
   document.getElementById('escDtFim').value=fmt(sun);
-  this._escFillSelects('','','');
+  this._escFillSelects('','','','','');
   modal.style.display='flex';document.body.style.overflow='hidden';
 },
 
@@ -6569,16 +6574,14 @@ escEditarSemana(idx){
   document.getElementById('escDtIni').value=s.dtIni||'';
   document.getElementById('escDtFim').value=s.dtFim||'';
   document.getElementById('escPosto1').value=s.posto1||'';
-  document.getElementById('escFuncao1').value=s.funcao1||'';
   document.getElementById('escPosto2').value=s.posto2||'';
-  document.getElementById('escFuncao2').value=s.funcao2||'';
   document.getElementById('escPosto').value=s.posto||'';
   document.getElementById('escObs').value=s.obs||'';
-  this._escFillSelects(s.piloto1||'',s.piloto2||'',s.standby||'');
+  this._escFillSelects(s.piloto1||'',s.piloto2||'',s.standby||'',s.funcao1||'',s.funcao2||'');
   modal.style.display='flex';document.body.style.overflow='hidden';
 },
 
-_escFillSelects(p1,p2,sb){
+_escFillSelects(p1,p2,sb,fn1,fn2){
   const trips=[...this.S.trips].sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
   const ids=['escPiloto1','escPiloto2','escStandby'];
   const vals=[p1,p2,sb];
@@ -6592,6 +6595,28 @@ _escFillSelects(p1,p2,sb){
       sel.appendChild(opt);
     });
   });
+  // Populate funcao selects from C.funcoes
+  const fns=this.C.funcoes||[];
+  [['escFuncao1',fn1||''],['escFuncao2',fn2||'']].forEach(([id,val])=>{
+    const sel=document.getElementById(id);if(!sel)return;
+    sel.innerHTML='<option value="">— Nenhuma —</option>';
+    fns.forEach(f=>{
+      const opt=document.createElement('option');
+      opt.value=f;opt.textContent=f;
+      if(f===val)opt.selected=true;
+      sel.appendChild(opt);
+    });
+  });
+},
+
+_escAutoPosto(n){
+  const pilSel=document.getElementById('escPiloto'+n);
+  const postoEl=document.getElementById('escPosto'+n);
+  if(!pilSel||!postoEl)return;
+  const nome=pilSel.value;
+  if(!nome)return;
+  const trip=(this.S.trips||[]).find(t=>t.nome===nome);
+  if(trip&&trip.posto)postoEl.value=trip.posto;
 },
 
 escGuardar(){
