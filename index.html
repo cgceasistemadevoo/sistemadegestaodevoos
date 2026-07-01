@@ -1302,14 +1302,9 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
      ESCALA DE SERVIÇO
 ════════════════════════════════════════════ -->
 <div id="page-escala" class="page hide">
-  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
-    <div>
-      <h2 style="font-size:1.2em;font-weight:800;color:var(--ink);margin:0">⏰ Escala Semanal de Pilotos</h2>
-      <div id="escPeriodoTxt" style="font-size:.78em;color:var(--ink3);margin-top:2px">Período: —</div>
-    </div>
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-      <select id="escAno" onchange="A.renderEscala()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85em;background:var(--white);color:var(--ink);outline:none"></select>
-    </div>
+  <div style="margin-bottom:16px">
+    <h2 style="font-size:1.2em;font-weight:800;color:var(--ink);margin:0">✈️ Escala de Voo Tripulantes King Air 360ER</h2>
+    <div id="escPeriodoTxt" style="font-size:.78em;color:var(--ink3);margin-top:2px">Período: —</div>
   </div>
   <div class="mgrid" style="margin-bottom:16px">
     <div class="mcard" data-ic="📅"><div class="mcard-lbl">Semanas</div><div class="mcard-val" id="escTotSem">0</div><div class="mcard-sub">programadas</div></div>
@@ -1318,8 +1313,9 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   </div>
   <div class="card">
     <div class="card-hd" style="flex-wrap:wrap;gap:8px">
-      <h3>⏰ Escala</h3>
+      <h3>⏰ Escala de Serviço Semanal de Pilotos</h3>
       <div style="display:flex;gap:8px;align-items:center;margin-left:auto;flex-wrap:wrap">
+        <select id="escAno" onchange="A.renderEscala()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:7px;font-size:.82em;background:var(--white);color:var(--ink);outline:none"></select>
         <button class="btn btn-p btn-sm admin-only" onclick="A.escNovaSemana()">＋ Nova Semana</button>
         <button class="btn btn-sm admin-only" onclick="A.escValidar()" style="font-size:.82em">✓ Validar</button>
         <button class="btn btn-sm" onclick="A.escPDF()" style="font-size:.82em">📄 PDF</button>
@@ -1339,7 +1335,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 <!-- Escala de Pessoal de Cabine -->
 <div class="card" style="margin-top:20px">
   <div class="card-hd" style="flex-wrap:wrap;gap:8px">
-    <h3>🧑‍✈️ Escala de Pessoal de Cabine</h3>
+    <h3>🧑‍✈️ Escala diária de Operador de Cabine / Maca</h3>
     <div style="display:flex;gap:8px;align-items:center;margin-left:auto;flex-wrap:wrap">
       <select id="escCabMes" onchange="A.renderEscalaCabine()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:7px;font-size:.82em;background:var(--white);color:var(--ink);outline:none"></select>
       <select id="escCabAno" onchange="A.renderEscalaCabine()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:7px;font-size:.82em;background:var(--white);color:var(--ink);outline:none"></select>
@@ -6748,7 +6744,7 @@ escPDF(){
     // Header bar — same green as other PDFs
     doc.setFillColor(46,125,50);doc.rect(0,0,297,20,'F');
     doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(13);
-    doc.text('CGC-EA — Escala Semanal de Pilotos — '+selY,148.5,10,{align:'center'});
+    doc.text('CGC-EA \u2014 Escala de Servi\u00e7o Semanal de Pilotos \u2014 '+selY,148.5,10,{align:'center'});
     doc.setFontSize(8);doc.setFont('helvetica','normal');
     doc.text('Gerado em: '+new Date().toLocaleString('pt-PT'),148.5,16,{align:'center'});
     doc.setTextColor(0,0,0);
@@ -6983,7 +6979,7 @@ escCabinePDF(){
     const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
     doc.setFillColor(46,125,50);doc.rect(0,0,297,20,'F');
     doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(13);
-    doc.text('CGC-EA \u2014 Escala de Pessoal de Cabine \u2014 '+mesNome.toUpperCase()+' '+ano,148.5,10,{align:'center'});
+    doc.text('CGC-EA \u2014 Escala di\u00e1ria de Operador de Cabine / Maca \u2014 '+mesNome.toUpperCase()+' '+ano,148.5,10,{align:'center'});
     doc.setFontSize(8);doc.setFont('helvetica','normal');
     doc.text('Gerado em: '+new Date().toLocaleString('pt-PT'),148.5,17,{align:'center'});
     doc.setTextColor(0,0,0);
