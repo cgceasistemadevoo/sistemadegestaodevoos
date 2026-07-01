@@ -1309,9 +1309,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     </div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <select id="escAno" onchange="A.renderEscala()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85em;background:var(--white);color:var(--ink);outline:none"></select>
-      <button class="btn btn-p btn-sm admin-only" onclick="A.escNovaSemana()">＋ Nova Semana</button>
-      <button class="btn btn-sm admin-only" onclick="A.escValidar()" style="font-size:.82em">✓ Validar</button>
-      <button class="btn btn-sm" onclick="A.escPDF()" style="font-size:.82em">📄 PDF</button>
     </div>
   </div>
   <div class="mgrid" style="margin-bottom:16px">
@@ -1320,7 +1317,14 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="mcard" data-ic="👨‍✈️"><div class="mcard-lbl">Pilotos</div><div class="mcard-val" id="escPilSem">0</div><div class="mcard-sub">diferentes escalados</div></div>
   </div>
   <div class="card">
-    <div class="card-hd"><h3>⏰ Escala de Serviço</h3></div>
+    <div class="card-hd" style="flex-wrap:wrap;gap:8px">
+      <h3>⏰ Escala</h3>
+      <div style="display:flex;gap:8px;align-items:center;margin-left:auto;flex-wrap:wrap">
+        <button class="btn btn-p btn-sm admin-only" onclick="A.escNovaSemana()">＋ Nova Semana</button>
+        <button class="btn btn-sm admin-only" onclick="A.escValidar()" style="font-size:.82em">✓ Validar</button>
+        <button class="btn btn-sm" onclick="A.escPDF()" style="font-size:.82em">📄 PDF</button>
+      </div>
+    </div>
     <div style="overflow-x:auto">
       <div id="escGrid"></div>
     </div>
@@ -6991,7 +6995,7 @@ escCabinePDF(){
       const head1=['N/O','Posto','Nome','Fun\u00e7\u00e3o'];
       for(let d=1;d<=diasNoMes;d++){
         const dow=new Date(ano,mes-1,d).getDay();
-        head1.push(String(d)+' '+dowAbbr[dow]);
+        head1.push(String(d)+'\n'+dowAbbr[dow]);
       }
       const body=entradas.map((e,i)=>{
         const row=[String(i+1),e.posto||'\u2014',e.nome||'\u2014',e.funcao||'\u2014'];
@@ -7002,10 +7006,10 @@ escCabinePDF(){
         startY:24,
         head:[head1],
         body,
-        styles:{fontSize:5.5,cellPadding:1.5,halign:'center',valign:'middle'},
-        headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold',fontSize:5.5},
+        styles:{fontSize:5.5,cellPadding:1.5,halign:'center',valign:'middle',lineWidth:0.15,lineColor:[190,190,190]},
+        headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold',fontSize:5.5,lineWidth:0.15,lineColor:[120,180,120]},
         alternateRowStyles:{fillColor:[245,250,245]},
-        columnStyles:{0:{cellWidth:7},1:{cellWidth:16},2:{cellWidth:30,halign:'left'},3:{cellWidth:22,halign:'left'}},
+        columnStyles:{0:{cellWidth:7},1:{cellWidth:20,overflow:'hidden'},2:{cellWidth:30,halign:'left'},3:{cellWidth:22,halign:'left'}},
         margin:{left:8,right:8},
         didParseCell:(data)=>{
           if(data.column.index>3){
