@@ -1302,86 +1302,60 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
      ESCALA DE SERVIÇO
 ════════════════════════════════════════════ -->
 <div id="page-escala" class="page hide">
-  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
-    <div>
-      <h2 style="font-size:1.2em;font-weight:800;color:var(--ink);margin:0">👥 Escala de Serviço</h2>
-      <div style="font-size:.78em;color:var(--ink3);margin-top:2px">Gestão de turnos e disponibilidade da tripulação</div>
-    </div>
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-      <select id="escMes" onchange="A.renderEscala()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85em;background:var(--white);color:var(--ink);outline:none"></select>
-      <select id="escAno" onchange="A.renderEscala()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85em;background:var(--white);color:var(--ink);outline:none"></select>
-      <div style="display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden">
-        <button id="escBtnMensal" onclick="A._escVista('mensal')" style="padding:6px 12px;font-size:.82em;font-weight:600;background:var(--g8);color:var(--white);border:none;cursor:pointer">Mensal</button>
-        <button id="escBtnSemanal" onclick="A._escVista('semanal')" style="padding:6px 12px;font-size:.82em;font-weight:600;background:var(--white);color:var(--ink3);border:none;cursor:pointer">Semanal</button>
+  <div style="background:#0d1b2a;border-radius:14px;padding:22px 24px;min-height:480px">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+      <div>
+        <h2 style="color:#fff;font-size:1.18em;font-weight:800;margin:0">👥 Escala Semanal de Pilotos</h2>
+        <div id="escPeriodoTxt" style="color:#6b8fa8;font-size:.78em;margin-top:4px">Período: —</div>
       </div>
-      <button class="btn btn-p btn-sm admin-only" onclick="A.escNovaEntrada(null)">＋ Entrada</button>
-      <button class="btn btn-sm admin-only" onclick="A.escPDF()" style="font-size:.82em">📄 PDF</button>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <select id="escAno" onchange="A.renderEscala()" style="padding:6px 10px;border:1px solid #1e3448;border-radius:8px;font-size:.82em;background:#162032;color:#cbd5e1;outline:none"></select>
+        <button class="admin-only" onclick="A.escNovaSemana()" style="background:#e74c3c;color:#fff;border:none;border-radius:8px;padding:7px 15px;font-size:.82em;font-weight:700;cursor:pointer">✎ Editar</button>
+        <button onclick="A.escPDF()" style="background:transparent;color:#cbd5e1;border:1.5px solid #334e68;border-radius:8px;padding:7px 15px;font-size:.82em;font-weight:600;cursor:pointer">⬇ Exportar</button>
+        <button class="admin-only" onclick="A.escValidar()" style="background:transparent;color:#2ecc71;border:1.5px solid #2ecc71;border-radius:8px;padding:7px 15px;font-size:.82em;font-weight:600;cursor:pointer">✓ Validar</button>
+      </div>
     </div>
-  </div>
-  <!-- Legenda -->
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;font-size:.75em">
-    <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:#16a34a;display:inline-block"></span>Serviço</span>
-    <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:#ca8a04;display:inline-block"></span>Prontidão</span>
-    <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:#6b7280;display:inline-block"></span>Folga</span>
-    <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:#2563eb;display:inline-block"></span>Férias</span>
-    <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:#dc2626;display:inline-block"></span>Baixa</span>
-    <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:#7c3aed;display:inline-block"></span>Formação</span>
-    <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:#0891b2;display:inline-block"></span>✈️ Missão</span>
-  </div>
-  <div id="escGrid" style="overflow-x:auto"></div>
-  <div id="escVazio" style="display:none;text-align:center;padding:60px 20px;color:var(--ink3)">
-    <div style="font-size:3em;margin-bottom:12px">📆</div>
-    <div style="font-size:1.1em;font-weight:600">Sem entradas neste período</div>
-    <div style="font-size:.85em;margin-top:6px">Clique em <b>+ Entrada</b> para adicionar</div>
+    <div id="escGrid" style="overflow-x:auto;border-radius:10px;overflow:hidden"></div>
+    <div id="escVazio" style="display:none;text-align:center;padding:60px 20px;color:#6b8fa8">
+      <div style="font-size:2.5em;margin-bottom:12px">👥</div>
+      <div style="font-size:1em;font-weight:600;color:#8fafc8">Sem escala para este ano</div>
+      <div style="font-size:.8em;margin-top:6px">Clique em <b style="color:#e74c3c">✎ Editar</b> para adicionar semanas</div>
+    </div>
+    <div id="escValMsg" style="display:none;margin-top:16px;padding:10px 16px;background:#1a4a2e;border:1px solid #2ecc71;border-radius:8px;color:#2ecc71;font-size:.82em;font-weight:600"></div>
   </div>
 </div>
 
 <!-- Modal Escala -->
 <div class="modal" id="modalEscala">
-<div class="modal-box" style="max-width:480px">
-  <div class="modal-hd">
-    <h3 id="escModalTit">👥 Nova Entrada de Escala</h3>
-    <span class="modal-x" onclick="A.escFecharModal()">×</span>
+<div class="modal-box" style="max-width:560px;background:#0f1e2e;color:#e2e8f0">
+  <div class="modal-hd" style="border-bottom:1px solid #1e3448;padding-bottom:12px">
+    <h3 id="escModalTit" style="color:#fff;margin:0">👥 Nova Semana de Escala</h3>
+    <span class="modal-x" onclick="A.escFecharModal()" style="color:#8fa9bd">×</span>
   </div>
   <input type="hidden" id="escEntradaIdx">
-  <div class="fgrid2">
-    <div class="fg"><label>Tripulante *</label>
-      <select id="escTrip" style="width:100%"></select>
-    </div>
-    <div class="fg"><label>Tipo *</label>
-      <select id="escTipo">
-        <option value="Serviço">🟢 Serviço</option>
-        <option value="Prontidão">🟡 Prontidão</option>
-        <option value="Folga">⚫ Folga</option>
-        <option value="Férias">🔵 Férias</option>
-        <option value="Baixa">🔴 Baixa</option>
-        <option value="Formação">🟣 Formação</option>
-      </select>
-    </div>
-    <div class="fg"><label>Data Início *</label><input type="date" id="escDtIni"></div>
-    <div class="fg"><label>Data Fim *</label><input type="date" id="escDtFim"></div>
-    <div class="fg"><label>Turno</label>
-      <select id="escTurno">
-        <option value="">— Dia Inteiro —</option>
-        <option value="Manhã">🌅 Manhã</option>
-        <option value="Tarde">🌆 Tarde</option>
-        <option value="Noite">🌙 Noite</option>
-        <option value="24h">🔄 24 Horas</option>
-      </select>
-    </div>
-    <div class="fg"><label>Função</label>
-      <select id="escFuncao"></select>
-    </div>
-    <div class="fg" style="grid-column:1/-1"><label>Observações</label><input id="escObs" placeholder="Notas adicionais…"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
+    <div><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Data Início (Seg) *</label><input type="date" id="escDtIni" style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none;box-sizing:border-box"></div>
+    <div><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Data Fim (Dom) *</label><input type="date" id="escDtFim" style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none;box-sizing:border-box"></div>
+    <div><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Posto 1</label><input id="escPosto1" placeholder="Ex: COR.REF." style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none;box-sizing:border-box"></div>
+    <div><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Piloto 1</label><select id="escPiloto1" style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none"></select></div>
+    <div><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Função Piloto 1</label><input id="escFuncao1" placeholder="Ex: Piloto de Referência" style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none;box-sizing:border-box"></div>
+    <div><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Posto 2</label><input id="escPosto2" placeholder="Ex: MAJ." style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none;box-sizing:border-box"></div>
+    <div><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Piloto 2</label><select id="escPiloto2" style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none"></select></div>
+    <div><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Função Piloto 2</label><input id="escFuncao2" placeholder="Ex: Piloto de Referência" style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none;box-sizing:border-box"></div>
+    <div><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Posto</label><input id="escPosto" placeholder="Ex: 1ºTEN" style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none;box-sizing:border-box"></div>
+    <div><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Standby</label><select id="escStandby" style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none"></select></div>
+    <div style="grid-column:1/-1"><label style="font-size:.78em;font-weight:600;color:#6b8fa8;display:block;margin-bottom:4px">Observações</label><input id="escObs" placeholder="Notas adicionais…" style="width:100%;padding:7px 10px;border:1.5px solid #1e3448;border-radius:8px;font-size:.85em;background:#162032;color:#e2e8f0;outline:none;box-sizing:border-box"></div>
   </div>
   <div style="display:flex;gap:8px;justify-content:space-between;margin-top:16px;flex-wrap:wrap">
-    <button class="btn btn-d" id="escBtnDel" onclick="A.escEliminar()" style="display:none">🗑 Eliminar</button>
+    <button id="escBtnDel" onclick="A.escEliminar()" style="display:none;background:#7f1d1d;color:#fca5a5;border:none;border-radius:8px;padding:8px 14px;font-size:.82em;font-weight:600;cursor:pointer">🗑 Eliminar</button>
     <div style="display:flex;gap:8px;margin-left:auto">
-      <button class="btn btn-s" onclick="A.escFecharModal()">Cancelar</button>
-      <button class="btn btn-p" onclick="A.escGuardar()">💾 Guardar</button>
+      <button onclick="A.escFecharModal()" style="background:#1e3448;color:#8fa9bd;border:none;border-radius:8px;padding:8px 14px;font-size:.82em;cursor:pointer">Cancelar</button>
+      <button onclick="A.escGuardar()" style="background:#1abc9c;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:.82em;font-weight:700;cursor:pointer">💾 Guardar</button>
     </div>
   </div>
 </div>
+</div>
+
 </div>
 
 
@@ -6474,313 +6448,157 @@ renderQuadro(){
 
 // ──────────────────────────────────────────────────────────────
 // ESCALA DE SERVIÇO
-// ──────────────────────────────────────────────────────────────
-_escVista(v){
-  this._escView=v||this._escView||'mensal';
-  this.renderEscala();
-},
-
-_escColor(tipo){
-  return {Serviço:'#16a34a',Prontidão:'#ca8a04',Folga:'#6b7280',Férias:'#2563eb',Baixa:'#dc2626',Formação:'#7c3aed','Missão':'#0891b2'}[tipo]||'#6b7280';
+// ── ESCALA SEMANAL ──────────────────────────────────────────────
+_escPostoBg(posto){
+  if(!posto)return'#1abc9c';
+  const p=posto.toUpperCase();
+  if(p.includes('REF'))return'#1abc9c';
+  if(p.includes('RES'))return'#17a589';
+  if(p.includes('MAJ'))return'#1a9dab';
+  if(p.includes('TEN'))return'#2471a3';
+  if(p.includes('SAR'))return'#6c3483';
+  if(p.includes('CAB'))return'#117a65';
+  return'#1abc9c';
 },
 
 renderEscala(){
-  if(!this._escView)this._escView='mensal';
-  // Init selects
-  const ms=document.getElementById('escMes');
   const ys=document.getElementById('escAno');
-  const NM=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  if(ms&&!ms.options.length){
-    NM.forEach((n,i)=>ms.insertAdjacentHTML('beforeend','<option value="'+(i+1)+'">'+n+'</option>'));
-    ms.value=String(new Date().getMonth()+1);
-  }
+  const curY=new Date().getFullYear();
   if(ys&&!ys.options.length){
-    const now=new Date();
-    for(let y=now.getFullYear()+1;y>=now.getFullYear()-3;y--)ys.insertAdjacentHTML('beforeend','<option value="'+y+'">'+y+'</option>');
-    ys.value=String(now.getFullYear());
+    for(let y=curY+3;y>=curY-2;y--)ys.insertAdjacentHTML('beforeend','<option value="'+y+'"'+(y===curY?' selected':'')+'>'+y+'</option>');
   }
-  // Actualizar estilo dos botões de vista
-  const bm=document.getElementById('escBtnMensal');
-  const bs=document.getElementById('escBtnSemanal');
-  if(bm){bm.style.background=this._escView==='mensal'?'var(--g8)':'var(--white)';bm.style.color=this._escView==='mensal'?'var(--white)':'var(--ink3)';}
-  if(bs){bs.style.background=this._escView==='semanal'?'var(--g8)':'var(--white)';bs.style.color=this._escView==='semanal'?'var(--white)':'var(--ink3)';}
-  const selM=parseInt(ms?.value||String(new Date().getMonth()+1));
-  const selY=parseInt(ys?.value||String(new Date().getFullYear()));
-  if(this._escView==='mensal') this._escRenderMensal(selY,selM);
-  else this._escRenderSemanal(selY,selM);
-},
-
-_escRenderMensal(year,month){
-  const daysInMonth=new Date(year,month,0).getDate();
-  const todayStr=new Date().toISOString().slice(0,10);
-  const monthStr=year+'-'+String(month).padStart(2,'0');
-  const lastDay=monthStr+'-'+String(daysInMonth).padStart(2,'0');
+  const selY=parseInt(ys?.value||String(curY));
   const grid=document.getElementById('escGrid');
   const vazio=document.getElementById('escVazio');
   if(!grid)return;
-
-  // Collect all entries for this month
-  const entradas=this._escEntradasMes(year,month);
-  // Só mostrar tripulantes que têm pelo menos uma entrada no mês
-  const allNomes=[...new Set(entradas.map(e=>e.nome))].sort((a,b)=>a.localeCompare(b,'pt'));
-  // Store names for safe onclick (index-based)
-  this._escRowNomes=allNomes;
-
-  const dayLabels=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-  let h='<div style="min-width:'+(Math.max(600,160+daysInMonth*38))+'px">';
-  // Header row — days
-  h+='<div style="display:grid;grid-template-columns:160px repeat('+daysInMonth+',1fr);gap:1px;background:var(--border);border-radius:10px 10px 0 0;overflow:hidden">';
-  h+='<div style="background:var(--g1);padding:7px 10px;font-size:.72em;font-weight:700;color:var(--ink3)">TRIPULANTE</div>';
-  for(let d=1;d<=daysInMonth;d++){
-    const dateStr=monthStr+'-'+String(d).padStart(2,'0');
-    const dow=new Date(year,month-1,d).getDay();
-    const isWe=dow===0||dow===6;
-    const isToday=dateStr===todayStr;
-    h+='<div style="background:'+(isToday?'rgba(99,102,241,.15)':isWe?'rgba(0,0,0,.04)':'var(--g0)')+';padding:5px 2px;text-align:center;font-size:.64em;font-weight:'+(isToday?'800':'600')+';color:'+(isToday?'#6366f1':isWe?'var(--ink3)':'var(--ink2)')+'">';
-    h+=dayLabels[dow]+'<br>'+d+'</div>';
+  const semanas=(this.S.escala||[]).filter(e=>e.dtIni&&e.dtIni.startsWith(String(selY))).sort((a,b)=>a.dtIni.localeCompare(b.dtIni));
+  if(!semanas.length){
+    grid.innerHTML='';grid.style.display='none';
+    if(vazio)vazio.style.display='';
+    return;
   }
-  h+='</div>';
-  // Trip rows
-  if(!allNomes.length){
-    h+='<div style="text-align:center;padding:40px;color:var(--ink3)">Sem tripulantes registados nem entradas de escala</div>';
-  } else {
-    allNomes.forEach((nome,ti)=>{
-      const rowBg=ti%2===0?'var(--white)':'var(--g0)';
-      const isLast=ti===allNomes.length-1;
-      h+='<div style="display:grid;grid-template-columns:160px repeat('+daysInMonth+',1fr);gap:1px;background:var(--border)'+(isLast?';border-radius:0 0 10px 10px;overflow:hidden':'')+'">';
-      const shortName=nome.split(' ').slice(0,2).join(' ');
-      h+='<div style="background:'+rowBg+';padding:6px 10px;font-size:.76em;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+this.esc(nome)+'">'+this.esc(shortName)+'</div>';
-      for(let d=1;d<=daysInMonth;d++){
-        const dateStr=monthStr+'-'+String(d).padStart(2,'0');
-        const cell=entradas.filter(e=>e.nome===nome&&e.dates.includes(dateStr));
-        const dow=new Date(year,month-1,d).getDay();
-        const isWe=dow===0||dow===6;
-        const isToday=dateStr===todayStr;
-        const bg=isToday?'rgba(99,102,241,.07)':isWe?'rgba(0,0,0,.03)':rowBg;
-        const ttip=cell.length?cell.map(c=>c.tipo+(c.turno?' ('+c.turno+')':'')).join(', '):'Adicionar entrada';
-        h+='<div style="background:'+bg+';padding:2px;min-height:32px;display:flex;flex-direction:column;gap:1px;cursor:pointer" onclick="A._escClickCell('+ti+',\''+dateStr+'\')" title="'+this.esc(ttip)+'">';
-        cell.forEach(c=>{
-          const col=this._escColor(c.tipo);
-          const shortMap={'Missão':'M','Férias':'F','Serviço':'S','Prontidão':'P','Formação':'Fo'};
-          const short=shortMap[c.tipo]||c.tipo.slice(0,1).toUpperCase();
-          const ttipC=this.esc(c.tipo+(c.turno?' — '+c.turno:'')+(c.funcao?' | '+c.funcao:''));
-          h+='<div style="background:'+col+';border-radius:2px;padding:1px 2px;font-size:.65em;font-weight:800;color:#fff;text-align:center" title="'+ttipC+'">'+short+'</div>';
-        });
-        h+='</div>';
-      }
-      h+='</div>';
-    });
-  }
-  h+='</div>';
-  grid.innerHTML=h;
   if(vazio)vazio.style.display='none';
   grid.style.display='';
-},
-
-_escClickCell(ti,dateStr){
-  const nome=(this._escRowNomes||[])[ti];
-  this.escNovaEntrada(dateStr,nome||null);
-},
-
-_escRenderSemanal(year,month){
-  const now=new Date();
-  const todayStr=now.toISOString().slice(0,10);
-  // Compute week containing today (if same month) or first week of selected month
-  const firstDay=new Date(year,month-1,1);
-  const selM=month,selY=year;
-  const refDate=(now.getFullYear()===selY&&now.getMonth()+1===selM)?now:firstDay;
-  const dow=refDate.getDay();
-  const monday=new Date(refDate);monday.setDate(refDate.getDate()-(dow===0?6:dow-1));
-  // Build 7 days
-  const days=[];
-  for(let i=0;i<7;i++){const d=new Date(monday);d.setDate(monday.getDate()+i);days.push(d);}
-  const dayNames=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
-  const trips=[...this.S.trips].sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
-  const grid=document.getElementById('escGrid');
-  if(!grid)return;
-  const entradas=this._escEntradasPeriodo(
-    days[0].toISOString().slice(0,10),
-    days[6].toISOString().slice(0,10)
-  );
-  const weekLabel=days[0].toLocaleDateString('pt-PT',{day:'numeric',month:'short'})+' – '+days[6].toLocaleDateString('pt-PT',{day:'numeric',month:'short',year:'numeric'});
-  let h='<div style="margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">';
-  h+='<span style="font-size:.88em;font-weight:700;color:var(--ink2)">📅 Semana: '+weekLabel+'</span>';
-  h+='<div style="display:flex;gap:6px">';
-  h+='<button class="btn btn-sm" onclick="A._escSemana(-1)">← Anterior</button>';
-  h+='<button class="btn btn-sm" onclick="A._escSemana(0)">Hoje</button>';
-  h+='<button class="btn btn-sm" onclick="A._escSemana(1)">Próxima →</button>';
-  h+='</div></div>';
-  h+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:700px">';
-  h+='<thead><tr style="background:var(--g1)"><th style="padding:8px 10px;text-align:left;font-size:.73em;color:var(--ink3);font-weight:700;border-bottom:2px solid var(--border)">TRIPULANTE</th>';
-  days.forEach((d,i)=>{
-    const ds=d.toISOString().slice(0,10);
-    const isWe=i>=5;const isToday=ds===todayStr;
-    h+='<th style="padding:8px 6px;text-align:center;font-size:.73em;font-weight:'+(isToday?'800':'700')+';color:'+(isToday?'#6366f1':isWe?'var(--ink3)':'var(--ink2)')+';border-bottom:2px solid var(--border);background:'+(isToday?'rgba(99,102,241,.1)':isWe?'rgba(0,0,0,.03)':'var(--g1)')+'">'+dayNames[i]+'<br><span style="font-weight:400;font-size:.9em">'+d.toLocaleDateString('pt-PT',{day:'numeric',month:'short'})+'</span></th>';
-  });
-  h+='</tr></thead><tbody>';
-  if(!trips.length){
-    h+='<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--ink3)">Sem tripulantes registados</td></tr>';
-  } else {
-    trips.forEach((t,ti)=>{
-      h+='<tr style="border-bottom:1px solid var(--border);background:'+(ti%2===0?'var(--white)':'var(--g0)')+'"><td style="padding:8px 10px;font-size:.8em;font-weight:600;white-space:nowrap">'+this.esc(t.nome.split(' ').slice(0,2).join(' '))+'</td>';
-      days.forEach((d,i)=>{
-        const ds=d.toISOString().slice(0,10);
-        const isWe=i>=5;const isToday=ds===todayStr;
-        const cell=entradas.filter(e=>e.nome===t.nome&&e.dates.includes(ds));
-        h+='<td style="padding:4px 4px;text-align:center;background:'+(isToday?'rgba(99,102,241,.06)':isWe?'rgba(0,0,0,.02)':'')+';" onclick="A.escNovaEntrada(\''+ds+'\',\''+this.esc(t.nome)+'\')" style="cursor:pointer">';
-        if(cell.length){
-          cell.forEach(c=>{
-            const col=this._escColor(c.tipo);
-            h+='<div style="background:'+col+';border-radius:4px;padding:3px 4px;margin:1px;font-size:.66em;font-weight:700;color:#fff;white-space:nowrap" title="'+c.tipo+(c.turno?' ('+c.turno+')':'')+'">'+(c.tipo==='Prontidão'?'Pron':c.tipo==='Formação'?'Form':c.tipo.slice(0,6))+(c.turno?' '+c.turno.slice(0,1):'')+'</div>';
-          });
-        } else {
-          h+='<div style="width:100%;height:28px;border-radius:4px;cursor:pointer;border:1.5px dashed transparent" onmouseover="this.style.borderColor=\'#94a3b8\'" onmouseout="this.style.borderColor=\'transparent\'"></div>';
-        }
-        h+='</td>';
-      });
-      h+='</tr>';
-    });
+  const pt=document.getElementById('escPeriodoTxt');
+  if(pt&&semanas.length){
+    const di=new Date(semanas[0].dtIni+'T12:00:00');
+    const df=new Date(semanas[semanas.length-1].dtFim+'T12:00:00');
+    const fmt=d=>d.toLocaleDateString('pt-PT',{day:'numeric',month:'long',year:'numeric'});
+    pt.textContent='Período: '+fmt(di)+' a '+fmt(df);
   }
+  const cols=['Período','Posto 1','Piloto 1','Posto 2','Piloto 2','Posto','Standby'];
+  let h='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:720px">';
+  h+='<thead><tr style="background:#0f2537">';
+  cols.forEach(c=>h+='<th style="padding:10px 14px;text-align:left;font-size:.74em;font-weight:700;color:#4a7fa0;letter-spacing:.06em;white-space:nowrap;border-bottom:1px solid #1e3448">'+c+'</th>');
+  h+='</tr></thead><tbody>';
+  semanas.forEach((s,i)=>{
+    const rowBg=i%2===0?'#0f1e2e':'#112436';
+    const vb=s.validado?'border-left:3px solid #2ecc71':'border-left:3px solid transparent';
+    const di=new Date(s.dtIni+'T12:00:00');
+    const df=new Date(s.dtFim+'T12:00:00');
+    const per=this._escFmtPeriodo(di,df);
+    h+='<tr style="background:'+rowBg+';'+vb+';cursor:pointer" onclick="A.escEditarSemana('+i+')" title="Clique para editar">';
+    h+='<td style="padding:12px 14px;white-space:nowrap"><span style="color:#8fafc8;font-size:.83em;font-weight:700">📅 '+this.esc(per)+'</span></td>';
+    const bg1=this._escPostoBg(s.posto1);
+    h+='<td style="padding:12px 14px">'+(s.posto1?'<span style="background:'+bg1+';color:#fff;font-size:.72em;font-weight:800;padding:3px 10px;border-radius:20px;white-space:nowrap">'+this.esc(s.posto1)+'</span>':'<span style="color:#2a4a62">—</span>')+'</td>';
+    h+='<td style="padding:12px 14px"><div style="color:#1abc9c;font-weight:700;font-size:.88em">'+this.esc(s.piloto1||'—')+'</div>'+(s.funcao1?'<div style="color:#6b8fa8;font-size:.72em;margin-top:2px">'+this.esc(s.funcao1)+'</div>':'')+'</td>';
+    const bg2=this._escPostoBg(s.posto2);
+    h+='<td style="padding:12px 14px">'+(s.posto2?'<span style="background:'+bg2+';color:#fff;font-size:.72em;font-weight:800;padding:3px 10px;border-radius:20px;white-space:nowrap">'+this.esc(s.posto2)+'</span>':'<span style="color:#2a4a62">—</span>')+'</td>';
+    h+='<td style="padding:12px 14px"><div style="color:#e2e8f0;font-weight:600;font-size:.88em">'+this.esc(s.piloto2||'—')+'</div>'+(s.funcao2?'<div style="color:#6b8fa8;font-size:.72em;margin-top:2px">'+this.esc(s.funcao2)+'</div>':'')+'</td>';
+    h+='<td style="padding:12px 14px;white-space:nowrap"><span style="color:#8fafc8;font-size:.84em;font-weight:600">'+this.esc(s.posto||'—')+'</span></td>';
+    h+='<td style="padding:12px 14px">'+(s.standby?'<span style="background:#7d5a0a;color:#fde68a;font-size:.74em;font-weight:800;padding:3px 10px;border-radius:20px;white-space:nowrap">'+this.esc(s.standby)+'</span>':'<span style="color:#2a4a62">—</span>')+'</td>';
+    h+='</tr>';
+  });
   h+='</tbody></table></div>';
-  this._escWeekRef=monday.toISOString().slice(0,10);
   grid.innerHTML=h;
-  if(document.getElementById('escVazio'))document.getElementById('escVazio').style.display='none';
-  grid.style.display='';
 },
 
-_escSemana(dir){
-  // dir: -1 prev, 0 today, 1 next
-  const ref=this._escWeekRef?new Date(this._escWeekRef):new Date();
-  if(dir===0){this._escWeekRef=null;}
-  else{const d=new Date(ref);d.setDate(d.getDate()+dir*7);this._escWeekRef=d.toISOString().slice(0,10);}
-  const ms=document.getElementById('escMes');
-  const ys=document.getElementById('escAno');
-  const selM=parseInt(ms?.value||String(new Date().getMonth()+1));
-  const selY=parseInt(ys?.value||String(new Date().getFullYear()));
-  this._escRenderSemanal(selY,selM);
+_escFmtPeriodo(di,df){
+  const ms=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return di.getDate()+' '+ms[di.getMonth()]+' – '+df.getDate()+' '+ms[df.getMonth()];
 },
 
-_escEntradasMes(year,month){
-  // Returns array of {nome,tipo,turno,funcao,obs,dates:[],idx,source}
-  const result=[];
-  const daysInMonth=new Date(year,month,0).getDate();
-  const monthStr=year+'-'+String(month).padStart(2,'0');
-  const allDates=Array.from({length:daysInMonth},(_,i)=>monthStr+'-'+String(i+1).padStart(2,'0'));
-  // From escala entries
-  (this.S.escala||[]).forEach((e,idx)=>{
-    const dates=allDates.filter(ds=>ds>=e.dtIni&&ds<=e.dtFim);
-    if(dates.length)result.push({nome:e.nome,tipo:e.tipo,turno:e.turno||'',funcao:e.funcao||'',obs:e.obs||'',dates,idx,source:'escala'});
-  });
-  // From missions (Em Curso / Planeada / Concluída) — show as "Missão"
-  (this.S.missoes||[]).filter(m=>{
-    const ds=m.dt instanceof Date?m.dt.toISOString().slice(0,7):(m.dt||'').slice(0,7);
-    return ds===monthStr;
-  }).forEach(m=>{
-    const ds=m.dt instanceof Date?m.dt.toISOString().slice(0,10):(m.dt||'').slice(0,10);
-    (m.crew||[]).forEach(c=>{
-      result.push({nome:c.nome,tipo:'Missão',turno:'',funcao:c.fn||'',obs:m.num||'',dates:[ds],idx:-1,source:'missao'});
-    });
-  });
-  return result;
-},
-
-_escEntradasPeriodo(dtIni,dtFim){
-  const result=[];
-  const dates=[];
-  const d=new Date(dtIni);
-  while(d.toISOString().slice(0,10)<=dtFim){dates.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1);}
-  (this.S.escala||[]).forEach((e,idx)=>{
-    const dd=dates.filter(ds=>ds>=e.dtIni&&ds<=e.dtFim);
-    if(dd.length)result.push({nome:e.nome,tipo:e.tipo,turno:e.turno||'',funcao:e.funcao||'',obs:e.obs||'',dates:dd,idx,source:'escala'});
-  });
-  (this.S.missoes||[]).filter(m=>{
-    const ds=m.dt instanceof Date?m.dt.toISOString().slice(0,10):(m.dt||'').slice(0,10);
-    return ds>=dtIni&&ds<=dtFim;
-  }).forEach(m=>{
-    const ds=m.dt instanceof Date?m.dt.toISOString().slice(0,10):(m.dt||'').slice(0,10);
-    (m.crew||[]).forEach(c=>{
-      result.push({nome:c.nome,tipo:'Missão',turno:'',funcao:c.fn||'',obs:m.num||'',dates:[ds],idx:-1,source:'missao'});
-    });
-  });
-  return result;
-},
-
-escNovaEntrada(dateStr,nomePresel){
+escNovaSemana(){
   if(!this.isAdmin()){this.showNotif('❌ Sem permissão — apenas administradores e gestores','err');return;}
-  const modal=document.getElementById('modalEscala');
-  if(!modal)return;
-  document.getElementById('escModalTit').textContent='👥 Nova Entrada de Escala';
+  const modal=document.getElementById('modalEscala');if(!modal)return;
+  document.getElementById('escModalTit').textContent='👥 Nova Semana de Escala';
   document.getElementById('escEntradaIdx').value='';
   document.getElementById('escBtnDel').style.display='none';
-  // Fill tripulante select
-  const selT=document.getElementById('escTrip');
-  selT.innerHTML='<option value="">— Selecione —</option>';
-  [...this.S.trips].sort((a,b)=>(a.nome||'').localeCompare(b.nome||'')).forEach(t=>{
-    const opt=document.createElement('option');
-    opt.value=t.nome;opt.textContent=t.nome;
-    if(nomePresel&&t.nome===nomePresel)opt.selected=true;
-    selT.appendChild(opt);
-  });
-  // Fill funcao select
-  const selF=document.getElementById('escFuncao');
-  selF.innerHTML='<option value="">— Qualquer —</option>';
-  this.C.funcoes.forEach(f=>{const op=document.createElement('option');op.value=f;op.textContent=f;selF.appendChild(op);});
-  // Dates
-  const today=dateStr||new Date().toISOString().slice(0,10);
-  document.getElementById('escDtIni').value=today;
-  document.getElementById('escDtFim').value=today;
-  document.getElementById('escTipo').value='Serviço';
-  document.getElementById('escTurno').value='';
-  document.getElementById('escFuncao').value='';
-  document.getElementById('escObs').value='';
+  ['escPosto1','escFuncao1','escPosto2','escFuncao2','escPosto','escObs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const now=new Date();
+  const dow=now.getDay();
+  const diffMon=dow===0?1:(dow===1?0:8-dow);
+  const mon=new Date(now.getTime()+diffMon*86400000);
+  const sun=new Date(mon.getTime()+6*86400000);
+  const fmt=d=>d.toISOString().slice(0,10);
+  document.getElementById('escDtIni').value=fmt(mon);
+  document.getElementById('escDtFim').value=fmt(sun);
+  this._escFillSelects('','','');
   modal.style.display='flex';document.body.style.overflow='hidden';
 },
 
-escEditarEntrada(idx){
-  if(!this.isAdmin()){this.showNotif('❌ Sem permissão','err');return;}
-  const e=this.S.escala[idx];if(!e)return;
-  const modal=document.getElementById('modalEscala');
-  document.getElementById('escModalTit').textContent='✏️ Editar Entrada de Escala';
-  document.getElementById('escEntradaIdx').value=String(idx);
+escEditarSemana(idx){
+  if(!this.isAdmin()){this.showNotif('❌ Sem permissão — apenas administradores e gestores','err');return;}
+  const ys=document.getElementById('escAno');
+  const selY=parseInt(ys?.value||String(new Date().getFullYear()));
+  const semanas=(this.S.escala||[]).filter(e=>e.dtIni&&e.dtIni.startsWith(String(selY))).sort((a,b)=>a.dtIni.localeCompare(b.dtIni));
+  const s=semanas[idx];if(!s)return;
+  const realIdx=(this.S.escala||[]).indexOf(s);
+  const modal=document.getElementById('modalEscala');if(!modal)return;
+  document.getElementById('escModalTit').textContent='👥 Editar Semana de Escala';
+  document.getElementById('escEntradaIdx').value=String(realIdx);
   document.getElementById('escBtnDel').style.display='';
-  const selT=document.getElementById('escTrip');
-  selT.innerHTML='<option value="">— Selecione —</option>';
-  [...this.S.trips].sort((a,b)=>(a.nome||'').localeCompare(b.nome||'')).forEach(t=>{
-    const opt=document.createElement('option');opt.value=t.nome;opt.textContent=t.nome;
-    if(t.nome===e.nome)opt.selected=true;
-    selT.appendChild(opt);
-  });
-  const selF=document.getElementById('escFuncao');
-  selF.innerHTML='<option value="">— Qualquer —</option>';
-  this.C.funcoes.forEach(f=>{const op=document.createElement('option');op.value=f;op.textContent=f;if(f===e.funcao)op.selected=true;selF.appendChild(op);});
-  document.getElementById('escDtIni').value=e.dtIni;
-  document.getElementById('escDtFim').value=e.dtFim;
-  document.getElementById('escTipo').value=e.tipo||'Serviço';
-  document.getElementById('escTurno').value=e.turno||'';
-  document.getElementById('escObs').value=e.obs||'';
+  document.getElementById('escDtIni').value=s.dtIni||'';
+  document.getElementById('escDtFim').value=s.dtFim||'';
+  document.getElementById('escPosto1').value=s.posto1||'';
+  document.getElementById('escFuncao1').value=s.funcao1||'';
+  document.getElementById('escPosto2').value=s.posto2||'';
+  document.getElementById('escFuncao2').value=s.funcao2||'';
+  document.getElementById('escPosto').value=s.posto||'';
+  document.getElementById('escObs').value=s.obs||'';
+  this._escFillSelects(s.piloto1||'',s.piloto2||'',s.standby||'');
   modal.style.display='flex';document.body.style.overflow='hidden';
 },
 
-escFecharModal(){
-  const m=document.getElementById('modalEscala');if(m)m.style.display='none';
-  document.body.style.overflow='';
+_escFillSelects(p1,p2,sb){
+  const trips=[...this.S.trips].sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  const ids=['escPiloto1','escPiloto2','escStandby'];
+  const vals=[p1,p2,sb];
+  ids.forEach((id,i)=>{
+    const sel=document.getElementById(id);if(!sel)return;
+    sel.innerHTML='<option value="">— Nenhum —</option>';
+    trips.forEach(t=>{
+      const opt=document.createElement('option');
+      opt.value=t.nome;opt.textContent=t.nome;
+      if(t.nome===vals[i])opt.selected=true;
+      sel.appendChild(opt);
+    });
+  });
 },
 
 escGuardar(){
-  const nome=document.getElementById('escTrip').value.trim();
-  const tipo=document.getElementById('escTipo').value;
-  const dtIni=document.getElementById('escDtIni').value;
-  const dtFim=document.getElementById('escDtFim').value;
-  const turno=document.getElementById('escTurno').value;
-  const funcao=document.getElementById('escFuncao').value;
-  const obs=document.getElementById('escObs').value.trim();
-  if(!nome){this.showNotif('⚠️ Selecione um tripulante','warn');return;}
+  const dtIni=document.getElementById('escDtIni').value.trim();
+  const dtFim=document.getElementById('escDtFim').value.trim();
   if(!dtIni||!dtFim){this.showNotif('⚠️ Datas obrigatórias','warn');return;}
-  if(dtFim<dtIni){this.showNotif('⚠️ Data Fim anterior a Data Início','warn');return;}
-  const entry={nome,tipo,dtIni,dtFim,turno,funcao,obs};
-  const idxStr=document.getElementById('escEntradaIdx').value;
+  if(dtFim<dtIni){this.showNotif('⚠️ Data fim antes de início','warn');return;}
+  const entry={
+    dtIni,dtFim,
+    posto1:document.getElementById('escPosto1').value.trim(),
+    piloto1:document.getElementById('escPiloto1').value,
+    funcao1:document.getElementById('escFuncao1').value.trim(),
+    posto2:document.getElementById('escPosto2').value.trim(),
+    piloto2:document.getElementById('escPiloto2').value,
+    funcao2:document.getElementById('escFuncao2').value.trim(),
+    posto:document.getElementById('escPosto').value.trim(),
+    standby:document.getElementById('escStandby').value,
+    obs:document.getElementById('escObs').value.trim(),
+    validado:false
+  };
   if(!this.S.escala)this.S.escala=[];
+  const idxStr=document.getElementById('escEntradaIdx').value;
   if(idxStr!==''){
+    const old=this.S.escala[parseInt(idxStr)];
+    if(old)entry.validado=old.validado||false;
     this.S.escala[parseInt(idxStr)]=entry;
   } else {
     this.S.escala.push(entry);
@@ -6788,97 +6606,83 @@ escGuardar(){
   this.S.dirty=true;
   this.escFecharModal();
   this.renderEscala();
-  this.showNotif('✅ Entrada de escala guardada');
+  this.showNotif('✅ Semana guardada','ok');
   this.saveToCloud();
 },
 
 escEliminar(){
   const idxStr=document.getElementById('escEntradaIdx').value;
   if(idxStr==='')return;
-  if(!confirm('Eliminar esta entrada de escala?'))return;
+  if(!confirm('Eliminar esta semana de escala?'))return;
   this.S.escala.splice(parseInt(idxStr),1);
   this.S.dirty=true;
   this.escFecharModal();
   this.renderEscala();
-  this.showNotif('🗑 Entrada eliminada','warn');
+  this.showNotif('🗑 Semana eliminada','warn');
   this.saveToCloud();
+},
+
+escValidar(){
+  const ys=document.getElementById('escAno');
+  const selY=parseInt(ys?.value||String(new Date().getFullYear()));
+  const semanas=(this.S.escala||[]).filter(e=>e.dtIni&&e.dtIni.startsWith(String(selY)));
+  if(!semanas.length){this.showNotif('⚠️ Sem escala para validar','warn');return;}
+  semanas.forEach(s=>{s.validado=true;});
+  this.S.dirty=true;
+  this.renderEscala();
+  const vm=document.getElementById('escValMsg');
+  if(vm){vm.textContent='✅ Escala validada com sucesso — '+semanas.length+' semana(s)';vm.style.display='';}
+  this.showNotif('✅ Escala validada','ok');
+  this.saveToCloud();
+},
+
+escFecharModal(){
+  const m=document.getElementById('modalEscala');if(m)m.style.display='none';
+  document.body.style.overflow='';
 },
 
 escPDF(){
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-  const ms=document.getElementById('escMes');
   const ys=document.getElementById('escAno');
-  const NM=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  const selM=parseInt(ms?.value||String(new Date().getMonth()+1));
   const selY=parseInt(ys?.value||String(new Date().getFullYear()));
-  const daysInMonth=new Date(selY,selM,0).getDate();
-  const trips=[...this.S.trips].sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
-  const entradas=this._escEntradasMes(selY,selM);
-  const pw=297,lm=8,rm=289,usable=rm-lm;
-  const pageH=210;
-  // Title
-  doc.setFontSize(13);doc.setFont(undefined,'bold');
-  doc.text('CGC-EA — Escala de Serviço — '+NM[selM-1]+' '+selY,lm,14);
-  doc.setFontSize(7);doc.setFont(undefined,'normal');
-  doc.text('Gerado em '+new Date().toLocaleString('pt-PT'),rm,14,{align:'right'});
-  // Table
-  const nameW=32;const dayW=(usable-nameW)/daysInMonth;
-  const rowH=7;const headY=20;
-  // Header bg
-  doc.setFillColor(15,23,42);doc.rect(lm,headY,usable,rowH,'F');
-  doc.setTextColor(100,116,139);doc.setFontSize(5.5);doc.setFont(undefined,'bold');
-  doc.text('TRIPULANTE',lm+2,headY+4.5);
-  const dayNames=['D','S','T','Q','Q','S','S'];
-  for(let d=1;d<=daysInMonth;d++){
-    const x=lm+nameW+(d-1)*dayW;
-    const dow=new Date(selY,selM-1,d).getDay();
-    const isWe=dow===0||dow===6;
-    if(isWe)doc.setFillColor(20,30,55); else doc.setFillColor(15,23,42);
-    doc.rect(x,headY,dayW,rowH,'F');
-    doc.setTextColor(isWe?80:100,isWe?100:116,isWe?140:139);
-    doc.text(String(d),x+dayW/2,headY+3,{align:'center'});
-    doc.text(dayNames[dow],x+dayW/2,headY+6,{align:'center'});
-  }
-  // Rows
-  const typeColor={Serviço:[22,163,74],Prontidão:[202,138,4],Folga:[107,114,128],Férias:[37,99,235],Baixa:[220,38,38],Formação:[124,58,237],Missão:[8,145,178]};
-  const typeShort={Serviço:'S',Prontidão:'P',Folga:'F',Férias:'V',Baixa:'B',Formação:'Fm',Missão:'M'};
-  trips.forEach((t,ti)=>{
-    const y=headY+rowH*(ti+1);
-    const bg=ti%2===0?[255,255,255]:[248,250,252];
+  const semanas=(this.S.escala||[]).filter(e=>e.dtIni&&e.dtIni.startsWith(String(selY))).sort((a,b)=>a.dtIni.localeCompare(b.dtIni));
+  const pw=297,lm=10,usable=277;
+  doc.setFillColor(13,27,42);doc.rect(0,0,pw,210,'F');
+  doc.setFontSize(13);doc.setFont(undefined,'bold');doc.setTextColor(255,255,255);
+  doc.text('CGC-EA — Escala Semanal de Pilotos — '+selY,lm,14);
+  doc.setFontSize(7);doc.setFont(undefined,'normal');doc.setTextColor(107,137,168);
+  doc.text('Gerado em '+new Date().toLocaleString('pt-PT'),pw-lm,14,{align:'right'});
+  const cols=['Período','Posto 1','Piloto 1','Posto 2','Piloto 2','Posto','Standby'];
+  const colW=[38,25,55,25,55,22,55];
+  const headY=20;const rowH=9;
+  doc.setFillColor(15,37,55);doc.rect(lm,headY,usable,rowH,'F');
+  doc.setFontSize(6);doc.setFont(undefined,'bold');doc.setTextColor(74,127,160);
+  let cx=lm;
+  cols.forEach((c,i)=>{doc.text(c,cx+2,headY+5.5);cx+=colW[i];});
+  const mns=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  semanas.forEach((s,ri)=>{
+    const y=headY+rowH*(ri+1);
+    if(y>195)return;
+    const bg=ri%2===0?[15,30,46]:[17,36,54];
     doc.setFillColor(...bg);doc.rect(lm,y,usable,rowH,'F');
-    doc.setDrawColor(220,220,220);doc.setLineWidth(0.1);doc.line(lm,y+rowH,lm+usable,y+rowH);
-    doc.setTextColor(30,41,59);doc.setFontSize(5.5);doc.setFont(undefined,'bold');
-    const shortName=t.nome.split(' ').slice(0,2).join(' ').slice(0,18);
-    doc.text(shortName,lm+2,y+4.5);
-    for(let d=1;d<=daysInMonth;d++){
-      const x=lm+nameW+(d-1)*dayW;
-      const ds=selY+'-'+String(selM).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-      const dow=new Date(selY,selM-1,d).getDay();
-      const isWe=dow===0||dow===6;
-      if(isWe){doc.setFillColor(240,240,245);doc.rect(x,y,dayW,rowH,'F');}
-      doc.setDrawColor(220,220,220);doc.line(x,y,x,y+rowH);
-      const cell=entradas.filter(e=>e.nome===t.nome&&e.dates.includes(ds));
-      if(cell.length){
-        const c=cell[0];
-        const col=typeColor[c.tipo]||[107,114,128];
-        doc.setFillColor(...col);doc.rect(x+0.5,y+0.8,dayW-1,rowH-1.6,'F');
-        doc.setTextColor(255,255,255);doc.setFontSize(4.5);doc.setFont(undefined,'bold');
-        doc.text(typeShort[c.tipo]||'?',x+dayW/2,y+4,{align:'center'});
-      }
-    }
+    const di=new Date(s.dtIni+'T12:00:00');
+    const df=new Date(s.dtFim+'T12:00:00');
+    const per=di.getDate()+' '+mns[di.getMonth()]+' – '+df.getDate()+' '+mns[df.getMonth()];
+    const vals=[per,s.posto1||'—',s.piloto1||'—',s.posto2||'—',s.piloto2||'—',s.posto||'—',s.standby||'—'];
+    cx=lm;
+    vals.forEach((v,i)=>{
+      const r=i===2?26:i===6?253:226;
+      const g=i===2?188:i===6?212:232;
+      const b=i===2?156:i===6?98:240;
+      doc.setTextColor(r,g,b);
+      doc.setFontSize(6.5);doc.setFont(undefined,i===2?'bold':'normal');
+      doc.text(String(v).slice(0,22),cx+2,y+5.5);cx+=colW[i];
+    });
   });
-  // Legend
-  const ly=headY+rowH*(trips.length+1)+4;
-  let lx=lm;
-  doc.setFontSize(5.5);doc.setFont(undefined,'normal');
-  Object.entries(typeColor).forEach(([label,col])=>{
-    doc.setFillColor(...col);doc.rect(lx,ly,4,3,'F');
-    doc.setTextColor(30,41,59);doc.text(label,lx+5,ly+2.5);
-    lx+=22;
-  });
-  window.savePDF(doc,'Escala_CGC_EA_'+NM[selM-1]+'_'+selY+'.pdf');
+  window.savePDF(doc,'Escala_CGC_EA_'+selY+'.pdf');
 },
+
 
 renderMapa(){
   const ms=document.getElementById('mapaMonth');
