@@ -760,18 +760,19 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="mcard" data-ic="🚑" style="border-left:4px solid #b91c1c"><div class="mcard-lbl">Missões MEDEVAC</div><div class="mcard-val" id="mMedMis">0</div><div class="mcard-sub" id="mMedMisSub">no período</div></div>
   </div>
 
+  <!-- Donut estados + Custo do Período (ambos dependem do filtro) -->
   <div class="cgrid">
+    <div class="card">
+      <div class="card-hd"><h3>🍩 Estado das Missões</h3><span style="font-size:.75em;color:var(--ink3);margin-left:4px;font-weight:400">período filtrado</span></div>
+      <div class="card-bd"><div class="chart-box"><canvas id="cEstados"></canvas></div></div>
+    </div>
     <div class="card">
       <div class="card-hd"><h3>💰 Custo do Período</h3><span style="font-size:.75em;color:var(--ink3);margin-left:4px;font-weight:400">missões concluídas</span></div>
       <div style="padding:12px 14px" id="tCustoMes"><div style="color:var(--ink3);font-size:.9em;padding:8px 0">A calcular…</div></div>
     </div>
-    <div class="card">
-      <div class="card-hd"><h3>✈️ Aeronaves em Uso</h3><span style="font-size:.75em;color:var(--ink3);margin-left:4px;font-weight:400">Block Time · período</span></div>
-      <div style="padding:12px 14px" id="tAeroUso"><div style="color:var(--ink3);font-size:.9em;padding:8px 0">A calcular…</div></div>
-    </div>
   </div>
 
-  <!-- Gráfico combinado: barras Missões + linha Horas BT -->
+  <!-- Evolução Mensal (filtro) -->
   <div class="card" style="margin-bottom:16px">
     <div class="card-hd" style="flex-wrap:wrap;gap:8px">
       <h3>📈 Evolução Mensal</h3>
@@ -784,24 +785,32 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="card-bd"><div class="chart-box"><canvas id="cTemp"></canvas></div></div>
   </div>
 
+  <!-- Aeronaves em Uso + Combustível (ambos dependem do filtro) -->
   <div class="cgrid">
+    <div class="card">
+      <div class="card-hd"><h3>✈️ Aeronaves em Uso</h3><span style="font-size:.75em;color:var(--ink3);margin-left:4px;font-weight:400">Block Time · período</span></div>
+      <div style="padding:12px 14px" id="tAeroUso"><div style="color:var(--ink3);font-size:.9em;padding:8px 0">A calcular…</div></div>
+    </div>
     <div class="card">
       <div class="card-hd"><h3>⛽ Combustível do Período</h3><span style="font-size:.75em;color:var(--ink3);font-weight:400;margin-left:4px">missões concluídas</span></div>
       <div id="tFuelPeriodo" style="padding:12px 14px"></div>
     </div>
-    <div class="card">
-      <div class="card-hd"><h3>📋 Missões Recentes</h3></div>
-      <div class="tscroll" id="tUltimos" style="max-height:320px;overflow-x:auto;overflow-y:auto"></div>
-    </div>
   </div>
 
-  <!-- ══ SECÇÃO 2: ESTADO OPERACIONAL ACTUAL ═══════════════════ -->
+  <!-- Missões Recentes (filtro) -->
+  <div class="card" style="margin-bottom:4px">
+    <div class="card-hd"><h3>📋 Missões Recentes</h3></div>
+    <div class="tscroll" id="tUltimos" style="max-height:320px;overflow-x:auto;overflow-y:auto"></div>
+  </div>
+
+  <!-- ══ SECÇÃO 2: ESTADO OPERACIONAL ACTUAL (dados em tempo real) ═════ -->
   <div style="display:flex;align-items:center;gap:10px;margin:22px 0 12px">
     <div style="flex:1;height:2px;background:#0ea5e9;border-radius:1px;opacity:.5"></div>
     <span style="font-size:.7rem;font-weight:800;color:#0ea5e9;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap;padding:3px 10px;border:1.5px solid #0ea5e9;border-radius:20px">📅 Estado Operacional Actual</span>
     <div style="flex:1;height:2px;background:#0ea5e9;border-radius:1px;opacity:.5"></div>
   </div>
 
+  <!-- KPIs de hoje/semana/próximos — ignoram o filtro -->
   <div class="mgrid">
     <div class="mcard" data-ic="📅" style="border-left:4px solid #3b82f6"><div class="mcard-lbl">Hoje</div><div class="mcard-val" id="mHoje">0</div><div class="mcard-sub" id="mHojeSub">missões</div></div>
     <div class="mcard" data-ic="📆" style="border-left:4px solid #6366f1"><div class="mcard-lbl">Esta Semana</div><div class="mcard-val" id="mSem">0</div><div class="mcard-sub" id="mSemSub">missões</div></div>
@@ -811,6 +820,30 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   <div class="mgrid">
     <div class="mcard" data-ic="⏱️" style="border-left:4px solid #0ea5e9"><div class="mcard-lbl">Block Time (mês)</div><div class="mcard-val" id="mBTMes">0h 0m</div><div class="mcard-sub">acumulado</div></div>
     <div class="mcard" data-ic="🚨" style="border-left:4px solid #dc2626"><div class="mcard-lbl">Alertas de Horas</div><div class="mcard-val" id="mHrAlert">0</div><div class="mcard-sub">tripulantes ≥80%</div></div>
+  </div>
+
+  <!-- Actividade últimos 7 dias (tempo real) -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-hd"><h3>📊 Actividade — Últimos 7 Dias</h3></div>
+    <div class="card-bd"><div class="chart-box"><canvas id="c7Dias"></canvas></div></div>
+  </div>
+
+  <!-- Top 3 mês + Aeronaves este mês (mês actual, ignora filtro) -->
+  <div class="cgrid">
+    <div class="card">
+      <div class="card-hd"><h3>🏆 Top 3 Tripulantes — Mês Actual</h3><span style="font-size:.75em;color:var(--ink3);margin-left:4px;font-weight:400">Block Time</span></div>
+      <div id="tTop3Mes" style="padding:12px 14px"></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><h3>✈️ Aeronaves — Mês Actual</h3><span style="font-size:.75em;color:var(--ink3);margin-left:4px;font-weight:400">missões + BT</span></div>
+      <div id="tAeroMes" style="padding:12px 14px"></div>
+    </div>
+  </div>
+
+  <!-- Custo mês actual vs mês anterior (ignora filtro) -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-hd"><h3>💰 Custo Estimado — Mês Actual vs Anterior</h3></div>
+    <div id="tCustoVsAnterior" style="padding:12px 16px"></div>
   </div>
 
   <div class="card" id="metasCard" style="margin-bottom:14px">
@@ -1141,6 +1174,11 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="card"><div class="card-hd"><h3>⏱️ Block Time vs Duração (12 meses)</h3></div><div class="card-bd"><div class="chart-box"><canvas id="cBTvsDur"></canvas></div></div></div>
     <div class="card"><div class="card-hd"><h3>💶 Evolução do Custo Mensal</h3></div><div class="card-bd"><div class="chart-box"><canvas id="cCustoMes"></canvas></div></div></div>
   </div>
+  <!-- NOVO: Análise Sazonal + Custo por missão -->
+  <div class="cgrid">
+    <div class="card"><div class="card-hd"><h3>🗓️ Análise Sazonal</h3><span style="font-size:.75em;color:var(--ink3);margin-left:4px;font-weight:400">média missões/mês ao longo dos anos</span></div><div class="card-bd"><div class="chart-box"><canvas id="cSazonal"></canvas></div></div></div>
+    <div class="card"><div class="card-hd"><h3>💰 Custo Médio por Missão</h3><span style="font-size:.75em;color:var(--ink3);margin-left:4px;font-weight:400">tendência 12 meses</span></div><div class="card-bd"><div class="chart-box"><canvas id="cCustoMissao"></canvas></div></div></div>
+  </div>
   <!-- NEW: Taxa cancelamento + Histograma duração -->
   <div class="cgrid">
     <div class="card"><div class="card-hd"><h3>❌ Taxa de Cancelamento (%)</h3></div><div class="card-bd"><div class="chart-box"><canvas id="cCancel"></canvas></div></div></div>
@@ -1149,12 +1187,12 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   <!-- MEDEVAC: Gráfico de pacientes -->
   <div class="cgrid">
     <div class="card"><div class="card-hd"><h3>🏥 Pacientes MEDEVAC por Mês</h3><span style="font-size:.75em;color:var(--ink3);margin-left:4px;font-weight:400">evacuações médicas</span></div><div class="card-bd"><div class="chart-box"><canvas id="cMedevac"></canvas></div></div></div>
-    <div class="card"><div class="card-hd"><h3>🏥 Top Rotas MEDEVAC</h3><span style="font-size:.75em;color:var(--ink3);margin-left:4px;font-weight:400">origem → destino · pacientes</span></div><div id="tMedevacRotas" style="padding:10px 14px"></div></div>
+    <div class="card"><div class="card-hd"><h3>🏥 Top Rotas MEDEVAC</h3><span style="font-size:.75em;color:var(--ink3);margin-left:4px;font-weight:400">origem → destino · pacientes</span></div><div class="card-bd"><div class="chart-box"><canvas id="cMedevacRotas"></canvas></div></div></div>
   </div>
-  <!-- NEW: Heatmap + Ranking BT -->
-  <div class="cgrid">
-    <div class="card"><div class="card-hd"><h3>🗓️ Actividade por Dia da Semana / Hora</h3></div><div id="tHeatmap" style="padding:10px 12px;overflow-x:auto"></div></div>
-    <div class="card"><div class="card-hd"><h3>🏅 Ranking Block Time (tripulantes)</h3></div><div id="tRankBT" style="padding:10px 12px"></div></div>
+  <!-- Heatmap full-width -->
+  <div class="card">
+    <div class="card-hd"><h3>🗓️ Actividade por Dia da Semana / Hora</h3></div>
+    <div id="tHeatmap" style="padding:10px 12px;overflow-x:auto"></div>
   </div>
   <div class="card">
     <div class="card-hd"><h3>👥 Horas por Tripulante</h3><span style="font-size:.75em;color:var(--ink3);margin-left:6px;font-weight:400">BT + limite mensal</span></div>
@@ -1185,6 +1223,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
         <button class="btn btn-pdf btn-sm" onclick="A.dashboardExecutivoPDF()">📊 Dashboard Executivo</button>
         <button class="btn btn-ex btn-sm" style="background:#166534;border-color:#166534" onclick="A.exportExcelCompleto(document.getElementById('dashMes').value,document.getElementById('dashAno').value)">📊 Relatório Excel</button>
         <button class="btn btn-pdf btn-sm" style="background:#b45309;border-color:#b45309" onclick="A.alertsPDF()">🚨 PDF Alertas Validade</button>
+        <button class="btn btn-pdf btn-sm" style="background:#1d4ed8;border-color:#1d4ed8" onclick="A.exportAllChartsPDF()">📈 PDF dos Gráficos</button>
       </div>
     </div>
   </div>
@@ -5281,20 +5320,24 @@ renderHorasTrip(){
   const lista=Object.values(d).sort((a,b)=>b.btMin-a.btMin);
   if(!lista.length){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--ink3)">Sem dados</div>';return;}
   const fmtM=m=>Math.floor(m/60)+'h '+(m%60<10?'0':'')+(m%60)+'m';
+  const medals=['🥇','🥈','🥉'];
   const R='text-align:right';
-  let h='<table><thead><tr><th>#</th><th>Tripulante</th><th style="'+R+'">Mis.</th><th style="'+R+'">FLIGHT TIME</th><th style="'+R+'">Block Time</th><th style="min-width:120px">BT vs Limite ('+lim+'h)</th></tr></thead><tbody>';
+  let h='<table><thead><tr><th style="min-width:34px">Pos.</th><th>Tripulante</th><th style="'+R+'">Mis.</th><th style="'+R+'">Flight Time</th><th style="'+R+'">Block Time</th><th style="min-width:140px">BT vs Limite ('+lim+'h)</th></tr></thead><tbody>';
   lista.forEach((x,i)=>{
     const pctLim=Math.min(100,Math.round(x.btMin/(lim*60)*100));
-    const cor=pctLim>=100?'#dc2626':(pctLim>=85?'#f59e0b':'var(--g7)');
+    const cor=pctLim>=100?'#dc2626':(pctLim>=85?'#f59e0b':'#16a34a');
+    const stIco=pctLim>=100?'🔴':(pctLim>=85?'🟡':'🟢');
+    const rankIco=medals[i]||(i+1);
     h+='<tr>'+
-      '<td style="color:var(--ink3)">'+(i+1)+'</td>'+
+      '<td style="font-size:1.1em;text-align:center">'+rankIco+'</td>'+
       '<td><strong>'+this.esc(x.nome)+'</strong></td>'+
       '<td style="'+R+'">'+x.mis+'</td>'+
       '<td style="'+R+';font-family:var(--mono);color:var(--ink3)">'+fmtM(x.durMin)+'</td>'+
       '<td style="'+R+';font-family:var(--mono);color:var(--g8);font-weight:700">'+fmtM(x.btMin)+'</td>'+
       '<td><div style="display:flex;align-items:center;gap:6px">'+
+        '<span style="font-size:1em">'+stIco+'</span>'+
         '<div class="pbar-track" style="flex:1"><div class="pbar-fill" style="width:'+pctLim+'%;background:'+cor+'"></div></div>'+
-        '<span class="pbar-lbl" style="color:'+cor+'">'+pctLim+'%</span>'+
+        '<span class="pbar-lbl" style="color:'+cor+';font-weight:700">'+pctLim+'%</span>'+
       '</div></td>'+
     '</tr>';
   });
@@ -6115,30 +6158,53 @@ _buildMedevacCharts(){
     yPac:{beginAtZero:true,grid:{color:gc},ticks:{color:'#dc2626',font:{size:10},stepSize:1},title:{display:true,text:'Pacientes',color:'#dc2626',font:{size:10}}},
     yMis:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},ticks:{color:'#f59e0b',font:{size:10},stepSize:1},title:{display:true,text:'Missões',color:'#f59e0b',font:{size:10}}}
   }}});}
-  // Top rotas MEDEVAC
+  // Top rotas MEDEVAC — gráfico de barras horizontal
   const rotaMap={};
   mis.filter(m=>m.tipo&&m.tipo.toLowerCase().includes('medvac')).forEach(m=>{
     const key=(m.origem||'—')+' → '+(m.destino||'—');
     if(!rotaMap[key])rotaMap[key]={miss:0,pac:0};
     rotaMap[key].miss++;rotaMap[key].pac+=(m.nPac||0);
   });
-  const rotaEl=document.getElementById('tMedevacRotas');
-  if(rotaEl){
-    const sorted=Object.entries(rotaMap).sort((a,b)=>b[1].pac-a[1].pac).slice(0,8);
-    if(!sorted.length){rotaEl.innerHTML='<div style="color:var(--ink3);padding:8px 0;font-size:.9em">Sem missões MEDEVAC no período</div>';return;}
-    rotaEl.innerHTML=sorted.map(([rota,v],i)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:.75em;font-weight:700;color:var(--ink3);min-width:18px">${i+1}.</span>
-      <div style="flex:1"><div style="font-size:.88em;font-weight:600;color:var(--ink)">${this.esc(rota)}</div>
-      <div style="font-size:.75em;color:var(--ink3)">${v.miss} missão(ões) · <span style="color:#dc2626;font-weight:600">${v.pac} pac.</span></div></div></div>`).join('');
+  const sorted=Object.entries(rotaMap).sort((a,b)=>b[1].pac-a[1].pac).slice(0,8);
+  const ctxRotas=document.getElementById('cMedevacRotas')?.getContext('2d');
+  if(ctxRotas){
+    if(!sorted.length){
+      ctxRotas.canvas.parentElement.innerHTML='<div style="padding:24px;text-align:center;color:var(--ink3);font-size:.9em">Sem missões MEDEVAC no período</div>';
+    }else{
+      const tc=this._textColor(),gc=this._gridColor();
+      const labels=sorted.map(([r])=>r);
+      const pacs=sorted.map(([,v])=>v.pac);
+      const misss=sorted.map(([,v])=>v.miss);
+      this.S.charts['cMedevacRotas']=new Chart(ctxRotas,{
+        type:'bar',
+        data:{labels,datasets:[
+          {label:'Pacientes',data:pacs,backgroundColor:'rgba(220,38,38,.75)',borderColor:'#dc2626',borderWidth:1.5,borderRadius:4},
+          {label:'Missões',data:misss,backgroundColor:'rgba(245,158,11,.65)',borderColor:'#f59e0b',borderWidth:1.5,borderRadius:4}
+        ]},
+        options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{labels:{color:tc,font:{size:11}}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.parsed.x}}},
+          scales:{
+            x:{beginAtZero:true,grid:{color:gc},ticks:{color:tc,stepSize:1,font:{size:10}}},
+            y:{grid:{color:gc},ticks:{color:tc,font:{size:10}}}
+          }
+        }
+      });
+    }
   }
 },
 buildCharts(){
   this._destroyCharts('cTemp');
   this._buildCombinedChart();
+  this._buildEstadosChart();
+  this._build7DiasChart();
+  this._renderTop3Mes();
+  this._renderAeroMes();
+  this._renderCustoVsAnterior();
+  setTimeout(()=>this._initChartExport(),150);
 },
 
 buildAnalysisCharts(){
-  this._destroyCharts('cTipo','cAero','cHor','cFunc','cTend','cBTvsDur','cCustoMes','cCancel','cDurHist','cBTTrip');
+  this._destroyCharts('cTipo','cAero','cHor','cFunc','cTend','cBTvsDur','cCustoMes','cCancel','cDurHist','cSazonal','cCustoMissao','cMedevacRotas');
   this._buildMedevacCharts();
   const mis=this.S.filtered;
   const SC={x:{grid:{color:this._gridColor()},ticks:{color:this._textColor()}},y:{grid:{color:this._gridColor()},ticks:{color:this._textColor(),stepSize:1},beginAtZero:true}};
@@ -6231,8 +6297,11 @@ buildAnalysisCharts(){
   // Heatmap dia da semana × hora
   this.renderHeatmap(mis);
 
-  // Ranking Block Time
-  this.renderRankBT(mis);
+
+  // Análise sazonal + custo por missão
+  this._buildSazonalChart();
+  this._buildCustoMissaoChart();
+  setTimeout(()=>this._initChartExport(),150);
 },
 
 // ─── ANÁLISES: Heatmap de actividade ─────────────────────────
@@ -6263,39 +6332,265 @@ renderHeatmap(mis){
   el.innerHTML=h;
 },
 
-// ─── ANÁLISES: Ranking Block Time ─────────────────────────────
-renderRankBT(mis){
-  const el=document.getElementById('tRankBT');if(!el)return;
-  const map={};
-  mis.filter(m=>m.status==='Concluída').forEach(m=>{
-    const btStr=this.calcBT(m.boff,m.bon);
-    if(btStr==='—')return;
-    const[bh,bm]=btStr.split(':').map(Number);const btMins=bh*60+(bm||0);
-    (m.crew||[]).forEach(c=>{map[c.nome]=(map[c.nome]||0)+btMins;});
+
+
+// ─── EXPORTAR GRÁFICOS ───────────────────────────────────────
+// Adiciona botão 📥 a todos os cards que contenham um <canvas>
+_initChartExport(){
+  document.querySelectorAll('.card').forEach(card=>{
+    const canvas=card.querySelector('canvas');
+    if(!canvas)return;
+    const hd=card.querySelector('.card-hd');
+    if(!hd||hd.querySelector('.btn-chart-dl'))return;
+    const btn=document.createElement('button');
+    btn.className='btn btn-s btn-sm btn-chart-dl';
+    btn.style.cssText='margin-left:auto;padding:2px 8px;font-size:.78em;opacity:.65;flex-shrink:0';
+    btn.title='Descarregar gráfico PNG';
+    btn.textContent='📥';
+    btn.onclick=(e)=>{
+      e.stopPropagation();
+      const name=(hd.querySelector('h3')?.textContent||'grafico').replace(/[^\wÀ-ú\s]/g,'').trim().replace(/\s+/g,'_').slice(0,40);
+      const link=document.createElement('a');
+      link.download='CGC_EA_'+name+'.png';
+      link.href=canvas.toDataURL('image/png');
+      link.click();
+    };
+    hd.appendChild(btn);
   });
-  const list=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  if(!list.length){el.innerHTML='<div style="color:var(--ink3);font-size:.9em">Sem dados de Block Time.</div>';return;}
-  const maxV=list[0][1]||1;
-  const medals=['🥇','🥈','🥉'];
-  const fmtMin=m=>Math.floor(m/60)+'h '+(m%60<10?'0':'')+(m%60)+'m';
-  const COLS=['#1B5E20','#2E7D32','#388E3C','#43A047','#4CAF50','#66BB6A','#81C784','#A5D6A7','#C8E6C9','#E8F5E9'];
-  let h='<div style="display:flex;flex-direction:column;gap:6px">';
-  list.forEach(([nome,mins],i)=>{
-    const pct=Math.round(mins/maxV*100);
-    const col=COLS[i]||'#43A047';
-    h+='<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;background:var(--g0);border-radius:6px">'+
-      '<span style="font-size:1.05em;min-width:20px">'+(medals[i]||'#'+(i+1))+'</span>'+
-      '<div style="flex:1;min-width:0">'+
-        '<div style="font-weight:600;font-size:.84em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+this.esc(nome)+'</div>'+
-        '<div style="height:5px;background:var(--g2);border-radius:3px;margin-top:3px"><div style="height:100%;width:'+pct+'%;background:'+col+';border-radius:3px"></div></div>'+
-      '</div>'+
-      '<div style="font-size:.82em;font-weight:700;color:'+col+';min-width:56px;text-align:right">'+fmtMin(mins)+'</div>'+
-    '</div>';
-  });
-  h+='</div>';
-  el.innerHTML=h;
 },
 
+// Exporta todos os gráficos visíveis como PDF — 4 por página (2×2)
+exportAllChartsPDF(){
+  if(!window.jspdf){this.showNotif('❌ Biblioteca PDF não carregada','err');return;}
+  const{jsPDF}=window.jspdf;
+  // Helper: canvas → PNG com fundo branco (evita fundo preto no PDF)
+  const canvasToPng=(c)=>{
+    const tmp=document.createElement('canvas');
+    tmp.width=c.width;tmp.height=c.height;
+    const ctx=tmp.getContext('2d');
+    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,tmp.width,tmp.height);
+    ctx.drawImage(c,0,0);
+    return{img:tmp.toDataURL('image/png'),w:c.width||800,h:c.height||400};
+  };
+  // Recolher gráficos visíveis
+  const items=[];
+  document.querySelectorAll('.card').forEach(card=>{
+    const canvas=card.querySelector('canvas');
+    if(!canvas||!canvas.offsetParent)return;
+    const hd=card.querySelector('.card-hd h3');
+    const title=(hd?.textContent||'Gráfico').replace(/[^\wÀ-ú\s\-]/g,'').trim();
+    try{const{img,w,h}=canvasToPng(canvas);items.push({title,img,w,h});}catch(e){}
+  });
+  if(!items.length){this.showNotif('⚠️ Sem gráficos visíveis para exportar','warn');return;}
+  const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  const pw=297,ph=210;
+  const now=new Date().toLocaleDateString('pt-PT');
+  const hdrH=16,lm=10,tm=hdrH+6,gap=6;
+  const cols=2,rows=2,perPage=cols*rows;
+  const cellW=(pw-lm*2-(cols-1)*gap)/cols;
+  const cellH=(ph-tm-lm-(rows-1)*gap)/rows;
+  const pages=Math.ceil(items.length/perPage);
+  for(let p=0;p<pages;p++){
+    if(p>0)doc.addPage();
+    // Cabeçalho da página
+    doc.setFillColor(22,101,52);doc.rect(0,0,pw,hdrH,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(255,255,255);
+    doc.text('CGC-EA  ·  Gráficos Operacionais',lm,10.5);
+    doc.setFont('helvetica','normal');doc.setFontSize(8);
+    doc.text('Página '+(p+1)+'/'+pages+'  ·  '+now,pw-lm,10.5,{align:'right'});
+    // 4 gráficos por página
+    for(let idx=0;idx<perPage;idx++){
+      const item=items[p*perPage+idx];
+      if(!item)break;
+      const col=idx%cols,row=Math.floor(idx/cols);
+      const x=lm+col*(cellW+gap);
+      const y=tm+row*(cellH+gap);
+      // Fundo branco da célula
+      doc.setFillColor(255,255,255);doc.roundedRect(x,y,cellW,cellH,2,2,'F');
+      doc.setDrawColor(220,220,220);doc.roundedRect(x,y,cellW,cellH,2,2,'S');
+      // Título do gráfico
+      doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(30,30,30);
+      doc.text(item.title.slice(0,45),x+3,y+6);
+      // Imagem do gráfico ajustada à célula
+      const imgArea={x:x+2,y:y+8,w:cellW-4,h:cellH-10};
+      const scale=Math.min(imgArea.w/item.w,imgArea.h/item.h);
+      const rW=item.w*scale,rH=item.h*scale;
+      const ix=imgArea.x+(imgArea.w-rW)/2;
+      const iy=imgArea.y+(imgArea.h-rH)/2;
+      doc.addImage(item.img,'PNG',ix,iy,rW,rH);
+    }
+  }
+  doc.save('CGC_EA_Graficos_'+now.replace(/\//g,'-')+'.pdf');
+  this.showNotif('✅ PDF com '+items.length+' gráfico(s) · '+pages+' página(s) guardado');
+},
+
+// ─── DASHBOARD: Donut de estados ─────────────────────────────
+_buildEstadosChart(){
+  this._destroyCharts('cEstados');
+  const ctx=document.getElementById('cEstados')?.getContext('2d');if(!ctx)return;
+  const mis=this.S.filtered;
+  const keys=['Concluída','Planeada','Em Curso','Cancelada'];
+  const cols=['#16a34a','#3b82f6','#f59e0b','#ef4444'];
+  const _s=new Set();
+  const counts=keys.map(k=>mis.filter(m=>!_s.has(m.num+'|'+k)&&_s.add(m.num+'|'+k)&&(m.status||'Concluída')===k).length);
+  const tc=this._textColor();
+  const pctFn=c=>{const tot=mis.length;return ' '+c.label+': '+c.raw+' ('+(tot?Math.round(c.raw/tot*100):0)+'%)';};
+  this.S.charts['cEstados']=new Chart(ctx,{type:'doughnut',data:{labels:keys,datasets:[{data:counts,backgroundColor:cols,borderWidth:2,borderColor:this._isDark()?'#0e1f10':'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'right',labels:{font:{size:11},color:tc,boxWidth:14,padding:10}},tooltip:{callbacks:{label:pctFn}}}}});
+},
+
+// ─── DASHBOARD: Barras últimos 7 dias ────────────────────────
+_build7DiasChart(){
+  this._destroyCharts('c7Dias');
+  const ctx=document.getElementById('c7Dias')?.getContext('2d');if(!ctx)return;
+  const DIAS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const labels=[],concl=[],plan=[];
+  const now=new Date();
+  for(let i=6;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);
+    labels.push(DIAS[d.getDay()]+' '+d.getDate()+'/'+( d.getMonth()+1));
+    const day=this.S.missoes.filter(m=>{const md=m.dt instanceof Date?m.dt:new Date(m.dt);return md.getFullYear()===d.getFullYear()&&md.getMonth()===d.getMonth()&&md.getDate()===d.getDate();});
+    const _sc=new Set(),_sp=new Set();
+    concl.push(day.filter(m=>m.status==='Concluída'&&!_sc.has(m.num)&&_sc.add(m.num)).length);
+    plan.push(day.filter(m=>m.status==='Planeada'&&!_sp.has(m.num)&&_sp.add(m.num)).length);
+  }
+  const gc=this._gridColor(),tc=this._textColor();
+  this.S.charts['c7Dias']=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Concluídas',data:concl,backgroundColor:'#16a34a',borderRadius:5,stack:'s'},{label:'Planeadas',data:plan,backgroundColor:'#3b82f6aa',borderRadius:5,stack:'s'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},color:tc,boxWidth:12}}},scales:{x:{grid:{color:gc},ticks:{color:tc,font:{size:9}}},y:{grid:{color:gc},ticks:{color:tc,stepSize:1},beginAtZero:true,stacked:true}}}});
+},
+
+// ─── DASHBOARD: Top 3 tripulantes mês actual ─────────────────
+_renderTop3Mes(){
+  const el=document.getElementById('tTop3Mes');if(!el)return;
+  const now=new Date();
+  const mis=this.S.missoes.filter(m=>{const d=m.dt instanceof Date?m.dt:new Date(m.dt);return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()&&m.status==='Concluída';});
+  const map={};
+  mis.forEach(m=>{const btS=this.calcBT(m.boff,m.bon);let btMin=0;if(btS&&btS!=='—'){const[bh,bm]=btS.split(':').map(Number);btMin=bh*60+(bm||0);}(m.crew||[]).forEach(c=>{map[c.nome]=(map[c.nome]||0)+btMin;});});
+  const list=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  if(!list.length){el.innerHTML='<div style="color:var(--ink3);font-size:.9em;padding:6px 0">Sem missões concluídas este mês.</div>';return;}
+  const medals=['🥇','🥈','🥉'];const COLS=['#1B5E20','#388E3C','#66BB6A'];
+  const maxV=list[0][1]||1;const fmtM=m=>Math.floor(m/60)+'h '+(m%60<10?'0':'')+(m%60)+'m';
+  el.innerHTML='<div style="display:flex;flex-direction:column;gap:8px">'+list.map(([nome,mins],i)=>{
+    const pct=Math.round(mins/maxV*100);
+    return '<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:var(--g0);border-radius:8px">'+
+      '<span style="font-size:1.4em">'+medals[i]+'</span>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-weight:700;font-size:.9em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+this.esc(nome)+'</div>'+
+        '<div style="height:5px;background:var(--g2);border-radius:3px;margin-top:4px"><div style="height:100%;width:'+pct+'%;background:'+COLS[i]+';border-radius:3px"></div></div>'+
+      '</div>'+
+      '<div style="font-family:var(--mono);font-weight:700;font-size:.88em;color:'+COLS[i]+'">'+fmtM(mins)+'</div>'+
+    '</div>';
+  }).join('')+'</div>';
+},
+
+// ─── DASHBOARD: Aeronaves este mês ───────────────────────────
+_renderAeroMes(){
+  const el=document.getElementById('tAeroMes');if(!el)return;
+  const now=new Date();
+  const mis=this.S.missoes.filter(m=>{const d=m.dt instanceof Date?m.dt:new Date(m.dt);return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()&&m.status==='Concluída';});
+  const map={};
+  mis.forEach(m=>{const k=m.aero||'—';if(!map[k])map[k]={mis:0,btMin:0};map[k].mis++;const btS=this.calcBT(m.boff,m.bon);if(btS&&btS!=='—'){const[bh,bm]=btS.split(':').map(Number);map[k].btMin+=bh*60+(bm||0);}});
+  const list=Object.entries(map).sort((a,b)=>b[1].btMin-a[1].btMin);
+  if(!list.length){el.innerHTML='<div style="color:var(--ink3);font-size:.9em;padding:6px 0">Sem voos concluídos este mês.</div>';return;}
+  const fmtM=m=>Math.floor(m/60)+'h '+(m%60<10?'0':'')+(m%60)+'m';
+  const R='text-align:right;font-family:var(--mono);font-size:.85em';
+  el.innerHTML='<table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left;font-size:.78em;color:var(--ink3);padding:3px 6px;font-weight:600">Aeronave</th><th style="'+R+';color:var(--ink3);padding:3px 6px;font-size:.78em">Mis.</th><th style="'+R+';color:var(--ink3);padding:3px 6px;font-size:.78em">Block Time</th></tr></thead><tbody>'+
+    list.map(([aero,v])=>'<tr><td style="padding:5px 6px;font-weight:600;font-size:.88em">✈️ '+this.esc(aero)+'</td><td style="'+R+';padding:5px 6px;font-weight:700">'+v.mis+'</td><td style="'+R+';padding:5px 6px;color:var(--g8);font-weight:700">'+fmtM(v.btMin)+'</td></tr>').join('')+
+  '</tbody></table>';
+},
+
+// ─── DASHBOARD: Custo mês actual vs mês anterior ─────────────
+_renderCustoVsAnterior(){
+  const el=document.getElementById('tCustoVsAnterior');if(!el)return;
+  const vPF=this.getVPF();const mv=this.getMealVals();
+  const now=new Date();
+  const _custo=(y,mo)=>{
+    let total=0;
+    this.S.missoes.filter(m=>{const d=m.dt instanceof Date?m.dt:new Date(m.dt);return d.getFullYear()===y&&d.getMonth()===mo&&m.status==='Concluída';}).forEach(m=>{
+      const btS=this.calcBT(m.boff,m.bon);let btMin=0;if(btS&&btS!=='—'){const[bh,bm]=btS.split(':').map(Number);btMin=bh*60+(bm||0);}
+      const tMin=this.t2m((m.toff||'00:00').slice(0,5));
+      const mR=(this.overlaps(tMin,btMin,0,8)?mv.pa:0)+(this.overlaps(tMin,btMin,12,14)?mv.al:0)+(this.overlaps(tMin,btMin,19,24)?mv.jn:0);
+      (m.crew||[]).forEach(c=>{total+=(vPF[c.fn]||1500)*(btMin/60)+mR;});
+    });
+    return total;
+  };
+  const mesAtual=_custo(now.getFullYear(),now.getMonth());
+  const mesAnteriorY=now.getMonth()===0?now.getFullYear()-1:now.getFullYear();
+  const mesAnteriorM=now.getMonth()===0?11:now.getMonth()-1;
+  const mesAnterior=_custo(mesAnteriorY,mesAnteriorM);
+  const MLBL=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const delta=mesAnterior>0?Math.round((mesAtual-mesAnterior)/mesAnterior*100):null;
+  const dCor=delta===null?'var(--ink3)':(delta>0?'#dc2626':'#16a34a');
+  const dSeta=delta===null?'':(delta>0?'▲':'▼');
+  el.innerHTML='<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center">'+
+    '<div style="flex:1;min-width:140px;background:var(--g0);border-radius:10px;padding:14px 16px;border-left:4px solid var(--g7)">'+
+      '<div style="font-size:.75em;font-weight:600;color:var(--ink3);margin-bottom:4px">'+MLBL[now.getMonth()]+' '+now.getFullYear()+' (actual)</div>'+
+      '<div style="font-size:1.4em;font-weight:800;color:var(--g8)">'+this.cve(mesAtual)+'</div>'+
+    '</div>'+
+    '<div style="font-size:1.6em;color:var(--ink3)">→</div>'+
+    '<div style="flex:1;min-width:140px;background:var(--g0);border-radius:10px;padding:14px 16px;border-left:4px solid var(--border)">'+
+      '<div style="font-size:.75em;font-weight:600;color:var(--ink3);margin-bottom:4px">'+MLBL[mesAnteriorM]+' '+(mesAnteriorM===11&&mesAnterior?mesAnteriorY:now.getFullYear())+' (anterior)</div>'+
+      '<div style="font-size:1.4em;font-weight:800;color:var(--ink2)">'+this.cve(mesAnterior)+'</div>'+
+    '</div>'+
+    (delta!==null?'<div style="background:var(--g0);border-radius:10px;padding:14px 16px;text-align:center">'+
+      '<div style="font-size:.75em;font-weight:600;color:var(--ink3);margin-bottom:4px">Variação</div>'+
+      '<div style="font-size:1.4em;font-weight:800;color:'+dCor+'">'+dSeta+Math.abs(delta)+'%</div>'+
+    '</div>':'')+
+  '</div>';
+},
+
+// ─── ANÁLISES: Análise Sazonal ────────────────────────────────
+_buildSazonalChart(){
+  this._destroyCharts('cSazonal');
+  const ctx=document.getElementById('cSazonal')?.getContext('2d');if(!ctx)return;
+  const mis=this.S.filtered;
+  const MLBL=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  // Agrupar por mês (0-11) e contar missões únicas por mês/ano, depois fazer média
+  const byMonthYear={};// {mes: {ano: count}}
+  const anos=new Set();
+  const _s=new Set();
+  mis.forEach(m=>{
+    if(_s.has(m.num))return;_s.add(m.num);
+    const d=m.dt instanceof Date?m.dt:new Date(m.dt);
+    const mo=d.getMonth(),yr=d.getFullYear();
+    if(!byMonthYear[mo])byMonthYear[mo]={};
+    byMonthYear[mo][yr]=(byMonthYear[mo][yr]||0)+1;
+    anos.add(yr);
+  });
+  const nAnos=anos.size||1;
+  const medias=MLBL.map((_,mo)=>{
+    const vals=Object.values(byMonthYear[mo]||{});
+    const soma=vals.reduce((s,v)=>s+v,0);
+    return +(soma/nAnos).toFixed(1);
+  });
+  const maxV=Math.max(...medias,1);
+  const gc=this._gridColor(),tc=this._textColor();
+  this.S.charts['cSazonal']=new Chart(ctx,{type:'bar',data:{labels:MLBL,datasets:[{label:'Média missões/mês',data:medias,backgroundColor:medias.map(v=>{const i=Math.round(v/maxV*5);return['#C8E6C9','#A5D6A7','#66BB6A','#43A047','#2E7D32','#1B5E20'][Math.min(5,i)];}),borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.raw+' missões/mês em média ('+nAnos+' ano'+(nAnos!==1?'s':'')+')'}}},scales:{x:{grid:{color:gc},ticks:{color:tc}},y:{grid:{color:gc},ticks:{color:tc},beginAtZero:true,title:{display:true,text:'Média de missões',color:tc,font:{size:10}}}}}});
+},
+
+// ─── ANÁLISES: Custo médio por missão ────────────────────────
+_buildCustoMissaoChart(){
+  this._destroyCharts('cCustoMissao');
+  const ctx=document.getElementById('cCustoMissao')?.getContext('2d');if(!ctx)return;
+  const mis=this.S.filtered;
+  const vPF=this.getVPF();const mv=this.getMealVals();
+  const MLBL=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const now=new Date();const months=[],custoMedio=[];
+  for(let i=11;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const y=d.getFullYear(),mo=d.getMonth();
+    months.push(MLBL[mo]+' '+String(y).slice(2));
+    const mMes=mis.filter(m=>{const md=m.dt instanceof Date?m.dt:new Date(m.dt);return md.getFullYear()===y&&md.getMonth()===mo&&m.status==='Concluída';});
+    let total=0;
+    mMes.forEach(m=>{
+      const btS=this.calcBT(m.boff,m.bon);let btMin=0;if(btS&&btS!=='—'){const[bh,bm]=btS.split(':').map(Number);btMin=bh*60+(bm||0);}
+      const tMin=this.t2m((m.toff||'00:00').slice(0,5));
+      const mR=(this.overlaps(tMin,btMin,0,8)?mv.pa:0)+(this.overlaps(tMin,btMin,12,14)?mv.al:0)+(this.overlaps(tMin,btMin,19,24)?mv.jn:0);
+      (m.crew||[]).forEach(c=>{total+=(vPF[c.fn]||1500)*(btMin/60)+mR;});
+    });
+    custoMedio.push(mMes.length?Math.round(total/mMes.length):0);
+  }
+  const gc=this._gridColor(),tc=this._textColor();
+  this.S.charts['cCustoMissao']=new Chart(ctx,{type:'line',data:{labels:months,datasets:[{label:'CVE / missão',data:custoMedio,borderColor:'#b45309',backgroundColor:'#b4530920',fill:true,tension:.35,pointRadius:4,pointBackgroundColor:'#b45309',pointBorderColor:'#fff',pointBorderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+this.cve(c.raw)+' / missão'}}},scales:{x:{grid:{color:gc},ticks:{color:tc,font:{size:9}}},y:{grid:{color:gc},ticks:{color:tc,callback:v=>this.cve(v)},beginAtZero:true}}}});
+},
 
 // ─── AERONAVES ────────────────────────────────────────────────
 addAero(){
