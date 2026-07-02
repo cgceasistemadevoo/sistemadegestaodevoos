@@ -1330,6 +1330,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
         <button class="btn btn-p btn-sm admin-only" onclick="A.escNovaSemana()">＋ Nova Semana</button>
         <button class="btn btn-sm admin-only" onclick="A.escValidar()" style="font-size:.82em">✓ Validar</button>
         <button class="btn btn-sm" onclick="A.escPDF()" style="font-size:.82em">📄 PDF</button>
+        <button class="btn btn-p btn-sm" onclick="A._escalaFullscreen()">↗ Nova Janela</button>
       </div>
     </div>
     <div style="overflow-x:auto">
@@ -6365,6 +6366,38 @@ toggleNav(){
     if(btn)btn.textContent='✕';
     if(window.innerWidth>768)document.body.classList.add('nav-open');
   }
+},
+
+// ─── ESCALA NOVA JANELA ───────────────────────────────────────
+_escalaFullscreen(){
+  if(this._escalaWin&&!this._escalaWin.closed){this._escalaWin.focus();return;}
+  const w=window.open('','CGC_EA_Escala','width=1300,height=820,resizable=yes,scrollbars=yes');
+  if(!w){this.showNotif('\u26a0\ufe0f Permita pop-ups neste browser para abrir em nova janela.','warn');return;}
+  this._escalaWin=w;
+  const css=Array.from(document.querySelectorAll('style')).map(s=>s.textContent).join('\n');
+  const mesEl=document.getElementById('escMes');
+  const anoEl=document.getElementById('escAno');
+  const mesNome=mesEl?.options[mesEl.selectedIndex]?.text||'';
+  const ano=anoEl?.value||'';
+  const titulo='CGC\u00b7EA \u2014 Escala de Servi\u00e7o Semanal de Pilotos'+(mesNome&&mesNome!=='Todos os meses'?' \u2014 '+mesNome+' '+ano:' \u2014 '+ano);
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+titulo+'</title><style>'+css+'body,html{background:var(--white);margin:0;padding:16px;font-family:var(--sans)}.esc-win-hd{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--g9);color:#fff;border-radius:10px 10px 0 0;margin-bottom:0}.esc-win-hd h2{margin:0;font-size:1em;font-weight:700;letter-spacing:.04em}.esc-win-sub{font-size:.72em;opacity:.7;margin-left:auto}.esc-win-wrap{border:1.5px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)}</style></head><body><div class="esc-win-wrap"><div class="esc-win-hd"><span style="font-size:1.3em">⏰</span><h2>'+titulo+'</h2><span class="esc-win-sub" id="_escTs"></span></div><div style="overflow-x:auto;padding:12px" id="_escGrid"></div><div id="_escMsg"></div></div></body></html>');
+  w.document.close();
+  const _push=()=>{
+    if(w.closed){clearInterval(this._escalaWinT);this._escalaWin=null;return;}
+    try{
+      const src=document.getElementById('escGrid');
+      const dst=w.document.getElementById('_escGrid');
+      const msg=document.getElementById('escValMsg');
+      const dstMsg=w.document.getElementById('_escMsg');
+      const ts=w.document.getElementById('_escTs');
+      if(src&&dst)dst.innerHTML=src.innerHTML;
+      if(msg&&dstMsg)dstMsg.innerHTML=msg.innerHTML;
+      if(ts)ts.textContent='Actualizado: '+new Date().toLocaleTimeString('pt-PT');
+    }catch(e){}
+  };
+  setTimeout(_push,150);
+  this._escalaWinT=setInterval(()=>{this.renderEscala();setTimeout(_push,200);},30000);
+  w.addEventListener('beforeunload',()=>{clearInterval(this._escalaWinT);this._escalaWin=null;});
 },
 
 // ─── QUADRO OPERACIONAL ───────────────────────────────────────
