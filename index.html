@@ -150,7 +150,7 @@ body.dark #loading{background:rgba(26,28,30,.97)}
 .ntab.on{color:var(--g8);border-left-color:var(--g8);background:var(--g0);font-weight:700}
 
 /* CONTENT */
-.wrap{padding:18px 16px 32px;max-width:1600px;margin:0 auto}
+.wrap{padding:18px 16px 32px 30px;max-width:1600px;margin:0 auto}
 .page{animation:fadeUp .2s ease both}
 .page.hide{display:none!important}
 @keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
@@ -391,7 +391,7 @@ tbody tr:hover{background:var(--g0)}
    RESPONSIVE
 ═══════════════════════════════════════════════════════ */
 @media(max-width:640px){
-  .wrap{padding:14px 12px 28px}
+  .wrap{padding:14px 12px 28px 26px}
   .hdr{padding:16px}
   .hdr-icon{font-size:1.6em}
   .hdr-title{font-size:1.1em}
@@ -429,7 +429,7 @@ body.nav-open{padding-left:220px}
    RESPONSIVE - TABLET & EXTRA MOBILE TWEAKS
 ═══════════════════════════════════════════════════════ */
 @media(max-width:1024px){
-  .wrap{padding:14px 12px 28px}
+  .wrap{padding:14px 12px 28px 26px}
   .cgrid{grid-template-columns:1fr}
   .mgrid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
 }
@@ -1278,7 +1278,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
      QUADRO OPERACIONAL
 ════════════════════════════════════════════ -->
 <div id="page-quadro" class="page hide">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;padding-top:2px">
     <div>
       <div id="qdClock" style="font-family:var(--mono);font-size:1.8em;font-weight:700;color:var(--g9);letter-spacing:2px"></div>
       <div id="qdDate" style="font-size:.8em;color:var(--ink3);margin-top:2px"></div>
@@ -1459,19 +1459,21 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 </div>
 </div>
 
-</div>
-
-</div>
-
 
 <!-- ══════════════════════════════════════════
      MAPA DE ROTAS
 ════════════════════════════════════════════ -->
 <div id="page-mapa" class="page hide">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-    <select id="mapaMonth" onchange="A.renderMapa()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85em;background:var(--white);color:var(--ink);outline:none"></select>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+    <div>
+      <h2 style="font-size:1.2em;font-weight:800;color:var(--ink);margin:0">🗺️ Mapa de Rotas</h2>
+      <div style="font-size:.78em;color:var(--ink3);margin-top:2px">Destinos e rotas operadas — CGC-EA King Air 360ER</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <select id="mapaMonth" onchange="A.renderMapa()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85em;background:var(--white);color:var(--ink);outline:none"></select>
     <select id="mapaYear" onchange="A.renderMapa()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85em;background:var(--white);color:var(--ink);outline:none"></select>
-    <button class="btn btn-sm" onclick="document.getElementById('mapaMonth').value='0';A.renderMapa()" style="font-size:.82em">Todos os meses</button>
+      <button class="btn btn-sm" onclick="document.getElementById('mapaMonth').value='0';A.renderMapa()" style="font-size:.82em">Todos os meses</button>
+    </div>
   </div>
   <div class="card" style="padding:16px">
     <div style="overflow-x:auto">
@@ -1488,6 +1490,12 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
      INCIDENTES
 ════════════════════════════════════════════ -->
 <div id="page-incidentes" class="page hide">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+    <div>
+      <h2 style="font-size:1.2em;font-weight:800;color:var(--ink);margin:0">⚠️ Registo de Incidentes</h2>
+      <div style="font-size:.78em;color:var(--ink3);margin-top:2px">Segurança operacional — CGC-EA</div>
+    </div>
+  </div>
   <div class="mgrid" style="margin-bottom:16px">
     <div class="mcard" data-ic="⚠️"><div class="mcard-lbl">Total</div><div class="mcard-val" id="incTot">0</div><div class="mcard-sub">registados</div></div>
     <div class="mcard" data-ic="🔴"><div class="mcard-lbl">Abertos</div><div class="mcard-val" id="incOpen" style="color:#dc2626">0</div><div class="mcard-sub">por resolver</div></div>
@@ -1550,47 +1558,63 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:18px">
     <div>
       <h2 style="font-size:1.2em;font-weight:800;color:var(--ink);margin:0">📚 Manuais de Aeronave</h2>
-      <div style="font-size:.78em;color:var(--ink3);margin-top:2px">King Air 360ER — Documentação técnica e manuais de operação</div>
+      <div style="font-size:.78em;color:var(--ink3);margin-top:2px">Documentação técnica e manuais de operação — por aeronave</div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <input class="search-inp" id="srchManual" placeholder="🔍 Nome, tipo…" oninput="A.renderManuais()" style="width:200px">
+      <input class="search-inp" id="srchManual" placeholder="🔍 Nome, tipo…" oninput="A.renderManuais()" style="width:180px">
+      <select id="mFiltroAero" onchange="A.renderManuais()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.82em;background:var(--white);color:var(--ink);outline:none">
+        <option value="">Todas as aeronaves</option>
+        <option value="__geral__">Geral / Sem aeronave</option>
+      </select>
+      <button class="btn btn-p btn-sm admin-only" onclick="A.abrirModalManual()">＋ Adicionar Manual</button>
     </div>
   </div>
-  <!-- Adicionar manual -->
-  <div class="card admin-only" style="margin-bottom:18px;padding:16px 18px">
-    <div style="font-size:.78em;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">＋ Adicionar Manual / Documento</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-      <div class="fg"><label>Nome / Descrição *</label><input id="mNome" placeholder="Ex: Normal Procedures Rev.3"></div>
-      <div class="fg"><label>Tipo de Manual *</label>
+  <div id="manuaisGrid"></div>
+  <div id="manuaisVazio" style="display:none;text-align:center;padding:56px 0;color:var(--ink3)">
+    <div style="font-size:2.5em;margin-bottom:10px">📚</div>
+    <div style="font-size:.95em;font-weight:600">Nenhum manual adicionado ainda.</div>
+    <div style="font-size:.8em;margin-top:4px">Clique em <b>＋ Adicionar Manual</b> para começar.</div>
+  </div>
+</div>
+
+<!-- ══ MODAL MANUAL DE AERONAVE ══ -->
+<div class="modal" id="modalManual">
+<div class="modal-box" style="max-width:560px">
+  <div class="modal-hd">
+    <h3>📚 Adicionar Manual / Documento</h3>
+    <span class="modal-x" onclick="A._fecharModalManual()">×</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:12px;padding-top:4px">
+    <div class="fg"><label>Aeronave</label>
+      <select id="mAero" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.88em;background:var(--white);color:var(--ink)">
+        <option value="">— Geral / Sem aeronave —</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="fg"><label>Nome / Descrição *</label><input id="mNome" placeholder="Ex: POH Rev.3 / SOP Jan-2026"></div>
+      <div class="fg"><label>Tipo de Manual</label>
         <select id="mTipo" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.88em;background:var(--white);color:var(--ink)">
-          <option>Normal Procedures</option>
-          <option>Emergency Procedures</option>
-          <option>Abnormal Procedures</option>
-          <option>Advisory / Status Procedures</option>
-          <option>Supplemental Information</option>
-          <option>Performance</option>
-          <option>Library Release Notes</option>
-          <option>List of Effective Pages</option>
-          <option>Title Page</option>
+          <option value="">— Selecione (opcional) —</option>
+          <option>POH ou AFM</option>
+          <option>SOP</option>
+          <option>MEL</option>
+          <option>CDL</option>
+          <option>Manual de Instrução e Qualificação</option>
+          <option>Weight and Balance Manual</option>
           <option>Outro</option>
         </select>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end">
-      <div class="fg" style="margin:0"><label>Link (Google Drive ou outro) *</label><input id="mUrl" placeholder="https://drive.google.com/…"></div>
-      <button class="btn btn-p" onclick="A._manualAdd()">＋ Adicionar</button>
-    </div>
-    <div style="font-size:.75em;color:var(--ink3);margin-top:8px">
+    <div class="fg"><label>Link (Google Drive ou outro) *</label><input id="mUrl" placeholder="https://drive.google.com/…"></div>
+    <div style="font-size:.75em;color:var(--ink3);background:var(--g0);border-radius:8px;padding:8px 10px">
       💡 <b>Google Drive:</b> Partilhar → "Qualquer pessoa com a ligação" → Visualizador → Copiar ligação → colar aqui.
     </div>
   </div>
-  <!-- Lista de manuais -->
-  <div id="manuaisGrid"></div>
-  <div id="manuaisVazio" style="display:none;text-align:center;padding:48px 0;color:var(--ink3)">
-    <div style="font-size:2.5em;margin-bottom:10px">📚</div>
-    <div style="font-size:.95em">Nenhum manual adicionado ainda.</div>
-    <div style="font-size:.8em;margin-top:4px">Use o formulário acima para adicionar o primeiro manual.</div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+    <button class="btn btn-s" onclick="A._fecharModalManual()">Cancelar</button>
+    <button class="btn btn-p" onclick="A._manualAdd()">💾 Guardar Manual</button>
   </div>
+</div>
 </div>
 
 <div id="page-contactos" class="page hide">
@@ -6468,53 +6492,121 @@ toggleNav(){
 // ─── MANUAIS DE AERONAVE ─────────────────────────────────────
 renderManuais(){
   if(!this.S.manuais)this.S.manuais=[];
+  if(!this._mOpen)this._mOpen=new Set();
   const q=(document.getElementById('srchManual')?.value||'').toLowerCase().trim();
-  const lista=this.S.manuais.filter(m=>!q||m.nome.toLowerCase().includes(q)||m.tipo.toLowerCase().includes(q));
+  const fAero=(document.getElementById('mFiltroAero')?.value||'');
+  // Actualizar dropdown de filtro
+  const filtroEl=document.getElementById('mFiltroAero');
+  if(filtroEl){
+    const aeroNames=(this.S.aeros||[]).map(a=>a.nome).filter(Boolean).sort();
+    const cur=filtroEl.value;
+    filtroEl.innerHTML='<option value="">Todas as aeronaves</option><option value="__geral__">Geral / Sem aeronave</option>'
+      +aeroNames.map(n=>'<option value="'+this.esc(n)+'"'+(n===cur?' selected':'')+'>'+this.esc(n)+'</option>').join('');
+    if(cur)filtroEl.value=cur;
+  }
+  let lista=this.S.manuais.filter(m=>{
+    if(q&&!m.nome.toLowerCase().includes(q)&&!(m.tipo||'').toLowerCase().includes(q))return false;
+    if(fAero==='__geral__')return !m.aero;
+    if(fAero)return m.aero===fAero;
+    return true;
+  });
   const grid=document.getElementById('manuaisGrid');
   const vazio=document.getElementById('manuaisVazio');
   if(!grid)return;
   if(!lista.length){grid.innerHTML='';if(vazio)vazio.style.display='';return;}
   if(vazio)vazio.style.display='none';
-  const tipoIco={'Normal Procedures':'📗','Emergency Procedures':'🔴','Abnormal Procedures':'🟠',
-    'Advisory / Status Procedures':'🟡','Supplemental Information':'📘','Performance':'📊',
-    'Library Release Notes':'📝','List of Effective Pages':'📋','Title Page':'📄'};
-  let h='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px">';
-  lista.forEach((m,i)=>{
-    const ico=tipoIco[m.tipo]||'📄';
-    const realIdx=this.S.manuais.indexOf(m);
-    h+='<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:8px">'
-      +'<div style="display:flex;align-items:flex-start;gap:10px">'
-        +'<span style="font-size:1.6em;flex-shrink:0">'+ico+'</span>'
-        +'<div style="flex:1;min-width:0">'
-          +'<div style="font-weight:700;font-size:.9em;color:var(--ink);word-break:break-word">'+this.esc(m.nome)+'</div>'
-          +'<div style="font-size:.75em;color:var(--ink3);margin-top:2px">'+this.esc(m.tipo)+'</div>'
-          +(m.data?'<div style="font-size:.7em;color:var(--ink3);margin-top:1px">Adicionado: '+this.esc(m.data)+'</div>':'')
+  const tipoIco={'POH ou AFM':'📗','SOP':'📘','MEL':'🟡','CDL':'🟠','Manual de Instrução e Qualificação':'🎓','Weight and Balance Manual':'⚖️'};
+  // Agrupar por aeronave
+  const grupos={};
+  lista.forEach(m=>{const key=m.aero||'__geral__';if(!grupos[key])grupos[key]=[];grupos[key].push(m);});
+  const aeroOrder=(this.S.aeros||[]).map(a=>a.nome).filter(k=>grupos[k]);
+  if(grupos['__geral__'])aeroOrder.push('__geral__');
+  // Se pesquisa activa → abrir todos os grupos automaticamente
+  if(q||fAero)aeroOrder.forEach(k=>this._mOpen.add(k));
+  let h='';
+  aeroOrder.forEach(key=>{
+    const grp=grupos[key];
+    const cnt=grp.length;
+    const isOpen=this._mOpen.has(key);
+    const isGeral=key==='__geral__';
+    const titulo=isGeral?'📂 Geral / Sem Aeronave':'✈️ '+key;
+    const chevron=isOpen?'▼':'▶';
+    const safeKey=key.replace(/'/g,"\\'");
+    // ── Cabeçalho acordeão ──
+    h+='<div style="margin-bottom:10px;border:1.5px solid var(--border);border-radius:12px;overflow:hidden">'
+      +'<div onclick="A._manuaisToggle(\''+safeKey+'\')" style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;user-select:none;background:var(--g0);transition:background .15s" '
+        +'onmouseover="this.style.background=\'var(--g1)\'" onmouseout="this.style.background=\'var(--g0)\'">'
+        +'<div style="display:flex;align-items:center;gap:10px">'
+          +'<span style="font-size:.95em;font-weight:800;color:var(--ink)">'+titulo+'</span>'
+          +'<span style="background:var(--g9);color:#fff;border-radius:10px;padding:1px 9px;font-size:.7em;font-weight:700">'+cnt+' manual'+(cnt!==1?'is':'')+'</span>'
         +'</div>'
-      +'</div>'
-      +'<div style="display:flex;gap:8px;justify-content:flex-end">'
-        +'<a href="'+this.esc(m.url)+'" target="_blank" rel="noopener" style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:7px;padding:5px 12px;font-size:.8em;text-decoration:none;white-space:nowrap">🔗 Abrir</a>'
-        +'<button class="btn btn-xs btn-del admin-only" onclick="A._manualDel('+realIdx+')" title="Remover">🗑️</button>'
-      +'</div>'
-    +'</div>';
+        +'<span style="font-size:.8em;color:var(--ink3);font-weight:700;transition:transform .2s">'+chevron+'</span>'
+      +'</div>';
+    // ── Corpo (visível só se aberto) ──
+    if(isOpen){
+      h+='<div style="padding:12px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px;border-top:1px solid var(--border)">';
+      grp.forEach(m=>{
+        const ico=tipoIco[m.tipo]||'📄';
+        const realIdx=this.S.manuais.indexOf(m);
+        h+='<div class="card" style="padding:12px 14px;display:flex;flex-direction:column;gap:8px;border-radius:9px">'
+          +'<div style="display:flex;align-items:flex-start;gap:10px">'
+            +'<span style="font-size:1.4em;flex-shrink:0">'+ico+'</span>'
+            +'<div style="flex:1;min-width:0">'
+              +'<div style="font-weight:700;font-size:.87em;color:var(--ink);word-break:break-word">'+this.esc(m.nome)+'</div>'
+              +'<div style="font-size:.73em;color:var(--ink3);margin-top:2px">'+this.esc(m.tipo||'—')+'</div>'
+              +(m.data?'<div style="font-size:.68em;color:var(--ink3);margin-top:1px">'+this.esc(m.data)+'</div>':'')
+            +'</div>'
+          +'</div>'
+          +'<div style="display:flex;gap:7px;justify-content:flex-end">'
+            +'<a href="'+this.esc(m.url)+'" target="_blank" rel="noopener" style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:7px;padding:4px 11px;font-size:.78em;text-decoration:none;white-space:nowrap">🔗 Abrir</a>'
+            +'<button class="btn btn-xs btn-del admin-only" onclick="A._manualDel('+realIdx+')" title="Remover">🗑️</button>'
+          +'</div>'
+        +'</div>';
+      });
+      h+='</div>';
+    }
+    h+='</div>';
   });
-  h+='</div>';
   grid.innerHTML=h;
+},
+_manuaisToggle(key){
+  if(!this._mOpen)this._mOpen=new Set();
+  if(this._mOpen.has(key))this._mOpen.delete(key);else this._mOpen.add(key);
+  this.renderManuais();
+},
+abrirModalManual(){
+  // Preencher selector de aeronaves
+  const sel=document.getElementById('mAero');
+  if(sel){
+    const aeroNames=(this.S.aeros||[]).map(a=>a.nome).filter(Boolean).sort();
+    sel.innerHTML='<option value="">— Geral / Sem aeronave —</option>'
+      +aeroNames.map(n=>'<option value="'+this.esc(n)+'">'+this.esc(n)+'</option>').join('');
+  }
+  // Limpar campos
+  ['mNome','mUrl'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const modal=document.getElementById('modalManual');
+  if(modal){modal.style.display='flex';document.body.style.overflow='hidden';}
+},
+_fecharModalManual(){
+  const modal=document.getElementById('modalManual');
+  if(modal)modal.style.display='none';
+  document.body.style.overflow='';
 },
 async _manualAdd(){
   const nome=(document.getElementById('mNome')?.value||'').trim();
   const tipo=(document.getElementById('mTipo')?.value||'').trim();
   const url=(document.getElementById('mUrl')?.value||'').trim();
+  const aero=(document.getElementById('mAero')?.value||'').trim();
   if(!nome){this.showNotif('⚠️ Introduza um nome','warn');return;}
   if(!url||!url.startsWith('http')){this.showNotif('⚠️ Introduza um link válido (https://...)','warn');return;}
   if(!this.S.manuais)this.S.manuais=[];
   const urlFinal=this._normalizeDocUrl(url);
-  this.S.manuais.push({nome,tipo,url:urlFinal,data:new Date().toLocaleDateString('pt-PT')});
+  this.S.manuais.push({nome,tipo,aero,url:urlFinal,data:new Date().toLocaleDateString('pt-PT')});
   this.markDirty();
   if(typeof getApiUrl==='function'&&getApiUrl()){
     try{await this.saveToCloud();}catch(e){this.S.manuais.pop();this.showNotif('❌ Falha ao guardar','err');return;}
   }
-  document.getElementById('mNome').value='';
-  document.getElementById('mUrl').value='';
+  this._fecharModalManual();
   this.renderManuais();
   this.showNotif('✅ Manual adicionado','ok');
 },
