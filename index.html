@@ -1950,6 +1950,7 @@ async saveToCloud(){
       contactos:this.S.contactos,
       escala:this.S.escala,
       escalaCabine:this.S.escalaCabine,
+      manuais:this.S.manuais||[],
       config:{
         funcoes:this.C.funcoes,
         fnRates:this.C.vPF,
@@ -2494,7 +2495,13 @@ async testDriveUrl(){
     const d=await resp.json();
     if(d&&d.error)throw new Error(d.error);
     if(d&&typeof d==='object'){
-      const info=d.missoes?'☁️ '+d.missoes.length+' missão(ões) encontrada(s) no Drive':'📁 Ficheiro Drive vazio — pronto para guardar dados';
+      let info='';
+      if(d.missoes&&d.missoes.length){
+        const anos=d._anos&&d._anos.length?d._anos.join(', '):([...new Set(d.missoes.map(m=>(new Date(m.dt)).getFullYear()).filter(y=>y>2000))].sort().join(', ')||'—');
+        info='☁️ '+d.missoes.length+' missão(ões) — anos: '+anos;
+      }else{
+        info='📁 Ficheiro Drive vazio — pronto para guardar dados';
+      }
       res.innerHTML='<div style="background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:8px;padding:10px 14px;font-size:.83em;color:#1b5e20">✅ Ligação bem sucedida!<br>'+info+'</div>';
     }else throw new Error('Resposta inesperada do servidor');
   }catch(e){
