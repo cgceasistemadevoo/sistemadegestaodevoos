@@ -1388,6 +1388,27 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 </div>
 
 <!-- Modal Escala -->
+
+<!-- ══ MODAL CHECKLIST PILOTO ══ -->
+<div class="modal" id="modalChecklist">
+<div class="modal-box" style="max-width:620px;max-height:90vh;overflow-y:auto">
+  <div class="modal-hd" style="background:var(--g9);color:#fff;border-radius:var(--r2) var(--r2) 0 0">
+    <h3 id="ckModalTit" style="color:#fff">✅ Checklist — Missão</h3>
+    <span class="modal-x" style="color:#fff" onclick="A.fecharChecklist()">×</span>
+  </div>
+  <div style="padding:0 20px 8px">
+    <div id="ckMissaoInfo" style="padding:10px 0 6px;font-size:.82em;color:var(--ink3);border-bottom:1px solid var(--border);margin-bottom:4px"></div>
+    <div id="ckProgresso" style="padding:8px 0;font-size:.82em;font-weight:700;color:var(--g8)"></div>
+    <div id="ckBody"></div>
+  </div>
+  <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+    <button class="btn btn-sm" style="background:#fef2f2;color:#991b1b;border:1px solid #fecaca" onclick="A.checklistReset()">🔄 Reiniciar</button>
+    <button class="btn btn-sm btn-pdf" onclick="A.checklistPDF()">📄 PDF Checklist</button>
+    <button class="btn btn-sm btn-s" onclick="A.fecharChecklist()">Fechar</button>
+  </div>
+</div>
+</div>
+
 <div class="modal" id="modalEscala">
 <div class="modal-box" style="max-width:560px">
   <div class="modal-hd">
@@ -5008,15 +5029,20 @@ renderVoos(list){
       '<td><strong style="color:var(--g8)">'+this.calcBT(m.boff,m.bon)+'</strong></td>'+
       '<td><span class="cbadge">'+((m.crew||[]).length)+'</span> '+crewHtml+'</td>'+
       '<td>'+(m.obs?'<span title="'+this.esc(m.obs)+'" style="cursor:help;color:var(--ink3);font-size:.78em">📝 '+this.esc(m.obs.length>30?m.obs.slice(0,28)+'…':m.obs)+'</span>':'')+'</td>'+
-      '<td style="white-space:nowrap">'+
-        '<button class="btn btn-xs btn-pdf" onclick="A.missaoPDF(\''+eid+'\')" title="Ordem de Serviço PDF">📄</button> '+
-        '<button class="btn btn-xs btn-edit admin-only" onclick="A.editMissao(\''+eid+'\')">✏️</button> '+
-        '<button class="btn btn-xs admin-only" class="btn-dup" style="background:#e0e7ff;color:#4338ca;border:1px solid #c7d2fe" onclick="A.dupMissao(\''+eid+'\')" title="Duplicar">📋</button> '+
-        '<button class="btn btn-xs admin-only" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a" onclick="A.saveTemplateFromMission(\''+eid+'\')" title="Guardar como modelo reutilizável">💾</button> '+
-        '<button class="btn btn-xs" style="background:var(--surface);border:1px solid var(--border)" onclick="A.showHistoria(\''+eid+'\')">📜</button> '+
-        '<button class="btn btn-xs btn-del admin-only" onclick="A.delMissao(\''+eid+'\')">🗑️</button> '+
-        '<button class="btn btn-xs" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0" onclick="A.gestaoDocs(\'miss\',\''+eid+'\')" title="Documentos anexados">📎 '+(m.docs&&m.docs.length?'<span style="background:#15803d;color:white;border-radius:8px;padding:0 5px;font-size:.75em">'+m.docs.length+'</span>':'')+'</button>'+
-      '</td></tr>';
+      '<td style="white-space:nowrap"><div style="display:flex;flex-direction:column;gap:3px">'+
+        '<div style="display:flex;gap:3px">'+
+          '<button class="btn btn-xs btn-pdf" onclick="A.missaoPDF(\''+eid+'\')" title="Ordem de Serviço PDF">📄</button>'+
+          '<button class="btn btn-xs btn-edit admin-only" onclick="A.editMissao(\''+eid+'\')" title="Editar">✏️</button>'+
+          '<button class="btn btn-xs admin-only" style="background:#e0e7ff;color:#4338ca;border:1px solid #c7d2fe" onclick="A.dupMissao(\''+eid+'\')" title="Duplicar">📋</button>'+
+          '<button class="btn btn-xs admin-only" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a" onclick="A.saveTemplateFromMission(\''+eid+'\')" title="Guardar como modelo">💾</button>'+
+        '</div>'+
+        '<div style="display:flex;gap:3px">'+
+          '<button class="btn btn-xs" style="background:var(--surface);border:1px solid var(--border)" onclick="A.showHistoria(\''+eid+'\')" title="Histórico">📜</button>'+
+          '<button class="btn btn-xs btn-del admin-only" onclick="A.delMissao(\''+eid+'\')" title="Eliminar">🗑️</button>'+
+          '<button class="btn btn-xs" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0" onclick="A.gestaoDocs(\'miss\',\''+eid+'\')" title="Documentos">📎'+(m.docs&&m.docs.length?'<span style="background:#15803d;color:white;border-radius:8px;padding:0 4px;font-size:.7em;margin-left:2px">'+m.docs.length+'</span>':'')+'</button>'+
+          '<button class="btn btn-xs" style="background:#ecfdf5;color:#065f46;border:1px solid #6ee7b7" onclick="A.abrirChecklist(\''+eid+'\')" title="Checklist do Piloto">✅</button>'+
+        '</div>'+
+      '</div></td></tr>';
   });
   el.innerHTML=h+'</tbody></table></div>';
 },
@@ -5056,6 +5082,7 @@ _renderCards(list){
         '<button class="btn btn-xs" style="background:var(--surface);border:1px solid var(--border)" onclick="A.showHistoria(\''+eid+'\')">📜</button>'+
         '<button class="btn btn-xs btn-del admin-only" onclick="A.delMissao(\''+eid+'\')">🗑️</button>'+
         '<button class="btn btn-xs" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0" onclick="A.gestaoDocs(\'miss\',\''+eid+'\')" title="Documentos">📎 '+(m.docs&&m.docs.length?'<span style="background:#15803d;color:white;border-radius:8px;padding:0 5px;font-size:.75em">'+m.docs.length+'</span>':'')+'</button>'+
+        '<button class="btn btn-xs" style="background:#ecfdf5;color:#065f46;border:1px solid #6ee7b7" onclick="A.abrirChecklist(\''+eid+'\')" title="Checklist">✅ Checklist</button>'+
       '</div>'+
     '</div>';
   });
@@ -6366,6 +6393,116 @@ toggleNav(){
     if(btn)btn.textContent='✕';
     if(window.innerWidth>768)document.body.classList.add('nav-open');
   }
+},
+
+// ─── CHECKLIST DO PILOTO ─────────────────────────────────────
+_ckTemplate:[
+  {sec:'Documentação King Air 360ER — Verificação',items:['Title Page','Abnormal Procedures','List of Effective Pages','Performance','Library Release Notes','Advisory / Status Procedures','Supplemental Information','Normal Procedures','Emergency Procedures']}
+],
+_ckMisId:null,
+abrirChecklist(id){
+  const m=this.S.missoes.find(x=>x.id===id);
+  if(!m){this.showNotif('\u274c Miss\u00e3o n\u00e3o encontrada','err');return;}
+  this._ckMisId=id;
+  if(!this.S.checklists)this.S.checklists={};
+  if(!this.S.checklists[id])this.S.checklists[id]={};
+  const ck=this.S.checklists[id];
+  const modal=document.getElementById('modalChecklist');
+  if(!modal)return;
+  document.getElementById('ckModalTit').textContent='\u2705 KING AIR 360 ER — Checklist Missão '+this.esc(m.num||m.id);
+  const info=document.getElementById('ckMissaoInfo');
+  if(info)info.innerHTML='<strong>'+this.esc(m.tipo||'—')+'</strong> &nbsp;·&nbsp; '+m.dt.toLocaleDateString('pt-PT')+' &nbsp;·&nbsp; '+this.esc(m.aero||'—')+(m.origem&&m.destino?' &nbsp;·&nbsp; '+this.esc(m.origem)+' → '+this.esc(m.destino):'');
+  this._ckRender();
+  modal.style.display='flex';document.body.style.overflow='hidden';
+},
+_ckRender(){
+  const id=this._ckMisId;
+  if(!id)return;
+  const ck=(this.S.checklists||{})[id]||{};
+  let total=0,checked=0;
+  let h='';
+  this._ckTemplate.forEach((sec,si)=>{
+    h+='<div style="margin:12px 0 4px;padding:7px 10px;background:var(--g9);color:#fff;border-radius:6px;font-size:.78em;font-weight:700;letter-spacing:.06em">'+this.esc(sec.sec)+'</div>';
+    sec.items.forEach((item,ii)=>{
+      const key=si+'_'+ii;
+      const done=!!ck[key];
+      total++;if(done)checked++;
+      h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid var(--border);cursor:pointer;'+(done?'background:#f0fdf4':'')+'\" onclick=\"A.checklistToggle(\''+key+'\')">'
+        +'<span style="flex-shrink:0;width:22px;height:22px;border-radius:5px;border:2px solid '+(done?'#16a34a':'var(--border)')+';background:'+(done?'#16a34a':'var(--white)')+';display:flex;align-items:center;justify-content:center;font-size:.85em">'+(done?'<span style="color:#fff;font-weight:800">✓</span>':'')+'</span>'
+        +'<span style="font-size:.83em;color:'+(done?'var(--ink3)':'var(--ink)')+';">'+(done?'<s>':'')+this.esc(item)+(done?'</s>':'')+'</span>'
+        +'</div>';
+    });
+  });
+  const body=document.getElementById('ckBody');
+  if(body)body.innerHTML=h;
+  const pct=total?Math.round(checked/total*100):0;
+  const prog=document.getElementById('ckProgresso');
+  if(prog)prog.innerHTML='<div style="display:flex;align-items:center;gap:10px"><div style="flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+(pct===100?'#16a34a':'#3b82f6')+';border-radius:4px;transition:width .3s"></div></div><span style="white-space:nowrap">'+checked+' / '+total+' &nbsp;('+pct+'%)</span>'+(pct===100?'<span style="color:#16a34a;font-weight:800">\u2705 COMPLETO</span>':'')+'</div>';
+},
+checklistToggle(key){
+  const id=this._ckMisId;if(!id)return;
+  if(!this.S.checklists)this.S.checklists={};
+  if(!this.S.checklists[id])this.S.checklists[id]={};
+  this.S.checklists[id][key]=!this.S.checklists[id][key];
+  this.S.dirty=true;
+  this._ckRender();
+},
+checklistReset(){
+  const id=this._ckMisId;if(!id)return;
+  if(confirm('Reiniciar todos os itens do checklist desta miss\u00e3o?')){
+    if(this.S.checklists)this.S.checklists[id]={};
+    this.S.dirty=true;this._ckRender();
+  }
+},
+fecharChecklist(){
+  const modal=document.getElementById('modalChecklist');
+  if(modal)modal.style.display='none';
+  document.body.style.overflow='';
+  this._ckMisId=null;
+},
+checklistPDF(){
+  try{
+    if(!window.jspdf){this.showNotif('\u274c Biblioteca PDF n\u00e3o carregada','err');return;}
+    const{jsPDF}=window.jspdf;
+    const id=this._ckMisId;
+    const m=this.S.missoes.find(x=>x.id===id);
+    if(!m)return;
+    const ck=(this.S.checklists||{})[id]||{};
+    const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    doc.setFillColor(46,125,50);doc.rect(0,0,210,18,'F');
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(11);
+    doc.text('CGC-EA \u2014 Checklist do Piloto \u2014 Miss\u00e3o '+( m.num||m.id),105,10,{align:'center'});
+    doc.setFontSize(7);doc.setFont('helvetica','normal');
+    doc.text(m.tipo+' · '+m.dt.toLocaleDateString('pt-PT')+' · '+m.aero,105,16,{align:'center'});
+    doc.setTextColor(0,0,0);
+    let y=24;
+    this._ckTemplate.forEach((sec,si)=>{
+      doc.setFillColor(31,31,31);doc.rect(10,y,190,6,'F');
+      doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(7.5);
+      doc.text(sec.sec,13,y+4.2);
+      doc.setTextColor(0,0,0);doc.setFont('helvetica','normal');doc.setFontSize(8);
+      y+=8;
+      sec.items.forEach((item,ii)=>{
+        if(y>270){doc.addPage();y=14;}
+        const key=si+'_'+ii;
+        const done=!!ck[key];
+        if(done){doc.setFillColor(220,252,231);doc.rect(10,y-1,190,6.5,'F');}
+        if(done){doc.setFillColor(22,163,74);doc.rect(13,y,4.5,4.5,'F');doc.setDrawColor(22,163,74);}
+        else{doc.setFillColor(255,255,255);doc.setDrawColor(160,160,160);doc.rect(13,y,4.5,4.5,'FD');}
+        if(done){doc.setDrawColor(255,255,255);doc.setLineWidth(0.8);doc.line(14,y+2.5,15.1,y+3.8);doc.line(15.1,y+3.8,17,y+1.2);doc.setLineWidth(0.2);doc.setDrawColor(0,0,0);}
+        doc.setTextColor(done?120:0,done?120:0,done?120:0);
+        doc.text(item,20,y+3.5);
+        y+=7;
+      });
+      y+=2;
+    });
+    const total=this._ckTemplate.reduce((s,se)=>s+se.items.length,0);
+    const checked=Object.values(ck).filter(Boolean).length;
+    doc.setFontSize(8);doc.setTextColor(80,80,80);
+    doc.text('Total: '+checked+'/'+total+' itens completos ('+Math.round(checked/total*100)+'%)',10,283);
+    doc.text('Gerado: '+new Date().toLocaleString('pt-PT'),200,283,{align:'right'});
+    window.savePDF(doc,'Checklist_'+( m.num||m.id)+'_'+m.dt.toISOString().slice(0,10)+'.pdf');
+  }catch(e){this.showNotif('\u274c Erro PDF: '+e.message,'err');}
 },
 
 // ─── ESCALA NOVA JANELA ───────────────────────────────────────
