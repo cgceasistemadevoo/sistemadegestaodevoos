@@ -1223,7 +1223,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
         <button class="btn btn-pdf btn-sm" onclick="A.dashboardExecutivoPDF()">📊 Dashboard Executivo</button>
         <button class="btn btn-ex btn-sm" style="background:#166534;border-color:#166534" onclick="A.exportExcelCompleto(document.getElementById('dashMes').value,document.getElementById('dashAno').value)">📊 Relatório Excel</button>
         <button class="btn btn-pdf btn-sm" style="background:#b45309;border-color:#b45309" onclick="A.alertsPDF()">🚨 PDF Alertas Validade</button>
-        <button class="btn btn-pdf btn-sm" style="background:#1d4ed8;border-color:#1d4ed8" onclick="A.exportAllChartsPDF()">📈 PDF dos Gráficos</button>
       </div>
     </div>
   </div>
@@ -3291,14 +3290,14 @@ gestaoDocs(tipo, id){
     return `
       <h3 style="margin-bottom:16px;font-size:1em">${titulo}</h3>
       <div id="_docList" style="margin-bottom:18px;max-height:260px;overflow-y:auto">${rows}</div>
-      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px">
+      <div class="admin-only" style="background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px">
         <div style="font-size:.8em;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Adicionar documento</div>
         <div style="display:flex;flex-direction:column;gap:8px">
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <input id="_docNome" placeholder="Descrição (ex: OS assinada Maio 2026)" style="flex:1;min-width:160px;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85em;background:var(--white);color:var(--ink)">
             <select id="_docTipo" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85em;background:var(--white);color:var(--ink)">${opts}</select>
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div class="admin-only" style="display:flex;gap:8px;flex-wrap:wrap">
             <input id="_docUrl" placeholder="Link do Google Drive ou outro (https://...)" style="flex:1;min-width:200px;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85em;background:var(--white);color:var(--ink)">
             <button class="btn btn-p btn-sm" onclick="A._docAdd('${tipo}','${id}')">＋ Adicionar</button>
           </div>
@@ -3342,6 +3341,7 @@ _logHistory(obj, txt){
 },
 
 async _docAdd(tipo, id){
+  if(!this.isAdmin()){this.showNotif('❌ Sem permissão — apenas administradores podem adicionar anexos','err');return;}
   // Guarda contra duplo-clique — evita guardar o mesmo doc múltiplas vezes
   if(this._docBusy) return;
   this._docBusy = true;
@@ -3388,6 +3388,7 @@ async _docAdd(tipo, id){
 },
 
 async _docDel(tipo, id, idx){
+  if(!this.isAdmin()){this.showNotif('❌ Sem permissão — apenas administradores podem remover anexos','err');return;}
   if(!confirm('Remover este documento?')) return;
   const isMiss = tipo === 'miss';
   const obj = isMiss
@@ -5235,7 +5236,7 @@ renderVoos(list){
           '<button class="btn btn-xs" style="background:var(--surface);border:1px solid var(--border)" onclick="A.showHistoria(\''+eid+'\')" title="Histórico">📜</button>'+
           '<button class="btn btn-xs btn-del admin-only" onclick="A.delMissao(\''+eid+'\')" title="Eliminar">🗑️</button>'+
           '<button class="btn btn-xs" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0" onclick="A.gestaoDocs(\'miss\',\''+eid+'\')" title="Documentos">📎'+(m.docs&&m.docs.length?'<span style="background:#15803d;color:white;border-radius:8px;padding:0 4px;font-size:.7em;margin-left:2px">'+m.docs.length+'</span>':'')+'</button>'+
-          '<button class="btn btn-xs" style="background:#ecfdf5;color:#065f46;border:1px solid #6ee7b7" onclick="A.abrirChecklist(\''+eid+'\')" title="Checklist do Piloto">✅</button>'+
+          '<button class="btn btn-xs admin-only" style="background:#ecfdf5;color:#065f46;border:1px solid #6ee7b7" onclick="A.abrirChecklist(\''+eid+'\')" title="Checklist do Piloto">✅</button>'+
         '</div>'+
       '</div></td></tr>';
   });
@@ -5277,7 +5278,7 @@ _renderCards(list){
         '<button class="btn btn-xs" style="background:var(--surface);border:1px solid var(--border)" onclick="A.showHistoria(\''+eid+'\')">📜</button>'+
         '<button class="btn btn-xs btn-del admin-only" onclick="A.delMissao(\''+eid+'\')">🗑️</button>'+
         '<button class="btn btn-xs" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0" onclick="A.gestaoDocs(\'miss\',\''+eid+'\')" title="Documentos">📎 '+(m.docs&&m.docs.length?'<span style="background:#15803d;color:white;border-radius:8px;padding:0 5px;font-size:.75em">'+m.docs.length+'</span>':'')+'</button>'+
-        '<button class="btn btn-xs" style="background:#ecfdf5;color:#065f46;border:1px solid #6ee7b7" onclick="A.abrirChecklist(\''+eid+'\')" title="Checklist">✅ Checklist</button>'+
+        '<button class="btn btn-xs admin-only" style="background:#ecfdf5;color:#065f46;border:1px solid #6ee7b7" onclick="A.abrirChecklist(\''+eid+'\')" title="Checklist">✅ Checklist</button>'+
       '</div>'+
     '</div>';
   });
@@ -5839,12 +5840,17 @@ pagExcel(){
       if(hasPA){p.pa++;p.vR+=pxMV.pa;}if(hasA){p.al++;p.vR+=pxMV.al;}if(hasJ){p.jn++;p.vR+=pxMV.jn;}
     });
   });
-  const lista=Object.values(pag).sort((a,b)=>a.nome.localeCompare(b.nome));
+  // Tripulante vê apenas os seus dados nas exportações
+  const xTripNome=this.isTripulante()?this._getTripNome():null;
+  const listaFull=Object.values(pag).sort((a,b)=>a.nome.localeCompare(b.nome));
+  const lista=xTripNome?listaFull.filter(p=>p.nome===xTripNome):listaFull;
+  const mMesView=xTripNome?mMes.filter(m=>(m.crew||[]).some(c=>c.nome===xTripNome)):mMes;
+  if(xTripNome&&!lista.length){this.showNotif('⚠️ Sem dados seus neste período','warn');return;}
   const rows=[['Tripulante','Função','Missões','Horas (h)','Val/Horas (CVE)','P.Almoço','Almoço','Jantar','Val/Refeições (CVE)','Total (CVE)']];
   lista.forEach(p=>rows.push([p.nome,p.fn,p.mis,(p.min/60).toFixed(2),Math.round(p.vH),p.pa,p.al,p.jn,Math.round(p.vR),Math.round(p.vH+p.vR)]));
-  // Aggregates per série and aeronave
+  // Aggregates per série e aeronave — apenas missões do próprio tripulante quando aplicável
   const pxBySerie={};const pxByAero={};
-  mMes.forEach(m=>{
+  mMesView.forEach(m=>{
     const btStr=this.calcBT(m.boff,m.bon);const btMins=btStr!=='—'?(()=>{const[bh,bm]=btStr.split(':').map(Number);return bh*60+(bm||0);})():0;
     const tMin=this.t2m((m.toff||'00:00').slice(0,5));const dMin=this.dur2m(m.dur);
     const effMins=btMins||dMin;
@@ -5901,11 +5907,16 @@ pagPDF(){
       if(hasPA){p.pa++;p.vR+=ppMV.pa;}if(hasA){p.al++;p.vR+=ppMV.al;}if(hasJ){p.jn++;p.vR+=ppMV.jn;}
     });
   });
-  const lista=Object.values(pag).sort((a,b)=>a.nome.localeCompare(b.nome));
+  // Tripulante vê apenas os seus dados nas exportações
+  const pTripNome=this.isTripulante()?this._getTripNome():null;
+  const listaFull=Object.values(pag).sort((a,b)=>a.nome.localeCompare(b.nome));
+  const lista=pTripNome?listaFull.filter(p=>p.nome===pTripNome):listaFull;
+  const mMesView=pTripNome?mMes.filter(m=>(m.crew||[]).some(c=>c.nome===pTripNome)):mMes;
+  if(pTripNome&&!lista.length){this.showNotif('⚠️ Sem dados seus neste período','warn');return;}
   lista.forEach(p=>totVal+=p.vH+p.vR);
-  // Build série/aeronave aggregates for PDF
+  // Build série/aeronave aggregates for PDF — apenas missões do próprio tripulante quando aplicável
   const ppBySerie={};const ppByAero={};
-  mMes.forEach(m=>{
+  mMesView.forEach(m=>{
     const btStr=this.calcBT(m.boff,m.bon);const btMins=btStr!=='—'?(()=>{const[bh,bm]=btStr.split(':').map(Number);return bh*60+(bm||0);})():0;
     const tMin=this.t2m((m.toff||'00:00').slice(0,5));const dMin=this.dur2m(m.dur);
     const effMins=btMins||dMin;
@@ -6615,6 +6626,7 @@ addAero(){
 },
 closeModalAero(){ document.getElementById('modalEditAero').classList.remove('on'); },
 editAero(idx){
+  if(!this.isAdmin()){this.showNotif('❌ Sem permissão — apenas administradores podem editar aeronaves','err');return;}
   const a=this.S.aeros[idx];
   if(!a)return;
   document.getElementById('eAeroIdx').value=idx;
@@ -6627,6 +6639,7 @@ editAero(idx){
   document.getElementById('modalEditAero').classList.add('on');
 },
 saveEditAero(){
+  if(!this.isAdmin()){this.showNotif('❌ Sem permissão — apenas administradores podem editar aeronaves','err');return;}
   const idx=parseInt(document.getElementById('eAeroIdx').value);
   const a=this.S.aeros[idx];
   if(!a){this.showNotif('❌ Aeronave não encontrada','err');return;}
@@ -6657,6 +6670,7 @@ saveEditAero(){
   this.showNotif('✅ Aeronave actualizada');
 },
 delAero(idx){
+  if(!this.isAdmin()){this.showNotif('❌ Sem permissão — apenas administradores podem eliminar aeronaves','err');return;}
   const a=this.S.aeros[idx];
   if(!a)return;
   const hasMissoes=this.S.missoes.some(m=>m.aero===a.nome);
@@ -6821,7 +6835,7 @@ renderAeros(){
       progHtml+
       inspDateHtml+
       (fl.add||fl.use?'<div style="font-size:.75em;color:var(--ink3);padding:6px 10px;background:var(--g0);border-radius:8px">Comb.: +'+fl.add+'L adicionado / −'+fl.use+'L utilizado</div>':'')+
-      '<div style="display:flex;gap:6px;margin-top:2px">'+
+      '<div class="admin-only" style="display:flex;gap:6px;margin-top:2px">'+
         '<button class="btn btn-xs btn-edit" onclick="A.editAero('+i+')" style="flex:1">Editar</button>'+
         '<button class="btn btn-xs btn-del" onclick="A.delAero('+i+')" style="flex:1"'+(hasMissoes?' disabled title="Tem missoes registadas"':'')+'>Eliminar</button>'+
       '</div>'+
@@ -7007,6 +7021,7 @@ _ckTemplate:[
 ],
 _ckMisId:null,
 abrirChecklist(id){
+  if(!this.isAdmin()){this.showNotif('❌ Sem permissão — apenas administradores podem aceder ao checklist','err');return;}
   const m=this.S.missoes.find(x=>x.id===id);
   if(!m){this.showNotif('\u274c Miss\u00e3o n\u00e3o encontrada','err');return;}
   this._ckMisId=id;
@@ -7046,6 +7061,7 @@ _ckRender(){
   if(prog)prog.innerHTML='<div style="display:flex;align-items:center;gap:10px"><div style="flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+(pct===100?'#16a34a':'#3b82f6')+';border-radius:4px;transition:width .3s"></div></div><span style="white-space:nowrap">'+checked+' / '+total+' &nbsp;('+pct+'%)</span>'+(pct===100?'<span style="color:#16a34a;font-weight:800">\u2705 COMPLETO</span>':'')+'</div>';
 },
 checklistToggle(key){
+  if(!this.isAdmin())return;
   const id=this._ckMisId;if(!id)return;
   if(!this.S.checklists)this.S.checklists={};
   if(!this.S.checklists[id])this.S.checklists[id]={};
@@ -7054,6 +7070,7 @@ checklistToggle(key){
   this._ckRender();
 },
 checklistReset(){
+  if(!this.isAdmin())return;
   const id=this._ckMisId;if(!id)return;
   if(confirm('Reiniciar todos os itens do checklist desta miss\u00e3o?')){
     if(this.S.checklists)this.S.checklists[id]={};
