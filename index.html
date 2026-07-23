@@ -667,17 +667,17 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   <button class="hamburger" onclick="document.getElementById('abarRight').classList.toggle('open')" aria-label="Menu de ações">☰</button>
   <div class="abar-right" id="abarRight">
     <div class="sync-pill loading" id="syncPill"><span class="sync-dot"></span><span id="syncText">A carregar...</span></div>
-    <button class="btn btn-sm admin-only" id="btnConfig" onclick="A.openSettings()" title="Configurar Google Drive" style="background:var(--amber);color:#fff">Drive</button>
-    <button class="btn btn-p btn-sm" onclick="A.reloadCloud()" title="Recarregar do Drive">Recarregar</button>
-    <button class="btn btn-save btn-sm admin-only" id="btnSave" onclick="A.saveToCloud()" disabled title="Guardar">Guardar</button>
-    <button class="btn btn-pdf btn-sm" onclick="A.shareToday()" title="Partilhar folha de serviço de hoje">Hoje</button>
-    <button class="btn btn-pdf btn-sm" onclick="A.shareWeek()" title="Partilhar programação da semana">Semana</button>
-    <button class="btn btn-s btn-sm admin-only" id="btnUndo" onclick="A.undo()" title="Desfazer última ação (Ctrl+Z)" style="background:#fef3c7;color:#92400e">↶ Desfazer</button>
-    <button class="btn btn-s btn-sm admin-only" onclick="A.openImport()" title="Importar Excel/CSV" style="background:#dbeafe;color:#1e40af">Importar</button>
+    <button class="btn btn-sm admin-only" id="btnConfig" onclick="A.openSettings()" title="Configurar Google Drive" style="background:var(--amber);color:#fff">☁️</button>
+    <button class="btn btn-p btn-sm" onclick="A.reloadCloud()" title="Recarregar do Drive">⟳</button>
+    <button class="btn btn-save btn-sm admin-only" id="btnSave" onclick="A.saveToCloud()" disabled title="Guardar">💾</button>
+    <button class="btn btn-pdf btn-sm" onclick="A.shareToday()" title="Partilhar folha de serviço de hoje">📅</button>
+    <button class="btn btn-pdf btn-sm" onclick="A.shareWeek()" title="Partilhar programação da semana">📆</button>
+    <button class="btn btn-s btn-sm admin-only" id="btnUndo" onclick="A.undo()" title="Desfazer última ação (Ctrl+Z)" style="background:#fef3c7;color:#92400e">↶</button>
+    <button class="btn btn-s btn-sm admin-only" onclick="A.openImport()" title="Importar Excel/CSV" style="background:#dbeafe;color:#1e40af">⬆</button>
     <input type="file" id="impFile" accept=".csv,.xlsx,.xls" style="display:none" onchange="A.importMissoes(event)">
-    <button class="btn btn-s btn-sm" onclick="A.showAuditLog()" title="Auditoria"></button>
-    <button class="btn btn-s btn-sm" id="btnChangePwd" onclick="A.openChangePwd()" title="Alterar palavra-passe" style="display:none;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0"></button>
-    <button class="btn btn-s btn-sm" id="btnLogout" onclick="A.doLogout()" title="Terminar sessão" style="display:none;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5">↩ Sair</button>
+    <button class="btn btn-s btn-sm" onclick="A.showAuditLog()" title="Auditoria">📋</button>
+    <button class="btn btn-s btn-sm" id="btnChangePwd" onclick="A.openChangePwd()" title="Alterar palavra-passe" style="display:none;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0">🔑</button>
+    <button class="btn btn-s btn-sm" id="btnLogout" onclick="A.doLogout()" title="Terminar sessão" style="display:none;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5">↩</button>
     <button class="dark-toggle" onclick="A.toggleDark()" id="darkBtn" title="Modo escuro"></button>
   </div>
 </div>
@@ -1002,7 +1002,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
       <button class="btn btn-p admin-only" onclick="A.addMissao()">Registar Missão</button>
       <button class="btn btn-s" onclick="A.clearForm()">Limpar</button>
       <select id="tplSelect" onchange="A.applyTemplate(this.value)" title="Carregar um modelo guardado a partir de uma missão" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85em;background:var(--white);color:var(--ink)"><option value="">Carregar modelo…</option></select>
-      <button class="btn btn-del btn-sm" onclick="A.deleteTemplate()" title="Apagar modelo selecionado"></button>
+      <button class="btn btn-del btn-sm" onclick="A.deleteTemplate()" title="Apagar modelo selecionado">🗑</button>
     </div>
   </div>
   </div>
@@ -3333,7 +3333,7 @@ gestaoDocs(tipo, id){
              style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:7px;padding:4px 10px;font-size:.8em;text-decoration:none;white-space:nowrap">
             Abrir
           </a>
-          <button class="btn btn-xs btn-del admin-only" onclick="A._docDel('${tipo}','${id}',${i})" title="Remover"></button>
+          <button class="btn btn-xs btn-del admin-only" onclick="A._docDel('${tipo}','${id}',${i})" title="Remover">🗑</button>
         </div>`).join('');
     } else {
       rows = '<div style="padding:20px 0;text-align:center;color:var(--ink3);font-size:.88em">Nenhum documento anexado ainda.</div>';
@@ -5279,16 +5279,15 @@ renderVoos(list){
       '<td>'+(m.obs?'<span title="'+this.esc(m.obs)+'" style="cursor:help;color:var(--ink3);font-size:.78em">'+this.esc(m.obs.length>30?m.obs.slice(0,28)+'…':m.obs)+'</span>':'')+'</td>'+
       '<td style="white-space:nowrap"><div style="display:flex;flex-direction:column;gap:3px">'+
         '<div style="display:flex;gap:3px">'+
-          '<button class="btn btn-xs btn-pdf" onclick="A.missaoPDF(\''+eid+'\')" title="Ordem de Serviço PDF"></button>'+
-          '<button class="btn btn-xs btn-edit admin-only" onclick="A.editMissao(\''+eid+'\')" title="Editar"></button>'+
-          '<button class="btn btn-xs admin-only" style="background:#e0e7ff;color:#4338ca;border:1px solid #c7d2fe" onclick="A.dupMissao(\''+eid+'\')" title="Duplicar"></button>'+
-          '<button class="btn btn-xs admin-only" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a" onclick="A.saveTemplateFromMission(\''+eid+'\')" title="Guardar como modelo"></button>'+
+          '<button class="btn btn-xs btn-pdf" onclick="A.missaoPDF(\''+eid+'\')" title="Ordem de Serviço PDF">📄</button>'+
+          '<button class="btn btn-xs btn-edit admin-only" onclick="A.editMissao(\''+eid+'\')" title="Editar">✏️</button>'+
+          '<button class="btn btn-xs admin-only" style="background:#e0e7ff;color:#4338ca;border:1px solid #c7d2fe" onclick="A.dupMissao(\''+eid+'\')" title="Duplicar">⎘</button>'+
+          '<button class="btn btn-xs admin-only" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a" onclick="A.saveTemplateFromMission(\''+eid+'\')" title="Guardar como modelo">⭐</button>'+
         '</div>'+
         '<div style="display:flex;gap:3px">'+
-          '<button class="btn btn-xs" style="background:var(--surface);border:1px solid var(--border)" onclick="A.showHistoria(\''+eid+'\')" title="Histórico"></button>'+
-          '<button class="btn btn-xs btn-del admin-only" onclick="A.delMissao(\''+eid+'\')" title="Eliminar"></button>'+
-          '<button class="btn btn-xs" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0" onclick="A.gestaoDocs(\'miss\',\''+eid+'\')" title="Documentos">'+(m.docs&&m.docs.length?'<span style="background:#15803d;color:white;border-radius:8px;padding:0 4px;font-size:.7em;margin-left:2px">'+m.docs.length+'</span>':'')+'</button>'+
-          '<button class="btn btn-xs admin-only" style="background:#ecfdf5;color:#065f46;border:1px solid #6ee7b7" onclick="A.abrirChecklist(\''+eid+'\')" title="Checklist do Piloto"></button>'+
+          '<button class="btn btn-xs" style="background:var(--surface);border:1px solid var(--border)" onclick="A.showHistoria(\''+eid+'\')" title="Histórico">🕐</button>'+
+          '<button class="btn btn-xs btn-del admin-only" onclick="A.delMissao(\''+eid+'\')" title="Eliminar">🗑</button>'+
+          '<button class="btn btn-xs" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0" onclick="A.gestaoDocs(\'miss\',\''+eid+'\')" title="Documentos">📎'+(m.docs&&m.docs.length?'<span style="background:#15803d;color:white;border-radius:8px;padding:0 4px;font-size:.7em;margin-left:2px">'+m.docs.length+'</span>':'')+'</button>'+
         '</div>'+
       '</div></td></tr>';
   });
@@ -5323,14 +5322,13 @@ _renderCards(list){
       '<div class="voo-card-crew"><strong>Tripulação ('+((m.crew||[]).length)+'):</strong><br>'+(m.crew||[]).map(c=>(n=>{const p=n.trim().split(/\s+/);return p.length>1?p[0][0].toUpperCase()+'. '+p[p.length-1]:n;})(c.nome)+' <span style="color:var(--ink3)">'+c.fn+'</span>').join(' · ')+'</div>'+
       (m.obs?'<div style="padding:6px 8px;background:var(--g0);border-radius:6px;font-size:.78em;color:var(--ink3);margin-bottom:4px">'+this.esc(m.obs.length>60?m.obs.slice(0,58)+'…':m.obs)+'</div>':'')+
       '<div class="voo-card-actions">'+
-        '<button class="btn btn-xs btn-pdf" onclick="A.missaoPDF(\''+eid+'\')" title="Ordem de Serviço PDF">PDF</button>'+
-        '<button class="btn btn-xs btn-edit admin-only" onclick="A.editMissao(\''+eid+'\')">Editar</button>'+
-        '<button class="btn btn-xs admin-only" class="btn-dup" style="background:#e0e7ff;color:#4338ca;border:1px solid #c7d2fe" onclick="A.dupMissao(\''+eid+'\')">Duplicar</button>'+
-        '<button class="btn btn-xs admin-only" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a" onclick="A.saveTemplateFromMission(\''+eid+'\')" title="Guardar como modelo">Modelo</button>'+
-        '<button class="btn btn-xs" style="background:var(--surface);border:1px solid var(--border)" onclick="A.showHistoria(\''+eid+'\')"></button>'+
-        '<button class="btn btn-xs btn-del admin-only" onclick="A.delMissao(\''+eid+'\')"></button>'+
-        '<button class="btn btn-xs" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0" onclick="A.gestaoDocs(\'miss\',\''+eid+'\')" title="Documentos">'+(m.docs&&m.docs.length?'<span style="background:#15803d;color:white;border-radius:8px;padding:0 5px;font-size:.75em">'+m.docs.length+'</span>':'')+'</button>'+
-        '<button class="btn btn-xs admin-only" style="background:#ecfdf5;color:#065f46;border:1px solid #6ee7b7" onclick="A.abrirChecklist(\''+eid+'\')" title="Checklist">Checklist</button>'+
+        '<button class="btn btn-xs btn-pdf" onclick="A.missaoPDF(\''+eid+'\')" title="Ordem de Serviço PDF">📄</button>'+
+        '<button class="btn btn-xs btn-edit admin-only" onclick="A.editMissao(\''+eid+'\')" title="Editar">✏️</button>'+
+        '<button class="btn btn-xs admin-only" class="btn-dup" style="background:#e0e7ff;color:#4338ca;border:1px solid #c7d2fe" onclick="A.dupMissao(\''+eid+'\')">⎘</button>'+
+        '<button class="btn btn-xs admin-only" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a" onclick="A.saveTemplateFromMission(\''+eid+'\')" title="Guardar como modelo">⭐</button>'+
+        '<button class="btn btn-xs" style="background:var(--surface);border:1px solid var(--border)" onclick="A.showHistoria(\''+eid+'\')" title="Histórico">🕐</button>'+
+        '<button class="btn btn-xs btn-del admin-only" onclick="A.delMissao(\''+eid+'\')" title="Eliminar">🗑</button>'+
+        '<button class="btn btn-xs" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0" onclick="A.gestaoDocs(\'miss\',\''+eid+'\')" title="Documentos">📎'+(m.docs&&m.docs.length?'<span style="background:#15803d;color:white;border-radius:8px;padding:0 5px;font-size:.75em">'+m.docs.length+'</span>':'')+'</button>'+
       '</div>'+
     '</div>';
   });
@@ -5498,7 +5496,7 @@ calcPag(){
       '<td style="'+C+'">'+p.pa+'</td><td style="'+C+'">'+p.al+'</td><td style="'+C+'">'+p.jn+'</td>'+
       '<td style="'+R+';font-size:.86em">'+this.cve(p.vR)+'</td>'+
       '<td style="'+R+'"><strong style="color:var(--g8)">'+this.cve(p.tot)+'</strong></td>'+
-      '<td style="white-space:nowrap"><button class="btn btn-xs" style="background:#e3f2fd;border:1.5px solid #90caf9;color:#01579b" onclick="A.gerarRecibo(\''+p.nome.replace(/'/g,"\\'")+'\')" title="Recibo PDF"></button>'+(this.isAdmin()||this.isGestor()?` <button class="btn btn-xs" style="background:#e8f5e9;border:1.5px solid #4ade80;color:#166534" onclick="A.enviarReciboEmail('${p.nome.replace(/'/g,"\\'")}\')" title="Enviar por email"></button>`:'')+'</td>'+
+      '<td style="white-space:nowrap"><button class="btn btn-xs" style="background:#e3f2fd;border:1.5px solid #90caf9;color:#01579b" onclick="A.gerarRecibo(\''+p.nome.replace(/'/g,"\\'")+'\')" title="Recibo PDF">🧾</button>'+(this.isAdmin()||this.isGestor()?` <button class="btn btn-xs" style="background:#e8f5e9;border:1.5px solid #4ade80;color:#166534" onclick="A.enviarReciboEmail('${p.nome.replace(/'/g,"\\'")}\')" title="Enviar por email">✉️</button>`:'')+'</td>'+
       '</tr>';
   });
   h+='<tr style="background:var(--g0);font-weight:700"><td colspan="9" style="text-align:right;padding-right:16px">TOTAL GERAL</td><td style="'+R+';color:var(--g8)">'+this.cve(totVal)+'</td><td></td></tr></tbody></table>';
@@ -6890,8 +6888,8 @@ renderAeros(){
       inspDateHtml+
       (fl.add||fl.use?'<div style="font-size:.75em;color:var(--ink3);padding:6px 10px;background:var(--g0);border-radius:8px">Comb.: +'+fl.add+'L adicionado / −'+fl.use+'L utilizado</div>':'')+
       '<div class="admin-only" style="display:flex;gap:6px;margin-top:2px">'+
-        '<button class="btn btn-xs btn-edit" onclick="A.editAero('+i+')" style="flex:1">Editar</button>'+
-        '<button class="btn btn-xs btn-del" onclick="A.delAero('+i+')" style="flex:1"'+(hasMissoes?' disabled title="Tem missoes registadas"':'')+'>Eliminar</button>'+
+        '<button class="btn btn-xs btn-edit" onclick="A.editAero('+i+')" style="flex:1" title="Editar">✏️</button>'+
+        '<button class="btn btn-xs btn-del" onclick="A.delAero('+i+')" style="flex:1"'+(hasMissoes?' disabled title="Tem missoes registadas"':'')+' title="Eliminar">🗑</button>'+
       '</div>'+
     '</div>';
   });
