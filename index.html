@@ -1740,6 +1740,19 @@ function getApiUrl(){
 function setApiUrl(url){
   try{ localStorage.setItem('fx9_api_url', url.trim()); }catch{}
 }
+function _parseDt(v){
+  if(!v)return new Date(NaN);
+  if(v instanceof Date)return v;
+  // Extrair os primeiros 10 caracteres: "AAAA-MM-DD"
+  var s=String(v).slice(0,10);
+  var pts=s.split('-').map(Number);
+  if(pts.length===3&&pts[0]>1000&&pts[1]>=1&&pts[1]<=12&&pts[2]>=1&&pts[2]<=31){
+    // Criar data ao meio-dia local para evitar desfasamento de timezone (UTC-1)
+    return new Date(pts[0],pts[1]-1,pts[2],12,0,0,0);
+  }
+  return new Date(v);
+}
+
 
 // ══════════════════════════════════════════════════════════════
 //  APP
@@ -2027,7 +2040,7 @@ async saveToCloud(){
   try{
     const data={
       trips:this.S.trips,
-      missoes:this.S.missoes.map(m=>({...m,dt:m.dt instanceof Date?m.dt.toISOString():m.dt})),
+      missoes:this.S.missoes.map(m=>({...m,dt:m.dt instanceof Date?(()=>{const _d=m.dt;return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0')+'T'+String(_d.getHours()).padStart(2,'0')+':'+String(_d.getMinutes()).padStart(2,'0')+':00'})():m.dt})),
       series:this.S.series,
       colocacoes:this.S.colocacoes,
       aeros:this.S.aeros,
@@ -2085,7 +2098,7 @@ async loadFromCloud(){
     const d=(_raw&&_raw.missoes)?_raw:(_raw&&_raw.data&&_raw.data.missoes?_raw.data:_raw);
     if(d&&d.missoes){
       this.S.trips=(d.trips?.length?d.trips:JSON.parse(JSON.stringify(this.C.defTrips))).map(t=>{if(t.valCur!==undefined&&!t.cursos){t.cursos=t.valCur?[{nome:'Curso',val:t.valCur}]:[];delete t.valCur;}else if(!t.cursos)t.cursos=[];return t;});
-      this.S.missoes=(d.missoes||[]).map(m=>({...m,dt:new Date(m.dt),status:m.status||'Concluída',serie:m.serie||'CGC-EA',history:m.history||[],tags:m.tags||[],docs:m.docs||[],origem:m.origem||'',destino:m.destino||'',perna:m.perna||'',catering:m.catering||false,obs:m.obs||'',fuelAdd:m.fuelAdd??null,fuelUse:m.fuelUse??null}));
+      this.S.missoes=(d.missoes||[]).map(m=>({...m,dt:_parseDt(m.dt),status:m.status||'Concluída',serie:m.serie||'CGC-EA',history:m.history||[],tags:m.tags||[],docs:m.docs||[],origem:m.origem||'',destino:m.destino||'',perna:m.perna||'',catering:m.catering||false,obs:m.obs||'',fuelAdd:m.fuelAdd??null,fuelUse:m.fuelUse??null}));
       this.S.series=d.series||[];
       this.S.colocacoes=d.colocacoes||[];
       this.S.aeros=d.aeros||[];
@@ -2631,7 +2644,7 @@ async init(){
     const ok=await Promise.race([cloudPromise,timeoutPromise]);
     if(!ok){
       this.S.trips=JSON.parse(JSON.stringify(this.C.defTrips));
-      this.S.missoes=JSON.parse(JSON.stringify(this.C.defMissoes)).map(m=>({...m,dt:new Date(m.dt),status:m.status||'Concluída',history:m.history||[]}));
+      this.S.missoes=JSON.parse(JSON.stringify(this.C.defMissoes)).map(m=>({...m,dt:_parseDt(m.dt),status:m.status||'Concluída',history:m.history||[]}));
       this.S.series=[];this.S.colocacoes=[];this.S.aeros=[];this.S.auditLog=[];
       if(!getApiUrl()){
         this.syncUI('offline');
@@ -3938,7 +3951,7 @@ delContacto(id){
     const snap={
       label:label||'Ação',
       ts:Date.now(),
-      missoes:JSON.parse(JSON.stringify(this.S.missoes.map(m=>({...m,dt:m.dt instanceof Date?m.dt.toISOString():m.dt})))),
+      missoes:JSON.parse(JSON.stringify(this.S.missoes.map(m=>({...m,dt:m.dt instanceof Date?(()=>{const _d=m.dt;return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0')+'T'+String(_d.getHours()).padStart(2,'0')+':'+String(_d.getMinutes()).padStart(2,'0')+':00'})():m.dt})))),
       trips:JSON.parse(JSON.stringify(this.S.trips)),
       aeros:JSON.parse(JSON.stringify(this.S.aeros||[])),
       series:JSON.parse(JSON.stringify(this.S.series||[]))
@@ -3960,7 +3973,7 @@ delContacto(id){
     if(!this.isAdmin()){this.showNotif('Sem permissão','err');return;}
     if(!this.S._undo||!this.S._undo.length){this.showNotif('Nada para desfazer','warn');return;}
     const snap=this.S._undo.pop();
-    this.S.missoes=snap.missoes.map(m=>({...m,dt:new Date(m.dt)}));
+    this.S.missoes=snap.missoes.map(m=>({...m,dt:_parseDt(m.dt)}));
     this.S.trips=snap.trips;
     this.S.aeros=snap.aeros;
     this.S.series=snap.series;
@@ -9693,7 +9706,7 @@ exportBackup(){
     _exportedAt:new Date().toISOString(),
     _app:'CGC-EA Sistema de Gestão de Voo',
     trips:this.S.trips,
-    missoes:this.S.missoes.map(m=>({...m,dt:m.dt instanceof Date?m.dt.toISOString():m.dt})),
+    missoes:this.S.missoes.map(m=>({...m,dt:m.dt instanceof Date?(()=>{const _d=m.dt;return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0')+'T'+String(_d.getHours()).padStart(2,'0')+':'+String(_d.getMinutes()).padStart(2,'0')+':00'})():m.dt})),
     series:this.S.series,
     colocacoes:this.S.colocacoes,
     aeros:this.S.aeros,
@@ -9730,7 +9743,7 @@ importBackup(ev){
       const data=JSON.parse(e.target.result);
       if(!data.trips||!Array.isArray(data.missoes))throw new Error('Formato inválido');
       this.S.trips=(data.trips||[]).map(t=>{if(t.valCur!==undefined&&!t.cursos){t.cursos=t.valCur?[{nome:'Curso',val:t.valCur}]:[];delete t.valCur;}else if(!t.cursos)t.cursos=[];return t;});
-      this.S.missoes=(data.missoes||[]).map(m=>({...m,dt:new Date(m.dt),status:m.status||'Concluída',serie:m.serie||'CGC-EA',history:m.history||[],tags:m.tags||[],origem:m.origem||'',destino:m.destino||'',perna:m.perna||'',obs:m.obs||'',fuelAdd:m.fuelAdd??null,fuelUse:m.fuelUse??null,nPac:m.nPac??null}));
+      this.S.missoes=(data.missoes||[]).map(m=>({...m,dt:_parseDt(m.dt),status:m.status||'Concluída',serie:m.serie||'CGC-EA',history:m.history||[],tags:m.tags||[],origem:m.origem||'',destino:m.destino||'',perna:m.perna||'',obs:m.obs||'',fuelAdd:m.fuelAdd??null,fuelUse:m.fuelUse??null,nPac:m.nPac??null}));
       this.S.series=data.series||[];
       this.S.colocacoes=data.colocacoes||this.S.colocacoes;
       this.S.aeros=data.aeros||[];
