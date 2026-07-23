@@ -108,18 +108,18 @@ body.dark #loading{background:rgba(26,28,30,.97)}
 ═══════════════════════════════════════════════════════ */
 .nav{
   position:fixed;top:0;left:-220px;width:220px;height:100vh;
-  background:var(--white);border-right:1.5px solid var(--border);
+  background:var(--g8);border-right:none;
   box-shadow:var(--shadow-lg);z-index:9000;
   display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;
   transition:left .28s cubic-bezier(.4,0,.2,1);
   scrollbar-width:thin;
 }
 .nav.open{left:0}
-/* Toggle tab: sticks out from right edge of the panel */
+/* Toggle tab: sticks to the top-left, adjacent to the nav panel */
 .nav-toggle{
-  position:fixed;left:0;top:50%;transform:translateY(-50%);
-  width:22px;height:56px;background:var(--g8);color:#fff;
-  border:none;border-radius:0 8px 8px 0;cursor:pointer;z-index:9001;
+  position:fixed;left:0;top:0;
+  width:26px;height:48px;background:var(--g9);color:#fff;
+  border:none;border-radius:0 0 8px 0;cursor:pointer;z-index:9001;
   display:flex;align-items:center;justify-content:center;
   font-size:.85em;box-shadow:var(--shadow-md);
   transition:left .28s cubic-bezier(.4,0,.2,1),background .15s;
@@ -131,21 +131,30 @@ body.dark #loading{background:rgba(26,28,30,.97)}
 .nav-overlay.on{display:block}
 /* nav header */
 .nav-hd{
-  padding:12px 16px 10px;background:var(--g9);color:#fff;
+  padding:12px 16px 10px 36px;background:var(--g9);color:#fff;
   font-size:.72em;font-weight:800;text-transform:uppercase;
   letter-spacing:.7px;flex-shrink:0;
+  border-bottom:1px solid rgba(255,255,255,.12);
 }
 /* nav items */
 .ntab{
   padding:12px 16px;cursor:pointer;font-weight:600;font-size:.87em;
-  color:var(--ink3);border-left:3px solid transparent;
+  color:rgba(255,255,255,.78);border-left:3px solid transparent;
   white-space:nowrap;transition:color .15s,border-color .15s,background .15s;
   user-select:none;display:flex;align-items:center;gap:10px;
-  border-bottom:1px solid var(--border);flex-shrink:0;
+  flex-shrink:0;
 }
-.ntab:last-child{border-bottom:none}
-.ntab:hover{color:var(--g8);background:var(--g0)}
-.ntab.on{color:var(--g8);border-left-color:var(--g8);background:var(--g0);font-weight:700}
+.ntab:hover{color:#fff;background:rgba(255,255,255,.13)}
+.ntab.on{color:#fff;border-left-color:#fff;background:rgba(255,255,255,.20);font-weight:700}
+/* dark mode: keep nav dark in dark mode (light greens have poor contrast on white text) */
+body.dark .nav{background:#1a3920}
+body.dark .nav-hd{background:#12291a}
+body.dark .nav-toggle{background:#12291a}
+body.dark .nav-toggle:hover{background:#1a3920}
+/* search input inside green nav */
+#globalSearchInp{background:rgba(255,255,255,.14)!important;color:#fff!important;border-color:rgba(255,255,255,.25)!important}
+#globalSearchInp::placeholder{color:rgba(255,255,255,.5)!important}
+body.dark #globalSearchInp{background:rgba(255,255,255,.08)!important}
 
 /* CONTENT */
 .wrap{padding:18px 16px 32px 30px;max-width:1600px;margin:0 auto}
