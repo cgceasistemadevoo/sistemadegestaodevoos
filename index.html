@@ -128,6 +128,11 @@ body.dark #loading{background:rgba(26,28,30,.97)}
   transition:left .28s cubic-bezier(.4,0,.2,1),background .15s;
 }
 .nav-toggle:hover{background:var(--g7)}
+/* Nav toggle mobile button (inside abar) */
+.nav-toggle-mobile{display:none;align-items:center;gap:8px;background:var(--g9);color:#fff;border:none;border-radius:0;padding:7px 14px;cursor:pointer;font-size:.82em;font-weight:700;letter-spacing:.03em;width:100%;justify-content:center}
+.nav-toggle-mobile:hover{background:var(--g7)}
+body.dark .nav-toggle-mobile{background:#0a1f14}
+body.dark .nav-toggle-mobile:hover{background:#0d2b1d}
 .nav.open~.nav-toggle{left:220px}
 /* overlay */
 .nav-overlay{display:none;position:fixed;inset:0;z-index:8999;background:rgba(0,0,0,.18)}
@@ -413,6 +418,8 @@ tbody tr:hover{background:var(--g0)}
   .crew-row{grid-template-columns:18px 1fr 1fr auto;grid-template-rows:auto auto auto}
   .crew-row .crew-num{display:none}
   .crew-num{display:none}
+  .nav-toggle{display:none}
+  .nav-toggle-mobile{display:flex}
   .hamburger{display:inline-flex}
   .abar-right{display:none;width:100%;flex-direction:column;padding-top:6px}
   .abar-right.open{display:flex}
@@ -692,6 +699,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <button class="btn btn-s btn-sm" id="btnLogout" onclick="A.doLogout()" title="Terminar sessão" style="display:none;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5">↩</button>
     <button class="dark-toggle" onclick="A.toggleDark()" id="darkBtn" title="Modo escuro"></button>
   </div>
+  <button class="nav-toggle-mobile" onclick="A.toggleNav()" aria-label="Abrir menu">☰ Menu</button>
 </div>
 
 <!-- ══════════════════════════════════════════
