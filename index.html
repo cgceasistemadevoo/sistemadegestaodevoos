@@ -1671,6 +1671,38 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div style="font-size:.95em;font-weight:600">Nenhum manual adicionado ainda.</div>
     <div style="font-size:.8em;margin-top:4px">Clique em <b>＋ Adicionar Manual</b> para começar.</div>
   </div>
+
+  <!-- ── CHECKLIST ATUALIZADO KING AIR 360 ER ── -->
+  <div style="border-top:2px solid var(--border);margin-top:32px;padding-top:28px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:18px">
+      <div>
+        <h2 style="font-size:1.2em;font-weight:800;color:var(--ink);margin:0">Checklist Atualizado King Air 360 Er</h2>
+        <div style="font-size:.78em;color:var(--ink3);margin-top:2px">Checklists operacionais actualizados — King Air 360 ER</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input class="search-inp" id="srchChecklist" placeholder="Nome, secção…" oninput="A.renderChecklists()" style="width:180px">
+        <select id="clFiltroSecao" onchange="A.renderChecklists()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:0;font-size:.82em;background:var(--white);color:var(--ink);outline:none">
+          <option value="">Todas as secções</option>
+          <option>Emergency Procedures</option>
+          <option>Normal Procedures</option>
+          <option>Supplemental Information</option>
+          <option>Advisory Status Procedures</option>
+          <option>Library Release Notes</option>
+          <option>Performance</option>
+          <option>List Of Effective Pages</option>
+          <option>Abnormal Procedures Title Page</option>
+          <option>Outros</option>
+        </select>
+        <button class="btn btn-p btn-sm admin-only" onclick="A.abrirModalChecklist()">＋ Adicionar</button>
+      </div>
+    </div>
+    <div id="checklistsGrid"></div>
+    <div id="checklistsVazio" style="display:none;text-align:center;padding:40px 0;color:var(--ink3)">
+      <div style="font-size:2.5em;margin-bottom:10px">📋</div>
+      <div style="font-size:.95em;font-weight:600">Nenhum checklist adicionado ainda.</div>
+      <div style="font-size:.8em;margin-top:4px">Clique em <b>＋ Adicionar</b> para começar.</div>
+    </div>
+  </div>
 </div>
 
 <!-- ══ MODAL MANUAL DE AERONAVE ══ -->
@@ -1709,6 +1741,41 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
     <button class="btn btn-s" onclick="A._fecharModalManual()">Cancelar</button>
     <button class="btn btn-p" onclick="A._manualAdd()">Guardar Manual</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ MODAL CHECKLIST KING AIR 360 ER ══ -->
+<div class="modal" id="modalChecklist">
+<div class="modal-box" style="max-width:560px">
+  <div class="modal-hd">
+    <h3>Adicionar Checklist — King Air 360 Er</h3>
+    <span class="modal-x" onclick="A._fecharModalChecklist()">×</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:12px;padding-top:4px">
+    <div class="fg"><label>Secção *</label>
+      <select id="clSecao" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:0;font-size:.88em;background:var(--white);color:var(--ink)">
+        <option value="">— Selecione a secção —</option>
+        <option>Emergency Procedures</option>
+        <option>Normal Procedures</option>
+        <option>Supplemental Information</option>
+        <option>Advisory Status Procedures</option>
+        <option>Library Release Notes</option>
+        <option>Performance</option>
+        <option>List Of Effective Pages</option>
+        <option>Abnormal Procedures Title Page</option>
+        <option>Outros</option>
+      </select>
+    </div>
+    <div class="fg"><label>Nome / Descrição *</label><input id="clNome" placeholder="Ex: Checklist Rev.2 / Actualização Jan-2026"></div>
+    <div class="fg"><label>Link (Google Drive ou outro) *</label><input id="clUrl" placeholder="https://drive.google.com/…"></div>
+    <div style="font-size:.75em;color:var(--ink3);background:var(--g0);border-radius:0;padding:8px 10px">
+      <b>Google Drive:</b> Partilhar → "Qualquer pessoa com a ligação" → Visualizador → Copiar ligação → colar aqui.
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+    <button class="btn btn-s" onclick="A._fecharModalChecklist()">Cancelar</button>
+    <button class="btn btn-p" onclick="A._checklistAdd()">Guardar Checklist</button>
   </div>
 </div>
 </div>
@@ -2061,6 +2128,7 @@ async saveToCloud(){
       escala:this.S.escala,
       escalaCabine:this.S.escalaCabine,
       manuais:this.S.manuais||[],
+      checklists:this.S.checklists||[],
       config:{
         funcoes:this.C.funcoes,
         fnRates:this.C.vPF,
@@ -2114,6 +2182,7 @@ async loadFromCloud(){
       this.S.colocacoes=d.colocacoes||[];
       this.S.aeros=d.aeros||[];
       this.S.manuais=d.manuais||[];
+      this.S.checklists=d.checklists||[];
       this.S.auditLog=d.auditLog||[];
       this.S.incidentes=d.incidentes||[];
       this.S.contactos=d.contactos||[];
@@ -2893,7 +2962,7 @@ navTo(p){
   if(p==='mapa')this.renderMapa();
   if(p==='incidentes')this.renderIncidentes();
   if(p==='contactos')this.renderContactos();
-  if(p==='manuais')this.renderManuais();
+  if(p==='manuais'){this.renderManuais();this.renderChecklists();}
   // Fechar hamburger
   const ar=document.getElementById('abarRight');
   if(ar)ar.classList.remove('open');
