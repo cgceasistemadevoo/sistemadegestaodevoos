@@ -7978,8 +7978,8 @@ renderEscalaCabine(){
       const isWe=dow===0||dow===6;
       const isToday=isCurMonth&&d===todayD;
       const marcado=(e.dias||[]).includes(d);
-      const bg=marcado?'var(--g8)':(isToday?'#e0f2fe':isWe?'#f4f6f8':'transparent');
-      h+='<td style="padding:3px 1px;text-align:center;cursor:pointer;border-bottom:1px solid var(--border);background:'+bg+'" onclick="A.escCabineToggleDia(\''+nq+'\','+d+','+mes+','+ano+')">'+(marcado?'<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:0;background:#fff;color:var(--g8);font-weight:900;font-size:.78em">\u2713</span>':'')+'</td>';
+      const bg=isToday?'#e0f2fe':isWe?'#f4f6f8':'transparent';
+      h+='<td style="padding:3px 1px;text-align:center;cursor:pointer;border-bottom:1px solid var(--border);background:'+bg+'" onclick="A.escCabineToggleDia(\''+nq+'\','+d+','+mes+','+ano+')">'+(marcado?'<span style="font-weight:900;font-size:1em;color:var(--g8)">\u2713</span>':'')+'</td>';
     }
     h+='</tr>';
   });
