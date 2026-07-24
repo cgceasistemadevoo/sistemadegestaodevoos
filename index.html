@@ -1574,7 +1574,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     </div>
     <div id="mapaLegenda" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;font-size:.78em;color:var(--ink3)"></div>
   </div>
-  <div id="mapaRotas" style="margin-top:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px"></div>
 </div>
 
 <!-- ══════════════════════════════════════════
@@ -8299,21 +8298,6 @@ renderMapa(){
       lh+='<span class="mapa-legend-chip" data-route="'+rk(key)+'" onmouseover="A._mapaHi(\''+rk(key)+'\')" onmouseout="A._mapaHi(null)" onclick="A._mapaRotaModal(\''+rk(key)+'\')" style="display:flex;align-items:center;gap:5px;cursor:pointer;padding:3px 8px;border-radius:0;border:1px solid transparent;transition:background .15s,border-color .15s"><span style="display:inline-block;width:22px;height:4px;background:'+col+';border-radius:0;flex-shrink:0"></span>'+label+' ('+r.count+')</span>';
     });
     leg.innerHTML=lh||'<span>Sem rotas no período seleccionado</span>';
-  }
-  const rl=document.getElementById('mapaRotas');
-  if(rl){
-    if(!rotaKeys.length){rl.innerHTML='<div style="color:var(--ink3);font-size:.85em;grid-column:1/-1;padding:10px">Sem rotas no período.</div>';return;}
-    rl.innerHTML=rotaKeys.map((key,idx)=>{
-      const r=rotas[key];const col=routeColors[idx%routeColors.length];
-      const fn=n=>ilhas[n]?ilhas[n].label:n;
-      const icaofn=n=>ilhas[n]?ilhas[n].icao:'';
-      const label=r.self?''+fn(r.from)+' — missões locais':fn(r.from)+' ('+icaofn(r.from)+') ↔ '+fn(r.to)+' ('+icaofn(r.to)+')';
-      return '<div class="mapa-rota-card" data-route="'+rk(key)+'" onmouseover="A._mapaHi(\''+rk(key)+'\')" onmouseout="A._mapaHi(null)" onclick="A._mapaRotaModal(\''+rk(key)+'\')" style="background:var(--white);border:1.5px solid var(--border);border-left:4px solid '+col+';border-radius:0;padding:12px 14px;cursor:pointer;transition:transform .15s,box-shadow .15s">'+
-        '<div style="font-weight:700;font-size:.88em;color:var(--ink)">'+label+'</div>'+
-        '<div style="font-family:var(--mono);font-size:1.2em;font-weight:700;color:'+col+';margin:4px 0">'+r.count+' voos</div>'+
-        '<div style="font-size:.7em;color:var(--ink3)">Missões: '+r.missoes.slice(0,6).join(', ')+(r.missoes.length>6?' +mais... (clicar para ver todas)':'')+'</div>'+
-      '</div>';
-    }).join('');
   }
 },
 _mapaHi(key){
