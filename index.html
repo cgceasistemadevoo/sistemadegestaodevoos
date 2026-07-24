@@ -1746,7 +1746,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 </div>
 
 <!-- ══ MODAL CHECKLIST KING AIR 360 ER ══ -->
-<div class="modal" id="modalChecklist">
+<div class="modal" id="modalAddChecklist">
 <div class="modal-box" style="max-width:560px">
   <div class="modal-hd">
     <h3>Adicionar Checklist — King Air 360 Er</h3>
@@ -2129,6 +2129,7 @@ async saveToCloud(){
       escalaCabine:this.S.escalaCabine,
       manuais:this.S.manuais||[],
       checklists:this.S.checklists||[],
+      checklistDocs:this.S.checklistDocs||[],
       config:{
         funcoes:this.C.funcoes,
         fnRates:this.C.vPF,
@@ -2183,6 +2184,7 @@ async loadFromCloud(){
       this.S.aeros=d.aeros||[];
       this.S.manuais=d.manuais||[];
       this.S.checklists=d.checklists||[];
+      this.S.checklistDocs=d.checklistDocs||[];
       this.S.auditLog=d.auditLog||[];
       this.S.incidentes=d.incidentes||[];
       this.S.contactos=d.contactos||[];
@@ -7138,6 +7140,99 @@ async _manualDel(idx){
   }
   this.renderManuais();
   this.showNotif('Manual removido','ok');
+},
+
+// ─── CHECKLISTS DA ABA MANUAIS ───────────────────────────────
+abrirModalChecklist(){
+  this._savingCl=false;
+  // Limpar campos e repor botão
+  ['clNome','clUrl'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const clSecao=document.getElementById('clSecao');if(clSecao)clSecao.selectedIndex=0;
+  const btn=document.querySelector('#modalAddChecklist .btn-p');
+  if(btn){btn.disabled=false;btn.textContent='Guardar Checklist';}
+  const modal=document.getElementById('modalAddChecklist');
+  if(modal){modal.style.display='flex';document.body.style.overflow='hidden';}
+},
+_fecharModalChecklist(){
+  this._savingCl=false;
+  const modal=document.getElementById('modalAddChecklist');
+  if(modal)modal.style.display='none';
+  document.body.style.overflow='';
+},
+async _checklistAdd(){
+  if(this._savingCl)return;
+  const secao=(document.getElementById('clSecao')?.value||'').trim();
+  const nome=(document.getElementById('clNome')?.value||'').trim();
+  const url=(document.getElementById('clUrl')?.value||'').trim();
+  if(!nome){this.showNotif('Introduza um nome','warn');return;}
+  if(!url||!url.startsWith('http')){this.showNotif('Introduza um link válido (https://...)','warn');return;}
+  this._savingCl=true;
+  const btn=document.querySelector('#modalAddChecklist .btn-p');
+  if(btn){btn.disabled=true;btn.textContent='A guardar...';}
+  if(!Array.isArray(this.S.checklistDocs))this.S.checklistDocs=[];
+  const urlFinal=this._normalizeDocUrl?this._normalizeDocUrl(url):url;
+  this.S.checklistDocs.push({secao,nome,url:urlFinal,data:new Date().toLocaleDateString('pt-PT')});
+  this.markDirty();
+  try{
+    if(typeof getApiUrl==='function'&&getApiUrl())await this.saveToCloud();
+    this._fecharModalChecklist();
+    this.renderChecklists();
+    this.showNotif('Checklist adicionado');
+  }catch(e){
+    this.S.checklistDocs.pop();
+    this._savingCl=false;
+    if(btn){btn.disabled=false;btn.textContent='Guardar Checklist';}
+    this.showNotif('Falha ao guardar — tente novamente','err');
+  }
+},
+async _checklistDel(idx){
+  if(!confirm('Remover este checklist?'))return;
+  const removed=this.S.checklistDocs.splice(idx,1)[0];
+  this.markDirty();
+  if(typeof getApiUrl==='function'&&getApiUrl()){
+    try{await this.saveToCloud();}catch(e){this.S.checklistDocs.splice(idx,0,removed);this.showNotif('Falha ao guardar','err');this.renderChecklists();return;}
+  }
+  this.renderChecklists();
+  this.showNotif('Checklist removido','ok');
+},
+renderChecklists(){
+  if(!Array.isArray(this.S.checklistDocs))this.S.checklistDocs=[];
+  const srch=(document.getElementById('srchChecklist')?.value||'').toLowerCase();
+  const filtroSecao=(document.getElementById('clFiltroSecao')?.value||'');
+  let docs=this.S.checklistDocs.filter(c=>{
+    const matchSecao=!filtroSecao||c.secao===filtroSecao;
+    const matchSrch=!srch||(c.nome||'').toLowerCase().includes(srch)||(c.secao||'').toLowerCase().includes(srch);
+    return matchSecao&&matchSrch;
+  });
+  const grid=document.getElementById('checklistsGrid');
+  const vazio=document.getElementById('checklistsVazio');
+  if(!grid)return;
+  if(!docs.length){
+    grid.innerHTML='';
+    if(vazio)vazio.style.display='block';
+    return;
+  }
+  if(vazio)vazio.style.display='none';
+  let h='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;padding-top:4px">';
+  docs.forEach(c=>{
+    const realIdx=this.S.checklistDocs.indexOf(c);
+    h+='<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:8px;border-radius:0">'
+      +'<div style="display:flex;align-items:flex-start;gap:10px">'
+        +'<span style="font-size:1.5em;flex-shrink:0">📋</span>'
+        +'<div style="flex:1;min-width:0">'
+          +'<div style="font-weight:700;font-size:.87em;color:var(--ink);word-break:break-word">'+this.esc(c.nome)+'</div>'
+          +'<div style="font-size:.73em;color:var(--ink3);margin-top:2px">'+this.esc(c.secao||'—')+'</div>'
+          +(c.data?'<div style="font-size:.68em;color:var(--ink3);margin-top:1px">'+this.esc(c.data)+'</div>':'')
+        +'</div>'
+      +'</div>'
+      +'<div style="display:flex;gap:7px;justify-content:flex-end">'
+        +'<a href="'+this.esc(c.url)+'" target="_blank" rel="noopener" style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:0;padding:4px 11px;font-size:.78em;text-decoration:none;white-space:nowrap">Abrir</a>'
+        +'<button class="btn btn-xs btn-del admin-only" onclick="A._checklistDel('+realIdx+')" title="Remover"></button>'
+      +'</div>'
+    +'</div>';
+  });
+  h+='</div>';
+  grid.innerHTML=h;
 },
 
 // ─── CHECKLIST DO PILOTO ─────────────────────────────────────
