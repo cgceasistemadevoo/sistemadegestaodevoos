@@ -779,10 +779,10 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="mcard" data-ic=""><div class="mcard-lbl">Média/Missão</div><div class="mcard-val" id="mMed">0h 0m</div><div class="mcard-sub">duração média</div></div>
   </div>
   <div class="mgrid">
-    <div class="mcard" data-ic="" style="border-left:4px solid #10b981"><div class="mcard-lbl">Taxa Conclusão</div><div class="mcard-val" id="mTaxaCon">0%</div><div class="mcard-sub">missões concluídas</div></div>
-    <div class="mcard" data-ic="" style="border-left:4px solid #ef4444"><div class="mcard-lbl">Canceladas</div><div class="mcard-val" id="mCancel">0</div><div class="mcard-sub" id="mCancelSub">no período</div></div>
-    <div class="mcard" data-ic="" style="border-left:4px solid #dc2626"><div class="mcard-lbl">Pacientes MEDEVAC</div><div class="mcard-val" id="mPac">0</div><div class="mcard-sub" id="mPacSub">evacuações</div></div>
-    <div class="mcard" data-ic="" style="border-left:4px solid #b91c1c"><div class="mcard-lbl">Missões MEDEVAC</div><div class="mcard-val" id="mMedMis">0</div><div class="mcard-sub" id="mMedMisSub">no período</div></div>
+    <div class="mcard" data-ic=""><div class="mcard-lbl">Taxa Conclusão</div><div class="mcard-val" id="mTaxaCon">0%</div><div class="mcard-sub">missões concluídas</div></div>
+    <div class="mcard" data-ic=""><div class="mcard-lbl">Canceladas</div><div class="mcard-val" id="mCancel">0</div><div class="mcard-sub" id="mCancelSub">no período</div></div>
+    <div class="mcard" data-ic=""><div class="mcard-lbl">Pacientes MEDEVAC</div><div class="mcard-val" id="mPac">0</div><div class="mcard-sub" id="mPacSub">evacuações</div></div>
+    <div class="mcard" data-ic=""><div class="mcard-lbl">Missões MEDEVAC</div><div class="mcard-val" id="mMedMis">0</div><div class="mcard-sub" id="mMedMisSub">no período</div></div>
   </div>
 
   <!-- Donut estados + Custo do Período (ambos dependem do filtro) -->
@@ -837,14 +837,14 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 
   <!-- KPIs de hoje/semana/próximos — ignoram o filtro -->
   <div class="mgrid">
-    <div class="mcard" data-ic="" style="border-left:4px solid #3b82f6"><div class="mcard-lbl">Hoje</div><div class="mcard-val" id="mHoje">0</div><div class="mcard-sub" id="mHojeSub">missões</div></div>
-    <div class="mcard" data-ic="" style="border-left:4px solid #6366f1"><div class="mcard-lbl">Esta Semana</div><div class="mcard-val" id="mSem">0</div><div class="mcard-sub" id="mSemSub">missões</div></div>
-    <div class="mcard" data-ic="" style="border-left:4px solid #8b5cf6"><div class="mcard-lbl">Próximos 7 dias</div><div class="mcard-val" id="m7d">0</div><div class="mcard-sub" id="m7dSub">missões planeadas</div></div>
-    <div class="mcard" data-ic="" style="border-left:4px solid #f59e0b"><div class="mcard-lbl">Validades ≤30d</div><div class="mcard-val" id="mVal">0</div><div class="mcard-sub">a expirar</div></div>
+    <div class="mcard" data-ic=""><div class="mcard-lbl">Hoje</div><div class="mcard-val" id="mHoje">0</div><div class="mcard-sub" id="mHojeSub">missões</div></div>
+    <div class="mcard" data-ic=""><div class="mcard-lbl">Esta Semana</div><div class="mcard-val" id="mSem">0</div><div class="mcard-sub" id="mSemSub">missões</div></div>
+    <div class="mcard" data-ic=""><div class="mcard-lbl">Próximos 7 dias</div><div class="mcard-val" id="m7d">0</div><div class="mcard-sub" id="m7dSub">missões planeadas</div></div>
+    <div class="mcard" data-ic=""><div class="mcard-lbl">Validades ≤30d</div><div class="mcard-val" id="mVal">0</div><div class="mcard-sub">a expirar</div></div>
   </div>
   <div class="mgrid">
-    <div class="mcard" data-ic="" style="border-left:4px solid #0ea5e9"><div class="mcard-lbl">Block Time (mês)</div><div class="mcard-val" id="mBTMes">0h 0m</div><div class="mcard-sub">acumulado</div></div>
-    <div class="mcard" data-ic="" style="border-left:4px solid #dc2626"><div class="mcard-lbl">Alertas de Horas</div><div class="mcard-val" id="mHrAlert">0</div><div class="mcard-sub">tripulantes ≥80%</div></div>
+    <div class="mcard" data-ic=""><div class="mcard-lbl">Block Time (mês)</div><div class="mcard-val" id="mBTMes">0h 0m</div><div class="mcard-sub">acumulado</div></div>
+    <div class="mcard" data-ic=""><div class="mcard-lbl">Alertas de Horas</div><div class="mcard-val" id="mHrAlert">0</div><div class="mcard-sub">tripulantes ≥80%</div></div>
   </div>
 
   <!-- Actividade últimos 7 dias (tempo real) -->
@@ -892,7 +892,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 ══════════════════════════════════════════ -->
 <div id="page-tripulantes" class="page hide">
   <div class="admin-only" style="padding:14px 16px 4px;display:flex;gap:8px;align-items:center">
-    <button class="btn btn-p" onclick="A.openNovoTrip()" style="gap:6px">Novo Tripulante</button>
+    <button class="btn btn-p" onclick="A.openNovoTrip()" style="gap:6px;display:inline-flex;align-items:center;gap:6px"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg> Novo Tripulante</button>
   </div>
   <div class="mgrid">
     <div class="mcard" data-ic=""><div class="mcard-lbl">Total</div><div class="mcard-val" id="mTt">0</div></div>
@@ -940,12 +940,12 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="fg" style="grid-column:1/-1">
       <label>Cursos e Validades <span style="font-weight:400;color:var(--ink3);font-size:.85em">— adicione quantos necessitar</span></label>
       <div id="iCursosList" style="display:flex;flex-direction:column;gap:5px;margin-top:4px"></div>
-      <button type="button" class="btn btn-s btn-sm" style="margin-top:6px;font-size:.8em" onclick="A._addCursoRow('iCursosList')">Adicionar Curso</button>
+      <button type="button" class="btn btn-s btn-sm" style="margin-top:6px;font-size:.8em;display:inline-flex;align-items:center;gap:5px" onclick="A._addCursoRow('iCursosList')"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Adicionar Curso</button>
     </div>
   </div>
   <div style="display:flex;gap:8px;margin-top:16px">
-    <button class="btn btn-p admin-only" onclick="A.addTrip()">Adicionar Tripulante</button>
-    <button class="btn btn-s" onclick="A.closeNovoTrip()">Cancelar</button>
+    <button class="btn btn-p admin-only" onclick="A.addTrip()" style="display:inline-flex;align-items:center;gap:6px"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Adicionar Tripulante</button>
+    <button class="btn btn-s" onclick="A.closeNovoTrip()" style="display:inline-flex;align-items:center;gap:6px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Cancelar</button>
   </div>
 </div>
 </div>
@@ -5218,7 +5218,7 @@ _anoCell(t,now){
       '<td class="'+wCls+'">'+hrMes+'h'+(pct>=85?'':'')+
         '<span class="hr-bar-wrap"><span class="hr-bar '+bCls+'" style="width:'+pct+'%"></span></span></td>'+
       this._anoCell(t,_now)+
-      '<td>'+this._validityCell(t)+'</td>'+'<td style="white-space:nowrap"><button class="btn btn-xs btn-p" onclick="A.tripLogbook(\''+ne+'\')" title="Perfil / Caderneta"></button> <button class="btn btn-xs btn-edit admin-only" onclick="A.editTrip(\''+ne+'\')"></button> <button class="btn btn-xs btn-del admin-only" onclick="A.delTrip(\''+ne+'\')"></button> <button class="btn btn-xs" style="background:#f0f1f3;color:#4e5a6b;border:1px solid #c5c9d1" onclick="A.gestaoDocs(\'trip\',\''+ne+'\')" title="Documentos do tripulante">'+(t.docs&&t.docs.length?'<span style="background:#4e5a6b;color:white;border-radius:0;padding:0 5px;font-size:.75em;margin-left:2px">'+t.docs.length+'</span>':'')+'</button></td>'+
+      '<td>'+this._validityCell(t)+'</td>'+'<td style="white-space:nowrap"><button class="btn btn-xs btn-p" onclick="A.tripLogbook(\''+ne+'\')" title="Perfil / Caderneta"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button> <button class="btn btn-xs btn-edit admin-only" onclick="A.editTrip(\''+ne+'\')" title="Editar"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7\"/><path d=\"M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z\"/></svg></button> <button class="btn btn-xs btn-del admin-only" onclick="A.delTrip(\''+ne+'\')" title="Eliminar"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"3 6 5 6 21 6\"/><path d=\"M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6\"/><path d=\"M10 11v6\"/><path d=\"M14 11v6\"/><path d=\"M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2\"/></svg></button> <button class="btn btn-xs" style="background:#f0f1f3;color:#4e5a6b;border:1px solid #c5c9d1" onclick="A.gestaoDocs(\'trip\',\''+ne+'\')" title="Documentos do tripulante"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><polyline points=\"14 2 14 8 20 8\"/><line x1=\"16\" y1=\"13\" x2=\"8\" y2=\"13\"/><line x1=\"16\" y1=\"17\" x2=\"8\" y2=\"17\"/></svg>'+(t.docs&&t.docs.length?'<span style="background:#4e5a6b;color:white;border-radius:0;padding:0 5px;font-size:.75em;margin-left:2px">'+t.docs.length+'</span>':'')+'</button></td>'+
       '</tr>';
   });
   el.innerHTML=h+'</tbody></table>';
@@ -6301,12 +6301,12 @@ _buildMedevacCharts(){
   }
   const ctx=document.getElementById('cMedevac')?.getContext('2d');
   if(ctx){this.S.charts['cMedevac']=new Chart(ctx,{type:'bar',data:{labels:months,datasets:[
-    {label:'Pacientes',data:pacCounts,backgroundColor:'rgba(220,38,38,.75)',borderColor:'#dc2626',borderWidth:1.5,yAxisID:'yPac',order:1},
-    {label:'Missões MEDEVAC',data:missCounts,type:'line',borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,.12)',pointBackgroundColor:'#f59e0b',tension:.3,yAxisID:'yMis',order:0}
+    {label:'Pacientes',data:pacCounts,backgroundColor:'rgba(59,130,246,.75)',borderColor:'#3b82f6',borderWidth:1.5,yAxisID:'yPac',order:1},
+    {label:'Missões MEDEVAC',data:missCounts,type:'line',borderColor:'#60a5fa',backgroundColor:'rgba(96,165,250,.12)',pointBackgroundColor:'#60a5fa',tension:.3,yAxisID:'yMis',order:0}
   ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tc,font:{size:11}}}},scales:{
     x:{grid:{color:gc},ticks:{color:tc,font:{size:10}}},
-    yPac:{beginAtZero:true,grid:{color:gc},ticks:{color:'#dc2626',font:{size:10},stepSize:1},title:{display:true,text:'Pacientes',color:'#dc2626',font:{size:10}}},
-    yMis:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},ticks:{color:'#f59e0b',font:{size:10},stepSize:1},title:{display:true,text:'Missões',color:'#f59e0b',font:{size:10}}}
+    yPac:{beginAtZero:true,grid:{color:gc},ticks:{color:'#3b82f6',font:{size:10},stepSize:1},title:{display:true,text:'Pacientes',color:'#3b82f6',font:{size:10}}},
+    yMis:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},ticks:{color:'#60a5fa',font:{size:10},stepSize:1},title:{display:true,text:'Missões',color:'#60a5fa',font:{size:10}}}
   }}});}
   // Top rotas MEDEVAC — gráfico de barras horizontal
   const rotaMap={};
@@ -6328,8 +6328,8 @@ _buildMedevacCharts(){
       this.S.charts['cMedevacRotas']=new Chart(ctxRotas,{
         type:'bar',
         data:{labels,datasets:[
-          {label:'Pacientes',data:pacs,backgroundColor:'rgba(220,38,38,.75)',borderColor:'#dc2626',borderWidth:1.5,borderRadius:4},
-          {label:'Missões',data:misss,backgroundColor:'rgba(245,158,11,.65)',borderColor:'#f59e0b',borderWidth:1.5,borderRadius:4}
+          {label:'Pacientes',data:pacs,backgroundColor:'rgba(59,130,246,.75)',borderColor:'#3b82f6',borderWidth:1.5,borderRadius:4},
+          {label:'Missões',data:misss,backgroundColor:'rgba(96,165,250,.65)',borderColor:'#60a5fa',borderWidth:1.5,borderRadius:4}
         ]},
         options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
           plugins:{legend:{labels:{color:tc,font:{size:11}}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.parsed.x}}},
@@ -7072,7 +7072,7 @@ renderManuais(){
           +'</div>'
           +'<div style="display:flex;gap:7px;justify-content:flex-end">'
             +'<a href="'+this.esc(m.url)+'" target="_blank" rel="noopener" style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:0;padding:4px 11px;font-size:.78em;text-decoration:none;white-space:nowrap">Abrir</a>'
-            +'<button class="btn btn-xs btn-del admin-only" onclick="A._manualDel('+realIdx+')" title="Remover"></button>'
+            +'<button class="btn btn-xs btn-del admin-only" onclick="A._manualDel('+realIdx+')" title="Remover"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"3 6 5 6 21 6\"/><path d=\"M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6\"/><path d=\"M10 11v6\"/><path d=\"M14 11v6\"/><path d=\"M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2\"/></svg></button>'
           +'</div>'
         +'</div>';
       });
@@ -10125,7 +10125,7 @@ renderMetas(){
   const totHr=totBtMin/60;
   // If no metas set
   if(!m.mis&&!m.hr&&!m.fuel&&!m.cve){
-    el.innerHTML='<div style="color:var(--ink3);font-size:.85em;padding:6px 0">Nenhuma meta definida.'+(this.isAdmin()?'<button class="btn btn-s btn-sm" onclick="A.openSettings();setTimeout(()=>{const b=document.querySelector(\'[onclick*=cfgTabMetas]\');if(b)b.click();},200)">Definir Metas</button>':'')+'</div>';
+    el.innerHTML='<div style="color:var(--ink3);font-size:.85em;padding:6px 0">Nenhuma meta definida.</div>';
     return;
   }
   const _bar=(label,val,meta,fmt)=>{
