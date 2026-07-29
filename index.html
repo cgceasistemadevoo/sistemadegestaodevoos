@@ -1817,7 +1817,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 //  CONFIGURAÇÃO — URL lido de localStorage (configurável na app)
 // ══════════════════════════════════════════════════════════════
 // ── Cole aqui o URL do Google Apps Script para ligar automaticamente ──
-const DEFAULT_GAS_URL = 'https://script.google.com/macros/library/d/1Y_B5inUzItlmOZqk1Ino2bOdPa4vYfiMvN-YZyGQe6SWvf-HOmY7npj0/14';  // ex: 'https://script.google.com/macros/s/XXXX/exec'
+const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbzVBLiBNIEQfXIppfNrUcg-rA41e14S4La1Q-vl9DrjMLt5vN05PIN97kMrZNjZJO-h/exec';  // ex: 'https://script.google.com/macros/s/XXXX/exec'
 
 function getApiUrl(){
   try{ return localStorage.getItem('fx9_api_url') || DEFAULT_GAS_URL || ''; }catch{ return DEFAULT_GAS_URL || ''; }
