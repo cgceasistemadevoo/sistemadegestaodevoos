@@ -1693,7 +1693,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
           <option value="">Todas as aeronaves</option>
           <option value="__geral__">Geral / Sem aeronave</option>
         </select>
-        <button class="btn btn-p btn-sm admin-only" onclick="A.abrirModalChecklist()">＋ Adicionar</button>
+        <button class="btn btn-p btn-sm admin-only" onclick="A.abrirModalChecklist()">Adicionar</button>
       </div>
     </div>
     <div id="checklistsGrid"></div>
@@ -10524,20 +10524,20 @@ tripLogbookPDF(nome){
         cumBt+=bt;
         const btS=this.calcBT(m.boff,m.bon);
         const cbH=Math.floor(cumBt/60),cbM=Math.round(cumBt%60);
-        const rota=(m.origem||m.destino)?((m.origem||'—')+' → '+(m.destino||'—')):'—';
-        return[m._dt.toLocaleDateString('pt-PT'),m.num||'—',m.tipo||'—',m.aero||'—',fn,(m.dur||'').slice(0,5)||'—',rota,btS==='—'?'—':btS,cbH+'h'+String(cbM).padStart(2,'0')+'m'];
+        const od=(m.origem||'—')+'\n'+(m.destino||'—');
+        return[m._dt.toLocaleDateString('pt-PT'),m.num||'—',m.tipo||'—',m.aero||'—',fn,od,(m.dur||'').slice(0,5)||'—',btS==='—'?'—':btS,cbH+'h'+String(cbM).padStart(2,'0')+'m'];
       });
       doc.autoTable({startY:y,
-        head:[['Data','Nº Missão','Tipo de Missão','Aeronave','Função','Flight time','Orig → Dest','Block time','Block time acum.']],
+        head:[['Data','Nº Missão','Tipo de Missão','Aeronave','Função','Orig/Dest','Flight time','Block time','Block time acum.']],
         body:rows,
         styles:{fontSize:7,cellPadding:1.8,valign:'middle'},
         headStyles:{fillColor:[46,125,50],textColor:255,fontStyle:'bold',halign:'center'},
         alternateRowStyles:{fillColor:[243,249,243]},
         columnStyles:{
-          0:{cellWidth:22,halign:'center'},1:{cellWidth:24,halign:'center'},
-          2:{cellWidth:50},3:{cellWidth:22,halign:'center'},4:{cellWidth:25,halign:'center'},
-          5:{cellWidth:20,halign:'center'},6:{cellWidth:36,halign:'center'},
-          7:{cellWidth:20,halign:'center'},8:{cellWidth:26,halign:'right'},
+          0:{cellWidth:22,halign:'center'},1:{cellWidth:22,halign:'center'},
+          2:{cellWidth:65},3:{cellWidth:22,halign:'center'},4:{cellWidth:30,halign:'center'},
+          5:{cellWidth:42,halign:'center',fontSize:6},6:{cellWidth:22,halign:'center'},
+          7:{cellWidth:22,halign:'center'},8:{cellWidth:30,halign:'right'},
         },
         margin:{left:lm,right:rm}});
     }
