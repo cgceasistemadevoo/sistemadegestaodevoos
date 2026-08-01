@@ -9157,17 +9157,9 @@ async doLogin(){
       sessionStorage.setItem(this._SESSION_KEY,res.token);ok=true;
     }else{if(err)err.textContent=res?.error||'Utilizador ou palavra-passe incorretos.';}
   }catch(e){
-    // Fallback: credenciais locais quando a API é inacessível
-    const CREDS=this._loadCreds();
-    const cred=CREDS[u];
-    if(cred&&cred.h===ph){
-      this.S.role=cred.role;this.S.currentUser=u;this.S.sessionToken='local_'+u;
-      sessionStorage.setItem(this._SESSION_KEY,'local_'+u);ok=true;
-    }else{
-      const noUrl=!getApiUrl();
-      if(noUrl){if(err)err.textContent='Configure primeiro o URL do Google Script nas definições.';}
-      else{if(err)err.textContent='Utilizador ou palavra-passe incorretos.';}
-    }
+    const noUrl=!getApiUrl();
+    if(noUrl){if(err)err.textContent='Configure primeiro o URL do Google Script nas definições.';}
+    else{if(err)err.textContent='Servidor inacessível. Verifique o URL do Google Script e as permissões.';}
   }
   if(btn){btn.disabled=false;btn.textContent='Login';}
   if(ok){document.getElementById('loginScreen').style.display='none';this._applyRole();this.init();A._timeoutStart();}
