@@ -106,11 +106,21 @@ body.nav-open .hdr{padding-left:30px}
 }
 .abar-left{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
 .abar-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.abar-config-btn{
+  flex:0 0 auto;width:38px;height:38px;padding:0;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--amber);color:#fff;border:0;
+}
+.abar-config-btn svg{width:18px;height:18px}
 /* O deslocamento do menu já é aplicado ao body; manter aqui o mesmo
    recuo do conteúdo evita deslocar o indicador duas vezes. */
-body.nav-open #pageBanner{padding-left:30px}
-.pageBanner-inner{background:var(--g9);padding:7px 20px;display:flex;align-items:center;gap:8px;max-width:1600px}
-#pageBanner{position:sticky;top:56px;z-index:7000;background:var(--surface);padding-top:16px;padding-bottom:0}
+body.nav-open #pageBanner{padding-left:0}
+.pageBanner-inner{
+  background:var(--g9);padding:7px 20px;display:flex;align-items:center;gap:8px;
+  margin-left:max(30px,calc((100% - 1600px)/2 + 30px));
+  margin-right:max(16px,calc((100% - 1600px)/2 + 16px));
+}
+#pageBanner{position:sticky;top:56px;z-index:7000;background:var(--surface);padding:16px 0 0}
 body.dark #pageBanner{background:var(--surface)}
 .gsearch-wrap{position:relative}
 .gsearch{padding:6px 10px;border:1.5px solid var(--border);border-radius:0;font-size:.82em;width:170px;outline:none;background:var(--white);color:var(--ink);transition:border-color .15s,width .2s;font-family:var(--font)}
@@ -769,12 +779,20 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 <div class="abar" id="abar">
   <button class="nav-toggle-mobile" onclick="A.toggleNav()" aria-label="Abrir menu">&#9776; Menu</button>
   <div id="pageBannerMobile" style="flex:1;font-size:.82em;font-weight:700;color:var(--ink2);padding:0 8px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+  <button class="btn btn-sm admin-only abar-config-btn" id="btnConfigMobile" onclick="A.openSettings()" title="Abrir configurações" aria-label="Abrir configurações">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/>
+      <path d="m19.4 15 .1.1a2 2 0 1 1-2.8 2.8l-.1-.1a2 2 0 0 0-3.4 1.4v.2a2 2 0 1 1-4 0v-.2a2 2 0 0 0-3.4-1.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A2 2 0 0 0 3.6 11H3.4a2 2 0 1 1 0-4h.2a2 2 0 0 0 1.4-3.4l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A2 2 0 0 0 11.2 2h.2a2 2 0 1 1 4 0v.2a2 2 0 0 0 3.4 1.4l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A2 2 0 0 0 20.4 7h.2a2 2 0 1 1 0 4h-.2a2 2 0 0 0-1 4Z"/>
+    </svg>
+  </button>
 </div>
 <!-- PAGE BANNER -->
-<div id="pageBanner" style="background:var(--surface);padding:16px 20px 0 30px;display:block;transition:padding-left .28s cubic-bezier(.4,0,.2,1)">
+<div id="pageBanner" style="background:var(--surface);padding:16px 0 0;display:block;transition:padding-left .28s cubic-bezier(.4,0,.2,1)">
   <div class="pageBanner-inner">
     <span style="font-size:.65em;color:rgba(255,255,255,.55)">&#9658;</span>
-    <span id="pageBannerLabel" style="font-size:.8em;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:#fff">Dashboard</span>
+    <span id="pageBannerLabel" style="font-size:.8em;font-weight:700;letter-spacing:.9px;color:#fff">Dashboard</span>
+    <span style="font-size:.68em;color:rgba(255,255,255,.45)">·</span>
+    <span id="pageBannerFunction" style="font-size:.68em;font-weight:500;text-transform:lowercase;letter-spacing:.3px;color:rgba(255,255,255,.72)">visão geral</span>
   </div>
 </div>
 
@@ -3044,9 +3062,25 @@ navTo(p){
   const pg=document.getElementById('page-'+p);
   if(pg)pg.classList.remove('hide');
   document.querySelectorAll('.ntab').forEach(t=>t.classList.toggle('on',t.dataset.p===p));
-  const _pn={dashboard:'Dashboard',tripulantes:'Tripulantes',voos:'Missões',pagamentos:'Pagamentos',analises:'Análises',calendario:'Calendário',aeronaves:'Aeronaves',manuais:'Manuais',quadro:'Quadro Ops',mapa:'Mapa',escala:'Escala',incidentes:'Incidentes',contactos:'Contactos Úteis'};
-  const _bl=document.getElementById('pageBannerLabel');if(_bl)_bl.textContent=_pn[p]||p;
-  const _bm=document.getElementById('pageBannerMobile');if(_bm)_bm.textContent=_pn[p]||p;
+  const _pn={
+    dashboard:{label:'Dashboard',fn:'visão geral'},
+    tripulantes:{label:'Tripulantes',fn:'gestão da tripulação'},
+    voos:{label:'Missões',fn:'gestão de missões'},
+    pagamentos:{label:'Pagamentos',fn:'cálculo de pagamentos'},
+    analises:{label:'Análises',fn:'análise de operações'},
+    calendario:{label:'Calendário',fn:'planeamento de voos'},
+    aeronaves:{label:'Aeronaves',fn:'gestão de aeronaves'},
+    manuais:{label:'Manuais',fn:'documentos e checklists'},
+    quadro:{label:'Quadro Ops',fn:'operações em tempo real'},
+    mapa:{label:'Mapa',fn:'localização das missões'},
+    escala:{label:'Escala',fn:'organização da escala'},
+    incidentes:{label:'Incidentes',fn:'registo de incidentes'},
+    contactos:{label:'Contactos Úteis',fn:'contactos úteis'}
+  };
+  const _pni=_pn[p]||{label:p,fn:''};
+  const _bl=document.getElementById('pageBannerLabel');if(_bl)_bl.textContent=_pni.label;
+  const _bf=document.getElementById('pageBannerFunction');if(_bf)_bf.textContent=_pni.fn;
+  const _bm=document.getElementById('pageBannerMobile');if(_bm)_bm.textContent=_pni.label+(_pni.fn?' · '+_pni.fn:'');
   if(p==='pagamentos'){this.fillSelects();this.calcPag();}
   if(p==='voos')this.renderSeries();
   if(p==='tripulantes')this._fillColSelect();
