@@ -112,7 +112,6 @@ body.nav-open .hdr{padding-left:30px}
   background:var(--amber);color:#fff;border:0;
 }
 .abar-config-btn svg{width:18px;height:18px}
-.hdr-mobile-config{display:none}
 /* O deslocamento do menu já é aplicado ao body; manter aqui o mesmo
    recuo do conteúdo evita deslocar o indicador duas vezes. */
 body.nav-open #pageBanner{padding-left:0}
@@ -516,12 +515,7 @@ body.nav-open{padding-left:220px}
   .hdr-logo{grid-area:logo;display:flex;visibility:visible}
   .hdr-logo svg{width:28px;height:28px;display:block}
   .hdr-texts{grid-area:texts;display:flex;min-width:0;visibility:visible}
-  .hdr-mobile-config{
-    grid-area:config;display:inline-flex;align-items:center;justify-content:center;
-    width:36px;height:36px;padding:0;background:var(--amber);color:#fff;
-    border:0;flex:0 0 auto;
-  }
-  .hdr-mobile-config svg{width:18px;height:18px}
+  .hdr{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"logo texts" "actions actions"}
   .hdr-title{font-size:1em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .hdr-sub{font-size:.7em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .hdr-right{
@@ -530,7 +524,12 @@ body.nav-open{padding-left:220px}
     overflow-x:auto;overflow-y:hidden;justify-content:flex-end;scrollbar-width:thin;
   }
   .hdr-right>*{flex:0 0 auto}
-  .hdr-right #btnConfig{display:none}
+  .hdr-right #btnConfig{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:34px;height:30px;padding:0;background:var(--amber)!important;color:#fff!important;
+    border:0;flex:0 0 auto;
+  }
+  .hdr-right #btnConfig svg{width:18px;height:18px}
   .hdr-right .btn,.hdr-right .btn-sm{font-size:.72em;padding:5px 9px}
   .hdr-right .sync-pill{font-size:.7em}
   .gsearch,.gsearch:focus{width:100%;max-width:none}
@@ -787,15 +786,14 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="hdr-title">Comando Esquadrilha A&#233;rea</div>
     <div class="hdr-sub">Sistema de Gest&#227;o de Opera&#231;&#245;es A&#233;reas</div>
   </div>
-  <button class="btn btn-sm admin-only hdr-mobile-config" id="btnConfigMobile" onclick="A.openSettings()" title="Abrir configurações" aria-label="Abrir configurações">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/>
-      <path d="m19.4 15 .1.1a2 2 0 1 1-2.8 2.8l-.1-.1a2 2 0 0 0-3.4 1.4v.2a2 2 0 1 1-4 0v-.2a2 2 0 0 0-3.4-1.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A2 2 0 0 0 3.6 11H3.4a2 2 0 1 1 0-4h.2a2 2 0 0 0 1.4-3.4l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A2 2 0 0 0 11.2 2h.2a2 2 0 1 1 4 0v.2a2 2 0 0 0 3.4 1.4l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A2 2 0 0 0 20.4 7h.2a2 2 0 1 1 0 4h-.2a2 2 0 0 0-1 4Z"/>
-    </svg>
-  </button>
   <div class="hdr-right" id="hdrRight">
     <div class="sync-pill loading" id="syncPill"><span class="sync-dot"></span><span id="syncText">A carregar...</span></div>
-    <button class="btn btn-sm admin-only" id="btnConfig" onclick="A.openSettings()" title="Configurar Google Drive" style="background:var(--amber);color:#fff">&#9729;</button>
+    <button class="btn btn-sm admin-only" id="btnConfig" onclick="A.openSettings()" title="Abrir configurações" aria-label="Abrir configurações" style="background:var(--amber);color:#fff">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/>
+        <path d="m19.4 15 .1.1a2 2 0 1 1-2.8 2.8l-.1-.1a2 2 0 0 0-3.4 1.4v.2a2 2 0 1 1-4 0v-.2a2 2 0 0 0-3.4-1.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A2 2 0 0 0 3.6 11H3.4a2 2 0 1 1 0-4h.2a2 2 0 0 0 1.4-3.4l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A2 2 0 0 0 11.2 2h.2a2 2 0 1 1 4 0v.2a2 2 0 0 0 3.4 1.4l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A2 2 0 0 0 20.4 7h.2a2 2 0 1 1 0 4h-.2a2 2 0 0 0-1 4Z"/>
+      </svg>
+    </button>
     <button class="btn btn-p btn-sm" onclick="A.reloadCloud()" title="Recarregar do Drive">&#8635;</button>
     <button class="btn btn-save btn-sm admin-only" id="btnSave" onclick="A.saveToCloud()" disabled title="Guardar">&#128190;</button>
     <button class="btn btn-pdf btn-sm" onclick="A.shareToday()" title="Partilhar folha de servi&#231;o de hoje">&#128197;</button>
@@ -2883,11 +2881,13 @@ _updateConfigBtn(){
   const btn=document.getElementById('btnConfig');
   if(!btn)return;
   const ok=!!getApiUrl();
-  btn.innerHTML=ok?'Drive':'Configurar Drive';
-  btn.className=ok?'btn btn-s btn-sm':'btn btn-sm';
-  if(!ok){btn.style.background='var(--amber)';btn.style.color='#fff';}
-  else{btn.style.background='';btn.style.color='';}
-  const _cu=ok?getApiUrl():'';btn.title=ok?'Configurações — URL: '+_cu.slice(0,50)+(_cu.length>50?'…':''):'Configure o Google Drive para sincronizar dados';
+  /* O botão mantém sempre a engrenagem; o estado da ligação aparece
+     apenas na informação de contexto, nunca como texto no cabeçalho. */
+  btn.className='btn btn-sm admin-only';
+  btn.style.background='var(--amber)';
+  btn.style.color='#fff';
+  const _cu=ok?getApiUrl():'';
+  btn.title=ok?'Configurações — URL: '+_cu.slice(0,50)+(_cu.length>50?'…':''):'Abrir configurações';
 },
 
 // ─── INIT ─────────────────────────────────────────────────────
