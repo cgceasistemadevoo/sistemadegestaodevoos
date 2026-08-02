@@ -1941,6 +1941,44 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+/* Paleta dos PDFs: converte a antiga identidade verde para a paleta
+   cinza-azulada actual do programa. As cores semânticas de alerta,
+   erro e estado continuam a ser preservadas. */
+(function(){
+  const J=window.jspdf&&window.jspdf.jsPDF;
+  if(!J||!J.API||J.API.__cgcPdfPalettePatched)return;
+  const palette={
+    '46,125,50':[61,69,84],       /* --g9 */
+    '22,101,52':[61,69,84],       /* cabeçalhos escuros */
+    '27,94,32':[97,106,120],      /* --g8 */
+    '16,185,129':[97,106,120],    /* verde de estado antigo */
+    '21,128,61':[97,106,120],
+    '22,163,74':[97,106,120],
+    '0,120,60':[97,106,120],
+    '240,247,255':[240,241,243],
+    '240,248,240':[240,241,243],
+    '240,250,240':[240,241,243],
+    '245,250,245':[240,241,243],
+    '248,255,248':[247,248,250],
+    '243,249,243':[240,241,243],
+    '232,245,233':[223,225,229],
+    '220,252,231':[223,225,229],
+    '200,230,201':[197,201,209]
+  };
+  ['setFillColor','setTextColor','setDrawColor'].forEach(name=>{
+    const original=J.API[name];
+    if(typeof original!=='function')return;
+    J.API[name]=function(){
+      const args=Array.prototype.slice.call(arguments);
+      const rgb=args.length===1&&Array.isArray(args[0])?args[0]:args;
+      const mapped=palette[rgb.slice(0,3).join(',')];
+      return mapped?original.apply(this,mapped):original.apply(this,args);
+    };
+  });
+  J.API.__cgcPdfPalettePatched=true;
+})();
+</script>
 <script>window.savePDF=function(doc,filename){try{var ua=navigator.userAgent||"";var isIOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);var isMobile=/Android|Mobi/.test(ua)||isIOS;if(isIOS||isMobile){var blob=doc.output("blob");var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=filename;a.target="_blank";a.rel="noopener";document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);var w=window.open(url,"_blank");if(!w){location.href=url;}},100);}else{doc.save(filename);}}catch(e){try{var u=doc.output("bloburl");window.open(u,"_blank")||(location.href=u);}catch(_){alert("Não foi possível gerar o PDF: "+e.message);}}};</script>
 
 <script>
