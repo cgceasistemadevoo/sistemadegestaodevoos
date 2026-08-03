@@ -306,8 +306,8 @@ tbody tr:hover{background:var(--g0)}
 .btn:active{transform:translateY(0)}
 .btn-p{background:var(--g8);color:#fff}
 .btn-s{background:var(--surface);color:var(--ink);border:1px solid var(--border)}
-.btn-ex{background:var(--g9);color:#fff}
-.btn-pdf{background:var(--g8);color:#fff}
+.btn-ex{background:#16a34a;color:#fff;border:1px solid #15803d}
+.btn-pdf{background:#dc2626;color:#fff;border:1px solid #b91c1c}
 .btn-save{background:var(--purple);color:#fff}
 .btn-del{background:#fde8e8;color:var(--red);border:1px solid #f5c6c6}
 .btn-edit{background:#e8f4ff;color:var(--blue);border:1px solid #b3d9ff}
@@ -788,18 +788,18 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   </div>
   <div class="hdr-right" id="hdrRight">
     <div class="sync-pill loading" id="syncPill"><span class="sync-dot"></span><span id="syncText">A carregar...</span></div>
-    <button class="btn btn-sm admin-only" id="btnConfig" onclick="A.openSettings()" title="Abrir configurações" aria-label="Abrir configurações" style="background:var(--amber);color:#fff">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <button class="btn btn-sm admin-only" id="btnConfig" onclick="A.openSettings()" title="Abrir configurações" aria-label="Abrir configurações" style="background:transparent;color:#fff;border:0;padding:5px 7px">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/>
         <path d="m19.4 15 .1.1a2 2 0 1 1-2.8 2.8l-.1-.1a2 2 0 0 0-3.4 1.4v.2a2 2 0 1 1-4 0v-.2a2 2 0 0 0-3.4-1.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A2 2 0 0 0 3.6 11H3.4a2 2 0 1 1 0-4h.2a2 2 0 0 0 1.4-3.4l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A2 2 0 0 0 11.2 2h.2a2 2 0 1 1 4 0v.2a2 2 0 0 0 3.4 1.4l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A2 2 0 0 0 20.4 7h.2a2 2 0 1 1 0 4h-.2a2 2 0 0 0-1 4Z"/>
       </svg>
     </button>
     <button class="btn btn-p btn-sm" onclick="A.reloadCloud()" title="Recarregar do Drive">&#8635;</button>
     <button class="btn btn-save btn-sm admin-only" id="btnSave" onclick="A.saveToCloud()" disabled title="Guardar">&#128190;</button>
-    <button class="btn btn-pdf btn-sm" onclick="A.shareToday()" title="Partilhar folha de servi&#231;o de hoje">&#128197;</button>
-    <button class="btn btn-pdf btn-sm" onclick="A.shareWeek()" title="Partilhar programa&#231;&#227;o da semana">&#128198;</button>
+    <button class="btn btn-pdf btn-sm" onclick="A.shareToday()" title="Partilhar folha de servi&#231;o de hoje">PDF</button>
+    <button class="btn btn-pdf btn-sm" onclick="A.shareWeek()" title="Partilhar programa&#231;&#227;o da semana">PDF</button>
     <button class="btn btn-s btn-sm admin-only" id="btnUndo" onclick="A.undo()" title="Desfazer &#250;ltima a&#231;&#227;o (Ctrl+Z)" style="background:#fef3c7;color:#92400e">&#8630;</button>
-    <button class="btn btn-s btn-sm admin-only" onclick="A.openImport()" title="Importar Excel/CSV" style="background:#dbeafe;color:#1e40af">&#11014;</button>
+    <button class="btn btn-s btn-sm admin-only" onclick="A.openImport()" title="Importar XLSX/CSV" style="background:#dbeafe;color:#1e40af">&#11014;</button>
     <input type="file" id="impFile" accept=".csv,.xlsx,.xls" style="display:none" onchange="A.importMissoes(event)">
     <button class="btn btn-s btn-sm" onclick="A.showAuditLog()" title="Auditoria">&#128203;</button>
     <button class="btn btn-s btn-sm" id="btnChangePwd" onclick="A.openChangePwd()" title="Alterar palavra-passe" style="display:none;background:#f0f1f3;color:#3d4554;border:1px solid #c5c9d1">&#128273;</button>
@@ -1185,7 +1185,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
             <button class="view-btn active" id="vBtn-table" onclick="A.setView('table')">Tabela</button>
             <button class="view-btn" id="vBtn-cards" onclick="A.setView('cards')">Cartões</button>
           </div>
-          <button class="btn btn-ex btn-sm admin-only" onclick="A.toExcel()" title="Exportar dados filtrados para Excel">Excel</button>
+          <button class="btn btn-ex btn-sm admin-only" onclick="A.toExcel()" title="Exportar dados filtrados para XLSX">XLSX</button>
           <button class="btn btn-pdf btn-sm admin-only" onclick="A.toPDF()" title="Exportar dados filtrados para PDF">PDF</button>
         </div>
       </div>
@@ -1256,7 +1256,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
       <div class="fg"><label>Total a Pagar</label><div class="total-box" id="totPag">0$00</div></div>
     </div>
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-      <button class="btn btn-ex btn-sm" onclick="A.pagExcel()">Excel Pagamentos</button>
+      <button class="btn btn-ex btn-sm" onclick="A.pagExcel()">XLSX</button>
       <button class="btn btn-pdf btn-sm" onclick="A.pagPDF()">PDF</button>
     </div>
   </div>
@@ -1382,9 +1382,9 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
         <select id="dashMes" style="margin-top:3px"></select>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;padding-bottom:1px">
-        <button class="btn btn-pdf btn-sm" onclick="A.dashboardExecutivoPDF()">Dashboard Executivo</button>
-        <button class="btn btn-ex btn-sm" style="background:#3d4554;border-color:#3d4554" onclick="A.exportExcelCompleto(document.getElementById('dashMes').value,document.getElementById('dashAno').value)">Relatório Excel</button>
-        <button class="btn btn-pdf btn-sm" style="background:#1d4ed8;border-color:#1d4ed8" onclick="A.exportAllChartsPDF()">PDF dos Gráficos</button>
+        <button class="btn btn-pdf btn-sm" onclick="A.dashboardExecutivoPDF()">PDF</button>
+        <button class="btn btn-ex btn-sm" onclick="A.exportExcelCompleto(document.getElementById('dashMes').value,document.getElementById('dashAno').value)">XLSX</button>
+        <button class="btn btn-pdf btn-sm" onclick="A.exportAllChartsPDF()">PDF</button>
       </div>
     </div>
   </div>
@@ -1539,7 +1539,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
         <select id="escAno" onchange="A.renderEscala()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:0;font-size:.82em;background:var(--white);color:var(--ink);outline:none"></select>
         <button class="btn btn-p btn-sm admin-only" onclick="A.escNovaSemana()">＋ Nova Semana</button>
         <button class="btn btn-sm admin-only" onclick="A.escValidar()" style="font-size:.82em">✓ Validar</button>
-        <button class="btn btn-sm" onclick="A.escPDF()" style="font-size:.82em">PDF</button>
+        <button class="btn btn-sm btn-pdf" onclick="A.escPDF()" style="font-size:.82em">PDF</button>
         <button class="btn btn-p btn-sm" onclick="A._escalaFullscreen()">↗ Nova Janela</button>
       </div>
     </div>
@@ -1562,7 +1562,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
       <select id="escCabMes" onchange="A.renderEscalaCabine()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:0;font-size:.82em;background:var(--white);color:var(--ink);outline:none"></select>
       <select id="escCabAno" onchange="A.renderEscalaCabine()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:0;font-size:.82em;background:var(--white);color:var(--ink);outline:none"></select>
       <button class="btn btn-p btn-sm admin-only" onclick="A.escCabineNova()">＋ Adicionar</button>
-      <button class="btn btn-sm" onclick="A.escCabinePDF()" style="font-size:.82em">PDF Cabine</button>
+      <button class="btn btn-sm btn-pdf" onclick="A.escCabinePDF()" style="font-size:.82em">PDF</button>
     </div>
   </div>
   <div id="escCabGrid" style="padding:4px 0"></div>
@@ -1613,7 +1613,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   </div>
   <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
     <button class="btn btn-sm" style="background:#fef2f2;color:#991b1b;border:1px solid #fecaca" onclick="A.checklistReset()">Reiniciar</button>
-    <button class="btn btn-sm btn-pdf" onclick="A.checklistPDF()">PDF Checklist</button>
+    <button class="btn btn-sm btn-pdf" onclick="A.checklistPDF()">PDF</button>
     <button class="btn btn-sm btn-s" onclick="A.fecharChecklist()">Fechar</button>
   </div>
 </div>
@@ -4527,7 +4527,7 @@ delContacto(id){
         +'<div style="font-size:.78em;color:var(--ink3);margin-top:2px">'+(m.crew||[]).map(c=>this.esc(c.nome.split(' ')[0])).join(', ')+'</div>'
         +'</div>';
     });
-    html+='</div><div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-pdf btn-sm" onclick="A.printDuty('+y+','+mo+','+d+')">Imprimir Folha de Serviço</button><button class="btn btn-s btn-sm" onclick="A.closeInfoModal()">Fechar</button></div>';
+    html+='</div><div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-pdf btn-sm" onclick="A.printDuty('+y+','+mo+','+d+')">PDF</button><button class="btn btn-s btn-sm" onclick="A.closeInfoModal()">Fechar</button></div>';
     this.openInfoModal(html);
   },
 
@@ -5557,7 +5557,7 @@ renderVoos(list){
       '<td>'+(m.obs?'<span title="'+this.esc(m.obs)+'" style="cursor:help;color:var(--ink3);font-size:.78em">'+this.esc(m.obs.length>30?m.obs.slice(0,28)+'…':m.obs)+'</span>':'')+'</td>'+
       '<td style="white-space:nowrap"><div style="display:flex;flex-direction:column;gap:3px">'+
         '<div style="display:flex;gap:3px">'+
-          '<button class="btn btn-xs btn-pdf" onclick="A.missaoPDF(\''+eid+'\')" title="Ordem de Serviço PDF"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></button>'+
+          '<button class="btn btn-xs btn-pdf" onclick="A.missaoPDF(\''+eid+'\')" title="Ordem de Serviço PDF">PDF</button>'+
           '<button class="btn btn-xs btn-edit admin-only" onclick="A.editMissao(\''+eid+'\')" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'+
           '<button class="btn btn-xs admin-only" style="background:#e0e7ff;color:#4338ca;border:1px solid #c7d2fe" onclick="A.dupMissao(\''+eid+'\')" title="Duplicar"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>'+
           '<button class="btn btn-xs admin-only" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a" onclick="A.saveTemplateFromMission(\''+eid+'\')" title="Guardar como modelo"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>'+
@@ -5600,7 +5600,7 @@ _renderCards(list){
       '<div class="voo-card-crew"><strong>Tripulação ('+((m.crew||[]).length)+'):</strong><br>'+(m.crew||[]).map(c=>(n=>{const p=n.trim().split(/\s+/);return p.length>1?p[0][0].toUpperCase()+'. '+p[p.length-1]:n;})(c.nome)+' <span style="color:var(--ink3)">'+c.fn+'</span>').join(' · ')+'</div>'+
       (m.obs?'<div style="padding:6px 8px;background:var(--g0);border-radius:0;font-size:.78em;color:var(--ink3);margin-bottom:4px">'+this.esc(m.obs.length>60?m.obs.slice(0,58)+'…':m.obs)+'</div>':'')+
       '<div class="voo-card-actions">'+
-         '<button class="btn btn-xs btn-pdf" onclick="A.missaoPDF(\''+eid+'\')" title="Ordem de Serviço PDF"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></button>'+
+         '<button class="btn btn-xs btn-pdf" onclick="A.missaoPDF(\''+eid+'\')" title="Ordem de Serviço PDF">PDF</button>'+
          '<button class="btn btn-xs btn-edit admin-only" onclick="A.editMissao(\''+eid+'\')" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'+
          '<button class="btn btn-xs admin-only" class="btn-dup" style="background:#e0e7ff;color:#4338ca;border:1px solid #c7d2fe" onclick="A.dupMissao(\''+eid+'\')" title="Duplicar"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>'+
          '<button class="btn btn-xs admin-only" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a" onclick="A.saveTemplateFromMission(\''+eid+'\')" title="Guardar como modelo"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>'+
@@ -5774,7 +5774,7 @@ calcPag(){
       '<td style="'+C+'">'+p.pa+'</td><td style="'+C+'">'+p.al+'</td><td style="'+C+'">'+p.jn+'</td>'+
       '<td style="'+R+';font-size:.86em">'+this.cve(p.vR)+'</td>'+
       '<td style="'+R+'"><strong style="color:var(--g8)">'+this.cve(p.tot)+'</strong></td>'+
-      '<td style="white-space:nowrap"><button class="btn btn-xs" style="background:#e3f2fd;border:1.5px solid #90caf9;color:#01579b" onclick="A.gerarRecibo(\''+p.nome.replace(/'/g,"\\'")+'\')" title="Recibo PDF">🧾</button>'+(this.isAdmin()||this.isGestor()?` <button class="btn btn-xs" style="background:#dfe1e5;border:1.5px solid #adb5c0;color:#3d4554" onclick="A.enviarReciboEmail('${p.nome.replace(/'/g,"\\'")}\')" title="Enviar por email">✉️</button>`:'')+'</td>'+
+      '<td style="white-space:nowrap"><button class="btn btn-xs btn-pdf" onclick="A.gerarRecibo(\''+p.nome.replace(/'/g,"\\'")+'\')" title="Recibo PDF">PDF</button>'+(this.isAdmin()||this.isGestor()?` <button class="btn btn-xs" style="background:#dfe1e5;border:1.5px solid #adb5c0;color:#3d4554" onclick="A.enviarReciboEmail('${p.nome.replace(/'/g,"\\'")}\')" title="Enviar por email">✉️</button>`:'')+'</td>'+
       '</tr>';
   });
   h+='<tr style="background:var(--g0);font-weight:700"><td colspan="9" style="text-align:right;padding-right:16px">TOTAL GERAL</td><td style="'+R+';color:var(--g8)">'+this.cve(totVal)+'</td><td></td></tr></tbody></table>';
@@ -5870,7 +5870,7 @@ gerarRecibo(nome){
       body:rows,
       styles:{fontSize:7.5,cellPadding:2,valign:'middle'},
       headStyles:{fillColor:[97,106,120],textColor:255,fontStyle:'bold',fontSize:7.5,halign:'center'},
-      alternateRowStyles:{fillColor:[240,248,240]},
+      alternateRowStyles:{fillColor:[240,241,243]},
       columnStyles:{
         0:{cellWidth:20,halign:'left'},
         1:{cellWidth:17,halign:'center'},
@@ -6009,7 +6009,7 @@ async enviarReciboEmail(nome){
         body:rows,
         styles:{fontSize:7.5,cellPadding:2,valign:'middle'},
         headStyles:{fillColor:[97,106,120],textColor:255,fontStyle:'bold',fontSize:7.5,halign:'center'},
-        alternateRowStyles:{fillColor:[240,248,240]},
+        alternateRowStyles:{fillColor:[240,241,243]},
         columnStyles:{0:{cellWidth:20,halign:'left'},1:{cellWidth:17,halign:'center'},2:{cellWidth:32,halign:'left'},3:{cellWidth:25,halign:'left'},4:{cellWidth:16,halign:'center'},5:{cellWidth:16,halign:'center'},6:{cellWidth:16,halign:'center'},7:{cellWidth:16,halign:'right'},8:{cellWidth:16,halign:'right'},9:{cellWidth:16,halign:'right',fontStyle:'bold'}},
         foot:[[{content:'',colSpan:7},{content:'Subtotal: '+this.cve(totVH+totVR),colSpan:3}]],
         footStyles:{fillColor:[197,201,209],textColor:[97,106,120],fontStyle:'bold',halign:'right',fontSize:7},
@@ -6504,7 +6504,7 @@ _buildMedevacCharts(){
     if(!rotaMap[key])rotaMap[key]={miss:0,pac:0};
     rotaMap[key].miss++;rotaMap[key].pac+=(m.nPac||0);
   });
-  const sorted=Object.entries(rotaMap).sort((a,b)=>b[1].pac-a[1].pac).slice(0,8);
+  const sorted=Object.entries(rotaMap).sort((a,b)=>b[1].miss-a[1].miss||a[0].localeCompare(b[0])).slice(0,8);
   const ctxRotas=document.getElementById('cMedevacRotas')?.getContext('2d');
   if(ctxRotas){
     if(!sorted.length){
@@ -8676,8 +8676,10 @@ renderMapa(){
   if(kpi){
     const totalVoos=rotaKeys.reduce((s,k)=>s+rotas[k].count,0);
     let topKey=null;rotaKeys.forEach(k=>{if(!topKey||rotas[k].count>rotas[topKey].count)topKey=k;});
+    let lowKey=null;rotaKeys.forEach(k=>{if(!lowKey||rotas[k].count<rotas[lowKey].count||(rotas[k].count===rotas[lowKey].count&&k.localeCompare(lowKey)<0))lowKey=k;});
     const fn=n=>ilhas[n]?ilhas[n].label:n;
     const topLabel=topKey?(rotas[topKey].self?''+fn(rotas[topKey].from):fn(rotas[topKey].from)+' ↔ '+fn(rotas[topKey].to)):'—';
+    const lowLabel=lowKey?(rotas[lowKey].self?''+fn(rotas[lowKey].from):fn(rotas[lowKey].from)+' ↔ '+fn(rotas[lowKey].to)):'—';
     kpi.innerHTML=
       '<div style="background:var(--white);border:1.5px solid var(--border);border-radius:0;padding:10px 14px;flex:1;min-width:120px">'+
         '<div style="font-size:.7em;color:var(--ink3);font-weight:700;text-transform:uppercase;letter-spacing:.03em">Total de voos</div>'+
@@ -8690,6 +8692,10 @@ renderMapa(){
       '<div style="background:var(--white);border:1.5px solid var(--border);border-radius:0;padding:10px 14px;flex:2;min-width:180px">'+
         '<div style="font-size:.7em;color:var(--ink3);font-weight:700;text-transform:uppercase;letter-spacing:.03em">Rota mais frequente</div>'+
         '<div style="font-size:.92em;font-weight:800;color:var(--ink)">'+topLabel+(topKey?' ('+rotas[topKey].count+')':'')+'</div>'+
+      '</div>'+
+      '<div style="background:var(--white);border:1.5px solid var(--border);border-radius:0;padding:10px 14px;flex:2;min-width:180px">'+
+        '<div style="font-size:.7em;color:var(--ink3);font-weight:700;text-transform:uppercase;letter-spacing:.03em">Rota com menos missões</div>'+
+        '<div style="font-size:.92em;font-weight:800;color:var(--ink)">'+lowLabel+(lowKey?' ('+rotas[lowKey].count+')':'')+'</div>'+
       '</div>';
   }
   const leg=document.getElementById('mapaLegenda');
@@ -9765,40 +9771,38 @@ dashboardExecutivoPDF(){
   };
 
   // ══════════════ PÁGINA 1: CAPA + KPIs + METAS + EVOLUÇÃO ══════════════
-  doc.setFillColor(61,69,84);doc.rect(0,0,pw,46,'F');
-  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(9.5);
-  doc.text('COMANDO DA GUARDA COSTEIRA — ESQUADRILHA AÉREA',pw/2,14,{align:'center'});
-  doc.setFontSize(22);doc.text('DASHBOARD EXECUTIVO',pw/2,28,{align:'center'});
-  doc.setFontSize(11);doc.setFont('helvetica','normal');
-  doc.text(periodoLabel.toUpperCase()+'   ·   Gerado em '+new Date().toLocaleDateString('pt-PT'),pw/2,39,{align:'center'});
+  doc.setFillColor(61,69,84);doc.rect(0,0,pw,30,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(8);
+  doc.text('COMANDO DA GUARDA COSTEIRA — ESQUADRILHA AÉREA',pw/2,9,{align:'center'});
+  doc.setFontSize(16);doc.text('DASHBOARD EXECUTIVO',pw/2,19,{align:'center'});
+  doc.setFontSize(8);doc.setFont('helvetica','normal');
+  doc.text(periodoLabel.toUpperCase()+'   ·   Gerado em '+new Date().toLocaleDateString('pt-PT'),pw/2,26,{align:'center'});
   doc.setTextColor(0,0,0);
 
-  let y=52;
-  // ── KPIs do mês (linha 1: missões) ──
-  const bx=46,kpiGap=3,kpiH=18;
-  const kpiGroupW=5*bx+4*kpiGap;
-  const kpiStart=(pw-kpiGroupW)/2;
+  let y=34;
+  // ── KPIs compactos numa única linha, ocupando toda a margem ──
+  const kpiGap=1.5,kpiH=16;
+  const bx=(cw-9*kpiGap)/10;
+  const kpiStart=lm;
   const _kpi=(lbl,val,dlt,cx,cy,bg)=>{
     const mx=cx+bx/2;
-    // Fundo branco com borda cinza
+    // Cartão compacto, sem cantos arredondados nem faixa lateral colorida
     doc.setFillColor(255,255,255);
-    doc.roundedRect(cx,cy,bx,kpiH,1.5,1.5,'F');
+    doc.rect(cx,cy,bx,kpiH,'F');
     doc.setDrawColor(210,210,210);doc.setLineWidth(0.25);
-    doc.roundedRect(cx,cy,bx,kpiH,1.5,1.5,'S');
-    // Faixa colorida esquerda (fina)
-    doc.setFillColor(...bg);doc.setDrawColor(...bg);
-    doc.roundedRect(cx,cy,1.5,kpiH,0.8,0.8,'F');
-    // Label centrado em cima
-    doc.setTextColor(90,90,90);doc.setFont('helvetica','bold');doc.setFontSize(5.5);
-    doc.text(lbl.toUpperCase(),mx,cy+5,{align:'center'});
-    // Valor centrado (grande, cor do acento)
-    doc.setTextColor(...bg);doc.setFont('helvetica','bold');doc.setFontSize(12);
-    doc.text(String(val),mx,cy+12,{align:'center'});
-    // Delta centrado em baixo
+    doc.rect(cx,cy,bx,kpiH,'S');
+    // Label compacto e centralizado
+    doc.setTextColor(90,90,90);doc.setFont('helvetica','bold');doc.setFontSize(4.2);
+    const labelLines=doc.splitTextToSize(lbl.toUpperCase(),bx-2);
+    doc.text(labelLines,mx,cy+3.8,{align:'center',lineHeightFactor:1});
+    // Valor centralizado
+    doc.setTextColor(...bg);doc.setFont('helvetica','bold');doc.setFontSize(8.5);
+    doc.text(String(val),mx,cy+11,{align:'center'});
+    // Delta centralizado
     if(dlt){
       const dcol=dlt.startsWith('▲')?[22,101,52]:[185,28,28];
-      doc.setTextColor(...dcol);doc.setFontSize(5.5);doc.setFont('helvetica','normal');
-      doc.text(dlt,mx,cy+16.5,{align:'center'});
+      doc.setTextColor(...dcol);doc.setFontSize(4.2);doc.setFont('helvetica','normal');
+      doc.text(dlt,mx,cy+14.5,{align:'center'});
     }
     doc.setTextColor(0,0,0);doc.setDrawColor(0,0,0);doc.setLineWidth(0.2);
   };
@@ -9808,17 +9812,16 @@ dashboardExecutivoPDF(){
   _kpi('Planeadas',msMesPlan.length,'',kpiStart+step*2,y,[103,58,183]);
   _kpi('Em Curso',msMesCur.length,'',kpiStart+step*3,y,[230,81,0]);
   _kpi('Canceladas',msMesCanc.length,'',kpiStart+step*4,y,[198,40,40]);
-  y+=22;
-  // ── KPIs (linha 2: operacionais) ──
+  // ── KPIs operacionais, na mesma linha ──
   const taxaConc=msMes.length?Math.round(msMesConcl.length/msMes.length*100):0;
-  _kpi('Block Time',fmtM(btMes),delta(btMes,btPrev),kpiStart,y,[0,105,92]);
-  _kpi('Combustível Adicionado',fuelAdd?fuelAdd+'L':'—','',kpiStart+step,y,[230,81,0]);
-  _kpi('Combustível Usado',fuelUse?fuelUse+'L':'—','',kpiStart+step*2,y,[180,50,0]);
-  _kpi('Pagto de Subsídio',this.cve(Math.round(cveMes)),delta(cveMes,cvePrev),kpiStart+step*3,y,[97,106,120]);
-  _kpi('Taxa Conclusão',taxaConc+'%','',kpiStart+step*4,y,taxaConc>=75?[22,101,52]:taxaConc>=50?[161,98,7]:[185,28,28]);
-  y+=22;
+  _kpi('Block Time',fmtM(btMes),delta(btMes,btPrev),kpiStart+step*5,y,[0,105,92]);
+  _kpi('Combustível Adicionado',fuelAdd?fuelAdd+'L':'—','',kpiStart+step*6,y,[230,81,0]);
+  _kpi('Combustível Usado',fuelUse?fuelUse+'L':'—','',kpiStart+step*7,y,[180,50,0]);
+  _kpi('Pagto de Subsídio',this.cve(Math.round(cveMes)),delta(cveMes,cvePrev),kpiStart+step*8,y,[97,106,120]);
+  _kpi('Taxa Conclusão',taxaConc+'%','',kpiStart+step*9,y,taxaConc>=75?[22,101,52]:taxaConc>=50?[161,98,7]:[185,28,28]);
+  y+=20;
   // ── Acumulado Ano ──
-  doc.setFillColor(232,240,254);doc.roundedRect(lm,y,cw,7,1.5,1.5,'F');
+  doc.setFillColor(232,240,254);doc.rect(lm,y,cw,7,'F');
   doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(21,101,192);
   doc.text('ACUMULADO '+ano+' — '+msAno.length+' missões totais   ·   '+msAnoConcl.length+' concluídas   ·   BT '+fmtM(btAno)+'   ·   Comb. '+fuelAno+'L   ·   Custo '+this.cve(Math.round(cveAno)),pw/2,y+4.8,{align:'center'});
   doc.setTextColor(0,0,0);y+=12;
@@ -10204,7 +10207,7 @@ openRelatorioExcel(){
     +'</div>'
     +'<p style="color:var(--ink3);font-size:.8em;margin-bottom:16px">Deixe o mês em branco para exportar todo o ano.</p>'
     +'<div style="display:flex;gap:8px">'
-    +'<button class="btn btn-p" onclick="A.exportExcelCompleto(document.getElementById(\'relMes\')?.value,document.getElementById(\'relAno\')?.value);A.closeInfoModal()">Exportar Excel</button>'
+    +'<button class="btn btn-ex" onclick="A.exportExcelCompleto(document.getElementById(\'relMes\')?.value,document.getElementById(\'relAno\')?.value);A.closeInfoModal()">XLSX</button>'
     +'<button class="btn btn-s" onclick="A.closeInfoModal()">Cancelar</button>'
     +'</div>';
   this.openInfoModal(html);
@@ -10459,7 +10462,7 @@ tripLogbook(nome){
   </div>`;
   h+=`<div id="lbP1"></div><div id="lbP2" style="display:none"></div>`;
   h+=`<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
-    <button class="btn btn-pdf btn-sm" onclick="A.tripLogbookPDF('${ne}')" style="display:inline-flex;align-items:center;gap:5px"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> PDF Caderneta</button>
+    <button class="btn btn-pdf btn-sm" onclick="A.tripLogbookPDF('${ne}')" style="display:inline-flex;align-items:center;gap:5px">PDF</button>
     <button class="btn btn-s btn-sm" onclick="A.closeInfoModal()">Fechar</button>
   </div>`;
   this.openInfoModal(h);
