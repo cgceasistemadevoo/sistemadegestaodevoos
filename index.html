@@ -2190,17 +2190,40 @@ _limparNumResult(){
   const el=document.getElementById('numCorrecaoResult');
   if(el)el.innerHTML='';
 },
-genNum(serie){
+genNum(serie,dt){
   if(!serie)return'';
-  const y=new Date().getFullYear();
-  let max=0;
-  this.S.missoes.forEach(m=>{
-    if(m.serie===serie){
-      const r=m.num?.match(new RegExp(serie.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'-(\\d{4})-(\\d+)'));
-      if(r&&+r[1]===y)max=Math.max(max,+r[2]);
-    }
+  const d=dt instanceof Date?dt:(dt?new Date(dt):new Date());
+  const y=d.getFullYear();
+  const dDay=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();
+  const re=new RegExp(serie.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'-(\\d{4})-(\\d+)');
+  const pos=this.S.missoes.filter(m=>{
+    if(m.serie!==serie)return false;
+    const r=m.num?.match(re);
+    if(!r||+r[1]!==y)return false;
+    const md=m.dt instanceof Date?m.dt:new Date(m.dt);
+    const mdDay=new Date(md.getFullYear(),md.getMonth(),md.getDate()).getTime();
+    if(mdDay<dDay)return true;
+    if(mdDay>dDay)return false;
+    return md.getTime()<d.getTime();
+  }).length;
+  return serie+'-'+y+'-'+String(pos+1).padStart(3,'0');
+},
+_renumSerie(serie,year){
+  const re=new RegExp(serie.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'-(\\d{4})-(\\d+)');
+  const toRen=this.S.missoes.filter(m=>{
+    if(m.serie!==serie)return false;
+    const r=m.num?.match(re);
+    return r&&+r[1]===year;
   });
-  return serie+'-'+y+'-'+String(max+1).padStart(3,'0');
+  toRen.sort((a,b)=>{
+    const da=a.dt instanceof Date?a.dt:new Date(a.dt);
+    const db=b.dt instanceof Date?b.dt:new Date(b.dt);
+    const dA=new Date(da.getFullYear(),da.getMonth(),da.getDate()).getTime();
+    const dB=new Date(db.getFullYear(),db.getMonth(),db.getDate()).getTime();
+    if(dA!==dB)return dA-dB;
+    return da.getTime()-db.getTime();
+  });
+  toRen.forEach((m,i)=>{m.num=serie+'-'+year+'-'+String(i+1).padStart(3,'0');});
 },
 allSeries(){
   return [...new Set([...this.C.seriesDefault,...(this.S.series||[]),...this.S.missoes.map(m=>m.serie).filter(Boolean)])].sort();
@@ -3236,17 +3259,21 @@ onSerieChange(){
   }else{
     campo.style.display='none';
   }
+  const _iDat=document.getElementById('iData');
+  if(_iDat&&!_iDat._rfh){_iDat._rfh=()=>this.refreshNum();_iDat.addEventListener('change',_iDat._rfh);}
   this.refreshNum();
 },
 refreshNum(){
   const sel=document.getElementById('iSerie')?.value;
   const pn=document.getElementById('prevNum');
   if(!pn)return;
+  const _rv=document.getElementById('iData')?.value;
+  const _rdt=_rv?new Date(_rv):new Date();
   if(sel==='__nova__'){
     const nv=document.getElementById('novaSerie')?.value.trim().toUpperCase();
-    pn.textContent=nv?this.genNum(nv):'Digite o nome da série';
+    pn.textContent=nv?this.genNum(nv,_rdt):'Digite o nome da série';
   }else if(sel){
-    pn.textContent=this.genNum(sel);
+    pn.textContent=this.genNum(sel,_rdt);
   }else{
     pn.textContent='Selecione uma série';
   }
@@ -3350,6 +3377,27 @@ addEditCrew(){
       return '• '+c.num+' ('+c.toff.slice(0,5)+'–'+c.land.slice(0,5)+') — '+parts.join(' + ');
     }).join('\n');
   },
+  _showAeroConflictAlert(conflicts){
+    const lines=conflicts.map(c=>'<div style="margin:6px 0;padding:8px 12px;background:#fef2f2;border-left:3px solid #dc2626;border-radius:0">'
+      +'<strong>'+this.esc(c.num)+'</strong>'
+      +' &nbsp;<span style="color:var(--ink3);font-size:.87em">'+c.toff.slice(0,5)+'&nbsp;→&nbsp;'+c.land.slice(0,5)+'</span>'
+      +'<br><span style="font-size:.83em;color:#dc2626">Aeronave <strong>'+this.esc(c.aero)+'</strong> já está em missão neste horário</span>'
+      +'</div>').join('');
+    const html='<div style="font-size:.9em">'
+      +'<p style="margin:0 0 10px;font-weight:600;color:#dc2626">&#9888; Aeronave indisponível</p>'
+      +'<p style="margin:0 0 8px;color:var(--ink3)">Esta aeronave já tem missão registada no mesmo horário:</p>'
+      +lines
+      +'<p style="margin:10px 0 0;font-size:.82em;color:var(--ink3)">Altere a aeronave, a data ou o horário para continuar.</p>'
+      +'</div>';
+    const mod=document.createElement('div');
+    mod.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center';
+    mod.innerHTML='<div style="background:var(--white);border-radius:0;padding:24px 28px;max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.22)">'
+      +html
+      +'<div style="text-align:right;margin-top:18px"><button class="btn btn-p" onclick="this.closest(\'div[style*=fixed]\').remove()">Fechar</button></div>'
+      +'</div>';
+    document.body.appendChild(mod);
+    mod.addEventListener('click',e=>{if(e.target===mod)mod.remove();});
+  },
 
   // ─── REGISTAR MISSÃO ──────────────────────────────────────────
 _invalid(id,msg){
@@ -3411,7 +3459,16 @@ addMissao(){
   // Verificar conflitos de horário
   const _conflicts=this.checkConflicts(data,toff,land,aero,crew,null);
   if(_conflicts.length){
-    if(!confirm('CONFLITO DE HORÁRIO detetado:\n\n'+this.formatConflictMsg(_conflicts)+'\n\nRegistar mesmo assim?'))return;
+    const _aeroConf=_conflicts.filter(c=>c.sameAero);
+    const _crewConf=_conflicts.filter(c=>!c.sameAero);
+    if(_aeroConf.length){
+      this.showNotif('Aeronave indisponível nesse horário','err');
+      this._showAeroConflictAlert(_aeroConf);
+      return;
+    }
+    if(_crewConf.length){
+      if(!confirm('CONFLITO DE TRIPULANTE detetado:\n\n'+this.formatConflictMsg(_crewConf)+'\n\nRegistar mesmo assim?'))return;
+    }
   }
   // Verificar limites de horas mensais/anuais por tripulante
   const _durMin=(()=>{const p=this.calcDur(toff,land).split(':').map(Number);return (p[0]||0)*60+(p[1]||0);})();
@@ -3434,7 +3491,7 @@ addMissao(){
   if(_excedem.length){
     if(!confirm('LIMITE DE HORAS excedido:\n\n'+_excedem.join('\n')+'\n\nRegistar mesmo assim?'))return;
   }
-  const num=this.genNum(serie);
+  const num=this.genNum(serie,new Date(data));
   const dur=this.calcDur(toff,land);
   const m={
     id:num+'_'+Date.now(),num,serie,
@@ -3460,12 +3517,13 @@ addMissao(){
     this.fillSelects();
   }
   this.S.missoes.push(m);
+  this._renumSerie(serie,new Date(data+'T00:00:00').getFullYear());
   this.S.filtered=[...this.S.missoes];
   this.markDirty();
   this.renderAll();
   this.buildCharts();
-  this.addAudit('Missão criada',num+' — '+tipo);
-  this.showNotif(''+num+' registada!');
+  this.addAudit('Missão criada',m.num+' — '+tipo);
+  this.showNotif(''+m.num+' registada!');
   this.closeNovaVoo();
   this.clearForm();
 },
@@ -3547,7 +3605,16 @@ saveEdit(){
   const _eAero=document.getElementById('eAero').value;
   const _eConflicts=this.checkConflicts(data,toff,land,_eAero,crew,id);
   if(_eConflicts.length){
-    if(!confirm('CONFLITO DE HORÁRIO detetado:\n\n'+this.formatConflictMsg(_eConflicts)+'\n\nGuardar mesmo assim?'))return;
+    const _eAeroConf=_eConflicts.filter(c=>c.sameAero);
+    const _eCrewConf=_eConflicts.filter(c=>!c.sameAero);
+    if(_eAeroConf.length){
+      this.showNotif('Aeronave indisponível nesse horário','err');
+      this._showAeroConflictAlert(_eAeroConf);
+      return;
+    }
+    if(_eCrewConf.length){
+      if(!confirm('CONFLITO DE TRIPULANTE detetado:\n\n'+this.formatConflictMsg(_eCrewConf)+'\n\nGuardar mesmo assim?'))return;
+    }
   }
   m.serie=document.getElementById('eSerie').value;
   this._snapshot('Editar missão '+m.num);
@@ -4577,7 +4644,7 @@ delContacto(id){
       destinoNovo=mOrig.origem||'';
       histAction='Perna '+perna+'ª criada (regresso de '+mOrig.num+(mOrig.perna||'')+')';
     } else {
-      num=this.genNum(mOrig.serie);
+      num=this.genNum(mOrig.serie,new Date(newDate));
       perna=mOrig.perna||'';
       origemNova=mOrig.origem||'';
       destinoNovo=mOrig.destino||'';
@@ -4608,11 +4675,12 @@ delContacto(id){
     };
     this._snapshot('Duplicar missão '+num);
     this.S.missoes.push(newM);
+    if(!isRegresso)this._renumSerie(newM.serie,new Date(newDate+'T00:00:00').getFullYear());
     this.S.filtered=[...this.S.missoes];
     this.markDirty();
     this.renderAll();
     this.buildCharts();
-    this.addAudit('Missão duplicada',mOrig.num+' → '+num);
+    this.addAudit('Missão duplicada',mOrig.num+' → '+newM.num);
     this.showNotif(''+num+' criada (duplicada)');
   },
 
