@@ -2320,7 +2320,7 @@ markDirty(){
       clearTimeout(this._autoSaveT);
       this._autoSaveT=setTimeout(()=>{
         if(this.S.dirty) this.saveToCloud();
-      },1500);
+      },5000);
     }
   },
 
@@ -2938,7 +2938,7 @@ async init(){
   try{
     // Timeout de segurança: se loadFromCloud demorar mais de 15s, continua sem dados
     const cloudPromise=this.loadFromCloud();
-    const timeoutPromise=new Promise(res=>setTimeout(()=>res(false),15000));
+    const timeoutPromise=new Promise(res=>setTimeout(()=>res(false),20000));
     const ok=await Promise.race([cloudPromise,timeoutPromise]);
     if(!ok){
       this.S.trips=JSON.parse(JSON.stringify(this.C.defTrips));
