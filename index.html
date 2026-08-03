@@ -224,6 +224,12 @@ body.dark #globalSearchInp{background:rgba(255,255,255,.08)!important}
    METRIC CARDS
 ═══════════════════════════════════════════════════════ */
 .mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.dashboard-kpis,.dashboard-current-kpis{display:flex;gap:10px}
+.dashboard-kpis .mcard,.dashboard-current-kpis .mcard{flex:1 1 0;min-width:0}
+@media(max-width:768px){
+  .dashboard-kpis,.dashboard-current-kpis{display:flex;overflow-x:auto;gap:8px;padding-bottom:4px}
+  .dashboard-kpis .mcard,.dashboard-current-kpis .mcard{flex:0 0 132px}
+}
 .mcard{background:var(--white);border:1px solid var(--border);border-radius:0;padding:13px 15px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
 .mcard::before{content:attr(data-ic);position:absolute;right:12px;bottom:6px;font-size:2.4em;opacity:.06;pointer-events:none}
 .mcard-lbl{font-size:.7em;text-transform:uppercase;letter-spacing:.8px;color:var(--ink3);font-weight:700;margin-bottom:4px}
@@ -308,6 +314,7 @@ tbody tr:hover{background:var(--g0)}
 .btn-s{background:var(--surface);color:var(--ink);border:1px solid var(--border)}
 .btn-ex{background:#16a34a;color:#fff;border:1px solid #15803d}
 .btn-pdf{background:#dc2626;color:#fff;border:1px solid #b91c1c}
+.btn-graficos{background:#2563eb;color:#fff;border:1px solid #1d4ed8}
 .btn-save{background:var(--purple);color:#fff}
 .btn-del{background:#fde8e8;color:var(--red);border:1px solid #f5c6c6}
 .btn-edit{background:#e8f4ff;color:var(--blue);border:1px solid #b3d9ff}
@@ -901,14 +908,12 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div style="flex:1;height:2px;background:var(--g6);border-radius:0;opacity:.5"></div>
   </div>
 
-  <div class="mgrid">
+  <div class="mgrid dashboard-kpis">
     <div class="mcard" data-ic=""><div class="mcard-lbl">Total Missões</div><div class="mcard-val" id="mTot">0</div><div class="mcard-sub" id="mTotSub">registadas</div></div>
     <div class="mcard" data-ic=""><div class="mcard-lbl">Block Time</div><div class="mcard-val" id="mHr">0h 0m</div><div class="mcard-sub">tempo total (BT)</div></div>
     <div class="mcard" data-ic=""><div class="mcard-lbl">Flight Time</div><div class="mcard-val" id="mFT">0h 0m</div><div class="mcard-sub">tempo total (FT)</div></div>
     <div class="mcard" data-ic=""><div class="mcard-lbl">Tripulantes</div><div class="mcard-val" id="mTrip">0</div><div class="mcard-sub">em missões</div></div>
     <div class="mcard" data-ic=""><div class="mcard-lbl">Média/Missão</div><div class="mcard-val" id="mMed">0h 0m</div><div class="mcard-sub">duração média</div></div>
-  </div>
-  <div class="mgrid">
     <div class="mcard" data-ic=""><div class="mcard-lbl">Taxa Conclusão</div><div class="mcard-val" id="mTaxaCon">0%</div><div class="mcard-sub">missões concluídas</div></div>
     <div class="mcard" data-ic=""><div class="mcard-lbl">Canceladas</div><div class="mcard-val" id="mCancel">0</div><div class="mcard-sub" id="mCancelSub">no período</div></div>
     <div class="mcard" data-ic=""><div class="mcard-lbl">Pacientes MEDEVAC</div><div class="mcard-val" id="mPac">0</div><div class="mcard-sub" id="mPacSub">evacuações</div></div>
@@ -966,13 +971,11 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   </div>
 
   <!-- KPIs de hoje/semana/próximos — ignoram o filtro -->
-  <div class="mgrid">
+  <div class="mgrid dashboard-current-kpis">
     <div class="mcard" data-ic=""><div class="mcard-lbl">Hoje</div><div class="mcard-val" id="mHoje">0</div><div class="mcard-sub" id="mHojeSub">missões</div></div>
     <div class="mcard" data-ic=""><div class="mcard-lbl">Esta Semana</div><div class="mcard-val" id="mSem">0</div><div class="mcard-sub" id="mSemSub">missões</div></div>
     <div class="mcard" data-ic=""><div class="mcard-lbl">Próximos 7 dias</div><div class="mcard-val" id="m7d">0</div><div class="mcard-sub" id="m7dSub">missões planeadas</div></div>
     <div class="mcard" data-ic=""><div class="mcard-lbl">Validades ≤30d</div><div class="mcard-val" id="mVal">0</div><div class="mcard-sub">a expirar</div></div>
-  </div>
-  <div class="mgrid">
     <div class="mcard" data-ic=""><div class="mcard-lbl">Block Time (mês)</div><div class="mcard-val" id="mBTMes">0h 0m</div><div class="mcard-sub">acumulado</div></div>
     <div class="mcard" data-ic=""><div class="mcard-lbl">Alertas de Horas</div><div class="mcard-val" id="mHrAlert">0</div><div class="mcard-sub">tripulantes ≥80%</div></div>
   </div>
@@ -1382,9 +1385,9 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
         <select id="dashMes" style="margin-top:3px"></select>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;padding-bottom:1px">
-        <button class="btn btn-pdf btn-sm" onclick="A.dashboardExecutivoPDF()">PDF</button>
+        <button class="btn btn-pdf btn-sm" onclick="A.dashboardExecutivoPDF()">Relatório</button>
         <button class="btn btn-ex btn-sm" onclick="A.exportExcelCompleto(document.getElementById('dashMes').value,document.getElementById('dashAno').value)">XLSX</button>
-        <button class="btn btn-pdf btn-sm" onclick="A.exportAllChartsPDF()">PDF</button>
+        <button class="btn btn-graficos btn-sm" onclick="A.exportAllChartsPDF()">Gráficos</button>
       </div>
     </div>
   </div>
@@ -10462,7 +10465,12 @@ tripLogbook(nome){
   </div>`;
   h+=`<div id="lbP1"></div><div id="lbP2" style="display:none"></div>`;
   h+=`<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
-    <button class="btn btn-pdf btn-sm" onclick="A.tripLogbookPDF('${ne}')" style="display:inline-flex;align-items:center;gap:5px">PDF</button>
+    <button class="btn btn-pdf btn-sm" onclick="A.tripLogbookPDF('${ne}')" title="Exportar caderneta de voo em PDF" aria-label="Exportar caderneta de voo em PDF" style="display:inline-flex;align-items:center;justify-content:center;padding:5px 9px">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+      </svg>
+    </button>
     <button class="btn btn-s btn-sm" onclick="A.closeInfoModal()">Fechar</button>
   </div>`;
   this.openInfoModal(h);
