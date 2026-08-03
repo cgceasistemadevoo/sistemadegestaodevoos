@@ -230,7 +230,7 @@ body.dark #globalSearchInp{background:rgba(255,255,255,.08)!important}
   .dashboard-kpis,.dashboard-current-kpis{display:flex;overflow-x:auto;gap:8px;padding-bottom:4px}
   .dashboard-kpis .mcard,.dashboard-current-kpis .mcard{flex:0 0 132px}
 }
-.mcard{background:var(--white);border:1px solid var(--border);border-radius:0;padding:13px 15px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.mcard{background:var(--white);border:1px solid var(--border);border-radius:0;padding:13px 15px;position:relative;overflow:hidden;box-shadow:var(--shadow);text-align:center}
 .mcard::before{content:attr(data-ic);position:absolute;right:12px;bottom:6px;font-size:2.4em;opacity:.06;pointer-events:none}
 .mcard-lbl{font-size:.7em;text-transform:uppercase;letter-spacing:.8px;color:var(--ink3);font-weight:700;margin-bottom:4px}
 .mcard-val{font-family:var(--mono);font-size:1.65em;font-weight:600;color:var(--g8);line-height:1}
@@ -5561,7 +5561,7 @@ renderVoos(list){
   const el=document.getElementById('tVoos');
   if(!el)return;
   if(!list.length){el.innerHTML='<div style="padding:24px;text-align:center;color:var(--ink3)">Nenhuma missão encontrada</div>';return;}
-  const sorted=[...list].sort((a,b)=>b.dt-a.dt);
+  const sorted=[...list].sort((a,b)=>String(b.num||'').localeCompare(String(a.num||''),'pt',{numeric:true})||((a.perna||0)-(b.perna||0)));
   let h='<div class="tscroll"><table style="min-width:1100px"><thead><tr><th>Série</th><th>Nº Missão</th><th>Data</th><th>Estado</th><th>Tipo</th><th>Aeronave</th><th>Origem</th><th>Destino</th><th>FLIGHT TIME</th><th>Block Time</th><th>Tripulação</th><th>Obs.</th><th>Ações</th></tr></thead><tbody>';
   sorted.forEach(m=>{
     const bc=this.C.bdgTipo[m.tipo]||'bdg-log';
@@ -5601,7 +5601,7 @@ _renderCards(list){
   const el=document.getElementById('tVoos');
   if(!el)return;
   if(!list.length){el.innerHTML='<div style="padding:24px;text-align:center;color:var(--ink3)">Nenhuma missão encontrada</div>';return;}
-  const sorted=[...list].sort((a,b)=>b.dt-a.dt);
+  const sorted=[...list].sort((a,b)=>String(b.num||'').localeCompare(String(a.num||''),'pt',{numeric:true})||((a.perna||0)-(b.perna||0)));
   let h='<div class="voo-cards">';
   sorted.forEach(m=>{
     const bc=this.C.bdgTipo[m.tipo]||'bdg-log';
@@ -6085,7 +6085,7 @@ toExcel(){
     const wb=XLSX.utils.book_new();
     // Sheet 1: Missões
     const rows=[['Nº Missão','Perna','Série','Data','Estado','Tipo','Aeronave','Origem','Destino','Blocks Off','Take Off','Landing','Blocks On','FLIGHT TIME','Block Time','Tripulação','Funções']];
-    _data.forEach(m=>rows.push([m.num+(m.perna||''),m.perna||'',m.serie,m.dt.toLocaleDateString('pt-PT'),m.status||'Concluída',m.tipo,m.aero,m.origem||'',m.destino||'',(m.boff||'').slice(0,5),(m.toff||'').slice(0,5),(m.land||'').slice(0,5),(m.bon||'').slice(0,5),m.dur?.slice(0,5)||'—',this.calcBT(m.boff,m.bon),(m.crew||[]).map(c=>c.nome).join('; '),(m.crew||[]).map(c=>c.fn).join('; ')]));
+    _data.forEach(m=>rows.push([m.num,m.perna||'',m.serie,m.dt.toLocaleDateString('pt-PT'),m.status||'Concluída',m.tipo,m.aero,m.origem||'',m.destino||'',(m.boff||'').slice(0,5),(m.toff||'').slice(0,5),(m.land||'').slice(0,5),(m.bon||'').slice(0,5),m.dur?.slice(0,5)||'—',this.calcBT(m.boff,m.bon),(m.crew||[]).map(c=>c.nome).join('; '),(m.crew||[]).map(c=>c.fn).join('; ')]));
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Missões');
     // Sheet 2: Tripulantes
     const tr=[['Nome','Posto','Colocação','NIF','Total Missões']];
