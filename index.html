@@ -1955,6 +1955,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 /* Paleta dos PDFs: converte a antiga identidade verde para a paleta
    cinza-azulada actual do programa. As cores semânticas de alerta,
@@ -1998,18 +1999,19 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 <script>
 'use strict';
 // ══════════════════════════════════════════════════════════════
-//  CONFIGURAÇÃO — URL lido de localStorage (configurável na app)
+//  CONFIGURAÇÃO — ligação directa ao Supabase (Auth + Base de Dados)
 // ══════════════════════════════════════════════════════════════
-// ── Cole aqui o URL do Google Apps Script para ligar automaticamente ──
-const DEFAULT_GAS_URL = 'https://erzmeghxcoorhktiqcdf.supabase.co/functions/v1/api';  // URL da sua Edge Function Supabase
-const APP_SHARED_SECRET = 'gFlCJuQV4q67ZhkSnMxw-4CzMmcgU0cx8tH4oZ3JcTg';  // Tem de ser IGUAL ao segredo "APP_SHARED_SECRET" configurado na Edge Function
+const SUPABASE_URL = 'https://xkmcwkigyavjhxsrnals.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_YorncCI7TIIo7z-Zqvyfgw_znA42R2s';  // Project Settings → API → "anon public" (é segura para expor no código)
+const AUTH_EMAIL_DOMAIN = '@cgcea.local'; // domínio interno usado para transformar "username" em email para o Supabase Auth
 
-function getApiUrl(){
-  try{ return localStorage.getItem('fx9_api_url') || DEFAULT_GAS_URL || ''; }catch{ return DEFAULT_GAS_URL || ''; }
-}
-function setApiUrl(url){
-  try{ localStorage.setItem('fx9_api_url', url.trim()); }catch{}
-}
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, storageKey: 'fx9_sb_auth' }
+});
+
+function getApiUrl(){ return SUPABASE_URL; } // mantido por compatibilidade — todo o resto da app só verifica se isto é "verdadeiro"
+function setApiUrl(_url){ /* já não é configurável — a ligação ao Supabase é fixa */ }
+
 function _parseDt(v){
   if(!v)return new Date(NaN);
   if(v instanceof Date)return v;
@@ -2354,24 +2356,23 @@ async saveToCloud(){
         metas:this.getMetas(),
       },
     };
-    const resp=await fetch(url,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=UTF-8','X-App-Secret':APP_SHARED_SECRET},body:JSON.stringify(data)});
-    const r=await resp.json();
-    if(r&&(r.ok||r.success)){
+    const {error:_supErr}=await supabaseClient.from('app_state').update({data,updated_at:new Date().toISOString()}).eq('id',1);
+    if(!_supErr){
       this.S.dirty=false;
       this.S.lastSave=new Date().toISOString();
       this.syncUI('synced',this.S.lastSave);
       this.addAudit('Dados guardados','Sincronização com o servidor');
-      this.showNotif('Dados guardados no Drive.');
+      this.showNotif('Dados guardados no servidor.');
     }else{
       this.syncUI('error');
-      const msg='Erro GAS: '+(r?.error||'Falha na ligação');
+      const msg='Erro: '+(_supErr?.message||'Falha na ligação');
       this.showNotif(msg,'err');
       this.addAudit('Erro ao guardar',msg);
       throw new Error(msg);
     }
   }catch(e){
     // Só processar erros de rede/fetch — erros GAS já foram tratados acima
-    if(e.message&&e.message.startsWith('Erro GAS:')) throw e;
+    if(e.message&&e.message.startsWith('Erro:')) throw e;
     this.syncUI('error');
     this.showNotif('Sem ligação ao servidor. Verifique as configurações.','err');
     this.addAudit('Erro ao guardar',String(e));
@@ -2385,10 +2386,9 @@ async loadFromCloud(){
   if(!url){this.syncUI('offline');return false;}
   this.syncUI('loading');
   try{
-    const resp=await fetch(url,{redirect:'follow',headers:{'X-App-Secret':APP_SHARED_SECRET}});
-    if(!resp.ok)throw new Error('HTTP '+resp.status);
-    const _raw=await resp.json();
-    if(_raw&&_raw.error)throw new Error(_raw.error);
+    const {data:_row,error:_supErr}=await supabaseClient.from('app_state').select('data').eq('id',1).maybeSingle();
+    if(_supErr)throw new Error(_supErr.message);
+    const _raw=_row?.data||{};
     // Suporte a respostas embrulhadas {ok:true,data:{...}} e resposta directa {missoes:[...]}
     const d=(_raw&&_raw.missoes)?_raw:(_raw&&_raw.data&&_raw.data.missoes?_raw.data:_raw);
     if(d&&d.missoes){
@@ -2475,15 +2475,15 @@ openSettings(){
 </div>
 
 <div id="cfgTabDrive" class="cfg-tp" style="display:block">
-  <p style="color:var(--ink3);font-size:.84em;margin-bottom:14px">Cole o URL de publicação do seu Google Apps Script para sincronizar os dados.</p>
+  <p style="color:var(--ink3);font-size:.84em;margin-bottom:14px">Ligação ao Supabase (base de dados). O URL do projeto é fixo — só precisa de testar a ligação.</p>
   <div class="fg" style="margin-bottom:12px">
-    <label>URL da Aplicação Web *</label>
-    <input id="cfgUrl" type="url" value="${this.esc(cur)}" placeholder="https://SEU-PROJECTO.supabase.co/functions/v1/api" style="font-family:var(--mono);font-size:.79em;letter-spacing:.3px">
+    <label>URL do projeto Supabase</label>
+    <input id="cfgUrl" type="text" value="${this.esc(cur)}" readonly style="font-family:var(--mono);font-size:.79em;letter-spacing:.3px;opacity:.75">
   </div>
   <div id="cfgTestResult" style="margin-bottom:14px;display:none"></div>
   <div style="display:flex;gap:8px;flex-wrap:wrap">
     <button class="btn btn-s btn-sm" onclick="A.testDriveUrl()">Testar Ligação</button>
-    <button class="btn btn-p" onclick="A.saveSettings()">Guardar &amp; Ligar</button>
+    <button class="btn btn-p" onclick="A.saveSettings()">Recarregar Dados</button>
     <button class="btn btn-s" onclick="A.closeInfoModal()">Cancelar</button>
   </div>
 </div>
@@ -2649,6 +2649,24 @@ _cfgTab(btn,panelId){
 async _loadUsersTab(){
   const list=document.getElementById('cfgUserList');if(!list)return;
   list.innerHTML='<div style="color:var(--ink3);font-size:.85em;padding:10px">A carregar utilizadores do servidor...</div>';
+  // ── Pedidos de reset de password pendentes ──
+  let resetBanner='';
+  try{
+    const rr=await this._authPost({action:'listPasswordResets'});
+    if(rr&&rr.ok&&rr.requests&&rr.requests.length){
+      resetBanner='<div style="margin-bottom:12px;padding:10px 12px;background:#fef3c7;border:1.5px solid #fbbf24;border-radius:0">'
+        +'<b style="font-size:.85em;color:#78350f">Pedidos de recuperação de palavra-passe pendentes ('+rr.requests.length+')</b>'
+        +rr.requests.map(r=>{
+          const dt=new Date(r.requested_at).toLocaleString('pt-PT');
+          return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding:6px 8px;background:var(--white);border:1px solid #fde68a">'
+            +'<span style="font-size:.82em">'+this.esc(r.username)+' <span style="color:var(--ink3)">— '+dt+'</span></span>'
+            +'<span style="display:flex;gap:6px">'
+            +'<button class="btn btn-s btn-sm" onclick="A._resolveReset('+r.id+',\''+this.esc(r.username)+'\')" style="font-size:.75em">Repor senha e marcar resolvido</button>'
+            +'</span></div>';
+        }).join('')
+        +'</div>';
+    }
+  }catch(_){}
   let users={};let gasOk=false;let gasError='';
   try{
     const res=await this._authPost({action:'getUsers',token:this.S.sessionToken||''});
@@ -2665,9 +2683,9 @@ async _loadUsersTab(){
     if(this.S.usersCache){users=this.S.usersCache;}
   }
   // Banner de estado da ligação
-  const banner=gasOk
+  const banner=resetBanner+(gasOk
     ?'<div style="margin-bottom:8px;padding:6px 10px;background:#dfe1e5;border:1px solid #b2b7c0;border-radius:0;font-size:.78rem;color:#3d4554">Lista carregada do servidor</div>'
-    :'<div style="margin-bottom:8px;padding:6px 10px;background:#fef9c3;border:1px solid #fde047;border-radius:0;font-size:.78rem;color:#854d0e">'+this.esc(gasError)+(Object.keys(users).length?' — a mostrar dados em cache':'')+'</div>';
+    :'<div style="margin-bottom:8px;padding:6px 10px;background:#fef9c3;border:1px solid #fde047;border-radius:0;font-size:.78rem;color:#854d0e">'+this.esc(gasError)+(Object.keys(users).length?' — a mostrar dados em cache':'')+'</div>');
   const keys=Object.keys(users);
   if(!keys.length){
     list.innerHTML=banner+'<div style="color:var(--ink3);font-size:.85em;padding:10px">Nenhum utilizador encontrado.'+(gasOk?'':' Verifique o URL do servidor.')+'</div>';
@@ -2820,6 +2838,17 @@ async saveCfgUsers(){
     await this._loadUsersTab();
   }
 },
+async _resolveReset(id,user){
+  try{
+    const res=await this._authPost({action:'resetPassword',targetUser:user});
+    if(!res||!res.ok){this.showNotif(''+(res?.error||'Erro ao repor senha'),'err');return;}
+    await this._authPost({action:'handlePasswordReset',id:id});
+    this.showNotif('Senha de "'+user+'" reposta e pedido resolvido','ok');
+    await this._loadUsersTab();
+  }catch(_){
+    this.showNotif('Sem ligação ao servidor.','err');
+  }
+},
 async _resetUserPwd(user){
   try{
     const res=await this._authPost({action:'resetPassword',token:this.S.sessionToken||'',targetUser:user});
@@ -2857,18 +2886,16 @@ _adminPwdDialog(user){
   setTimeout(()=>document.getElementById('apwdNew')?.focus(),80);
 },
 async _adminPwdSave(user){
-  const DH='65148fa4fd5e13302a764d2d90f46d59fbfd7e6bc1110cc6558566396d686379';
   const nw=document.getElementById('apwdNew')?.value||'';
   const cf=document.getElementById('apwdConf')?.value||'';
   const errEl=document.getElementById('apwdErr');
   const setErr=m=>{if(errEl)errEl.textContent=m;};
   setErr('');
   if(!nw){setErr('Introduza a nova palavra-passe.');return;}
-  if(nw.length<4){setErr('Mínimo 4 caracteres.');return;}
+  if(nw.length<6){setErr('Mínimo 6 caracteres.');return;}
   if(nw!==cf){setErr('As palavras-passe não coincidem.');return;}
-  const newH=await this._hashPwd(nw);
   try{
-    const res=await this._authPost({action:'adminSetPassword',token:this.S.sessionToken||'',targetUser:user,newHash:newH});
+    const res=await this._authPost({action:'adminSetPassword',targetUser:user,newPassword:nw});
     if(res&&res.ok){this.closeInfoModal();this.showNotif('Senha de "'+user+'" alterada com sucesso','ok');return;}
     setErr(''+(res?.error||'Erro ao guardar senha.'));
   }catch(_){
@@ -2877,44 +2904,32 @@ async _adminPwdSave(user){
 },
 
 async testDriveUrl(){
-  const url=(document.getElementById('cfgUrl')?.value||'').trim();
   const res=document.getElementById('cfgTestResult');
   if(!res)return;
   res.style.display='block';
-  if(!url||!/^https:\/\//.test(url)){
-    res.innerHTML='<div style="background:#fde8e8;border:1.5px solid #f5c6c6;border-radius:0;padding:10px 14px;font-size:.83em;color:var(--red)">URL inválido. Deve começar por https:// (ex: https://SEU-PROJECTO.supabase.co/functions/v1/api)</div>';
-    return;
-  }
   res.innerHTML='<div style="background:#e3f2fd;border:1.5px solid #90caf9;border-radius:0;padding:10px 14px;font-size:.83em;color:#01579b">A testar ligação ao servidor...</div>';
   try{
-    const resp=await fetch(url,{redirect:'follow',headers:{'X-App-Secret':APP_SHARED_SECRET}});
-    if(!resp.ok)throw new Error('HTTP '+resp.status+' — verifique as permissões de acesso');
-    const d=await resp.json();
-    if(d&&d.error)throw new Error(d.error);
-    if(d&&typeof d==='object'){
-      let info='';
-      if(d.missoes&&d.missoes.length){
-        const anos=d._anos&&d._anos.length?d._anos.join(', '):([...new Set(d.missoes.map(m=>(new Date(m.dt)).getFullYear()).filter(y=>y>2000))].sort().join(', ')||'—');
-        info=''+d.missoes.length+' missão(ões) — anos: '+anos;
-      }else{
-        info='Ficheiro Drive vazio — pronto para guardar dados';
-      }
-      res.innerHTML='<div style="background:#dfe1e5;border:1.5px solid #c5c9d1;border-radius:0;padding:10px 14px;font-size:.83em;color:#3d4554">Ligação bem sucedida!<br>'+info+'</div>';
-    }else throw new Error('Resposta inesperada do servidor');
+    const {data:_row,error}=await supabaseClient.from('app_state').select('data').eq('id',1).maybeSingle();
+    if(error)throw new Error(error.message);
+    const d=_row?.data||{};
+    let info='';
+    if(d.missoes&&d.missoes.length){
+      const anos=[...new Set(d.missoes.map(m=>(new Date(m.dt)).getFullYear()).filter(y=>y>2000))].sort().join(', ')||'—';
+      info=''+d.missoes.length+' missão(ões) — anos: '+anos;
+    }else{
+      info='Base de dados vazia — pronta para guardar dados';
+    }
+    res.innerHTML='<div style="background:#dfe1e5;border:1.5px solid #c5c9d1;border-radius:0;padding:10px 14px;font-size:.83em;color:#3d4554">Ligação bem sucedida!<br>'+info+'</div>';
   }catch(e){
-    res.innerHTML='<div style="background:#fde8e8;border:1.5px solid #f5c6c6;border-radius:0;padding:10px 14px;font-size:.83em;color:var(--red)">'+this.esc(e.message)+'<br><span style="opacity:.8;font-size:.9em">Confirme: publicou como "Aplicação Web" com acesso "Qualquer pessoa"?</span></div>';
+    res.innerHTML='<div style="background:#fde8e8;border:1.5px solid #f5c6c6;border-radius:0;padding:10px 14px;font-size:.83em;color:var(--red)">'+this.esc(e.message)+'</div>';
   }
 },
 
 saveSettings(){
-  const url=(document.getElementById('cfgUrl')?.value||'').trim();
-  if(!url){this.showNotif('Cole o URL do script','err');return;}
-  if(!/^https:\/\//.test(url)){this.showNotif('URL inválido. Deve começar por https://','err');return;}
-  setApiUrl(url);
   this.closeInfoModal();
-  this.showNotif('URL guardado! A ligar ao servidor...','ok');
+  this.showNotif('A recarregar dados do servidor...','ok');
   this._updateConfigBtn();
-  setTimeout(()=>this.reloadCloud(),500);
+  setTimeout(()=>this.reloadCloud(),300);
 },
 
 _updateConfigBtn(){
@@ -6132,10 +6147,7 @@ async enviarReciboEmail(nome){
       const nomeArq='Recibo_'+nome.split(' ')[0]+'_'+mesNome+'_'+ano+'.pdf';
       const assunto='Recibo de Pagamento — '+mesNome+' '+ano+' — CGC-EA';
       const corpo='Exmo(a) '+nome+',\n\nSegue em anexo o recibo de pagamento referente ao mes de '+mesNome+' '+ano+'.\n\nTotal a receber: '+this.cve(totVH+totVR)+'\n\nEste documento foi gerado automaticamente pelo Sistema de Gestao de Voo da Esquadrilha Aerea da Guarda Costeira de Cabo Verde.\n\nCom os melhores cumprimentos,\nEsquadrilha Aerea — CGC';
-      const _gasUrl=getApiUrl();
-      if(!_gasUrl){this.showNotif('URL do servidor não configurado','err');return;}
-      const _resp=await fetch(_gasUrl,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify({action:'sendEmail',to:dest,subject:assunto,body:corpo,pdfBase64:pdfB64,fileName:nomeArq})});
-      const res=await _resp.json();
+      const res=await this._authPost({action:'sendEmail',to:dest,subject:assunto,body:corpo,pdfBase64:pdfB64,fileName:nomeArq});
       if(res?.ok){
         this.showNotif('Recibo enviado para '+dest);
         this.addAudit('Recibo enviado por email',nome+' → '+dest);
@@ -9281,12 +9293,82 @@ async _hashPwd(p){
 _SESSION_KEY:'fx9_session',
 _CREDS_KEY:'fx9_creds',
 // ─── AUTH: chamada ao Apps Script ─────────────────────────────
+// ─── AUTH: chamada à Edge Function (só ações privilegiadas de admin) ──
+async _callAdminFn(action,body,token){
+  try{
+    const resp=await fetch(SUPABASE_URL+'/functions/v1/api',{
+      method:'POST',redirect:'follow',
+      headers:Object.assign({'Content-Type':'application/json'},token?{'Authorization':'Bearer '+token}:{}),
+      body:JSON.stringify(Object.assign({action},body||{}))
+    });
+    return await resp.json();
+  }catch(e){ return {ok:false,error:'Sem ligação ao servidor.'}; }
+},
+_usernameToEmail(u){ return String(u||'').trim().toLowerCase()+AUTH_EMAIL_DOMAIN; },
 async _authPost(payload){
   const url=getApiUrl();
   if(!url)throw new Error('no-url');
-  const r=await fetch(url,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=UTF-8','X-App-Secret':APP_SHARED_SECRET},body:JSON.stringify(payload)});
-  if(!r.ok)throw new Error('HTTP '+r.status);
-  return r.json();
+  switch(payload.action){
+    case 'login':{
+      const email=this._usernameToEmail(payload.username);
+      const {data,error}=await supabaseClient.auth.signInWithPassword({email,password:payload.password});
+      if(error||!data?.session)return {ok:false,error:'Utilizador ou palavra-passe incorretos.'};
+      const {data:prof}=await supabaseClient.from('profiles').select('username,role').eq('id',data.user.id).single();
+      return {ok:true,role:prof?.role||'guest',username:prof?.username||payload.username,token:data.session.access_token};
+    }
+    case 'validateToken':{
+      const {data:{session}}=await supabaseClient.auth.getSession();
+      if(!session)return {ok:false,error:'Sessão inválida ou expirada.'};
+      const {data:prof}=await supabaseClient.from('profiles').select('username,role').eq('id',session.user.id).single();
+      if(!prof)return {ok:false,error:'Sessão inválida.'};
+      return {ok:true,role:prof.role,username:prof.username};
+    }
+    case 'logout':{
+      await supabaseClient.auth.signOut();
+      return {ok:true};
+    }
+    case 'changePassword':{
+      const {data:{session}}=await supabaseClient.auth.getSession();
+      if(!session)return {ok:false,error:'Sessão inválida.'};
+      if(payload.targetUser&&payload.targetUser!==this.S.currentUser){
+        return await this._callAdminFn('adminSetPassword',{username:payload.targetUser,newPassword:payload.newPassword},session.access_token);
+      }
+      return await this._callAdminFn('selfChangePassword',{currentPassword:payload.currentPassword,newPassword:payload.newPassword},session.access_token);
+    }
+    case 'getUsers':{
+      const {data:{session}}=await supabaseClient.auth.getSession();
+      return await this._callAdminFn('list',{},session?.access_token);
+    }
+    case 'saveUsers':{
+      const {data:{session}}=await supabaseClient.auth.getSession();
+      return await this._callAdminFn('saveUsers',{users:payload.users},session?.access_token);
+    }
+    case 'resetPassword':{
+      const {data:{session}}=await supabaseClient.auth.getSession();
+      return await this._callAdminFn('resetPassword',{username:payload.targetUser},session?.access_token);
+    }
+    case 'adminSetPassword':{
+      const {data:{session}}=await supabaseClient.auth.getSession();
+      return await this._callAdminFn('adminSetPassword',{username:payload.targetUser,newPassword:payload.newPassword},session?.access_token);
+    }
+    case 'requestPasswordReset':{
+      return await this._callAdminFn('requestPasswordReset',{username:payload.username},null);
+    }
+    case 'listPasswordResets':{
+      const {data:{session}}=await supabaseClient.auth.getSession();
+      return await this._callAdminFn('listPasswordResets',{},session?.access_token);
+    }
+    case 'handlePasswordReset':{
+      const {data:{session}}=await supabaseClient.auth.getSession();
+      return await this._callAdminFn('handlePasswordReset',{id:payload.id},session?.access_token);
+    }
+    case 'sendEmail':{
+      const {data:{session}}=await supabaseClient.auth.getSession();
+      return await this._callAdminFn('sendEmail',{to:payload.to,subject:payload.subject,body:payload.body,pdfBase64:payload.pdfBase64,fileName:payload.fileName},session?.access_token);
+    }
+    default:
+      return {ok:false,error:'Ação desconhecida: '+payload.action};
+  }
 },
 // ─── AUTH: credenciais locais (fallback dev / sem API) ─────────
 _loadCreds(){
@@ -9309,17 +9391,16 @@ _loadCreds(){
 },
 // ─── AUTH: verificar sessão ao arranque ───────────────────────
 async _checkSession(){
-  const tok=sessionStorage.getItem(this._SESSION_KEY);
-  if(!tok)return;
   try{
-    const res=await this._authPost({action:'validateToken',token:tok});
+    const res=await this._authPost({action:'validateToken'});
     if(res&&res.ok){
-      this.S.role=res.role;this.S.currentUser=res.username;this.S.sessionToken=tok;
+      this.S.role=res.role;this.S.currentUser=res.username;
+      const {data:{session}}=await supabaseClient.auth.getSession();
+      this.S.sessionToken=session?.access_token||null;
       document.getElementById('loginScreen').style.display='none';
       this._applyRole();this.init();A._timeoutStart();return;
     }
   }catch(_){}
-  sessionStorage.removeItem(this._SESSION_KEY);
 },
 // ─── LOGIN ────────────────────────────────────────────────────
 async doLogin(){
@@ -9329,18 +9410,15 @@ async doLogin(){
   const btn=document.querySelector('.login-btn');
   if(!u||!p){if(err)err.textContent='Preencha todos os campos.';return;}
   if(btn){btn.disabled=true;btn.textContent='A verificar...';}
-  const ph=await this._hashPwd(p);
   let ok=false;
   try{
-    const res=await this._authPost({action:'login',username:u,passwordHash:ph});
+    const res=await this._authPost({action:'login',username:u,password:p});
     if(res&&res.ok){
       this.S.role=res.role;this.S.currentUser=res.username;this.S.sessionToken=res.token;
-      sessionStorage.setItem(this._SESSION_KEY,res.token);ok=true;
+      ok=true;
     }else{if(err)err.textContent=res?.error||'Utilizador ou palavra-passe incorretos.';}
   }catch(e){
-    const noUrl=!getApiUrl();
-    if(noUrl){if(err)err.textContent='Configure primeiro o URL do servidor nas definições.';}
-    else{if(err)err.textContent='Servidor inacessível. Verifique o URL do servidor e as permissões.';}
+    if(err)err.textContent='Servidor inacessível. Tente novamente.';
   }
   if(btn){btn.disabled=false;btn.textContent='Login';}
   if(ok){document.getElementById('loginScreen').style.display='none';this._applyRole();this.init();A._timeoutStart();}
@@ -9403,17 +9481,16 @@ async saveChangePwd(){
   if(!cur){setErr('Introduza a palavra-passe atual.');return;}
   if(!nw){setErr('Introduza a nova palavra-passe.');return;}
   if(nw!==cf){setErr('A confirmação não coincide com a nova palavra-passe.');return;}
-  if(nw.length<4){setErr('A nova palavra-passe deve ter pelo menos 4 caracteres.');return;}
+  if(nw.length<6){setErr('A nova palavra-passe deve ter pelo menos 6 caracteres.');return;}
   if(btn){btn.disabled=true;btn.textContent='A guardar...';}
   try{
-    const curH=await this._hashPwd(cur);const newH=await this._hashPwd(nw);
     let done=false;
     try{
-      const res=await this._authPost({action:'changePassword',token:this.S.sessionToken||'',targetUser:user,newHash:newH,currentHash:curH});
+      const res=await this._authPost({action:'changePassword',targetUser:user,newPassword:nw,currentPassword:cur});
       if(res&&res.ok){done=true;}
       else{setErr(''+(res?.error||'Erro ao alterar.'));if(btn){btn.disabled=false;btn.textContent='Alterar';}return;}
     }catch(_){
-      setErr('Sem ligação ao servidor. Configure o URL nas definições.');
+      setErr('Sem ligação ao servidor.');
       if(btn){btn.disabled=false;btn.textContent='Alterar';}return;
     }
     if(done){this.closeInfoModal();this.showNotif('Palavra-passe de "'+user+'" alterada com sucesso','ok');}
@@ -9460,9 +9537,7 @@ async submitForgotPwd(){
 // ─── LOGOUT ───────────────────────────────────────────────────
 doLogout(){
   A._timeoutStop();
-  const tok=this.S.sessionToken||sessionStorage.getItem(this._SESSION_KEY);
-  sessionStorage.removeItem(this._SESSION_KEY);
-  if(tok){try{this._authPost({action:'logout',token:tok});}catch(_){}}
+  try{this._authPost({action:'logout'});}catch(_){}
   this.S.role=null;this.S.currentUser=null;this.S.sessionToken=null;
   location.reload();
 },
