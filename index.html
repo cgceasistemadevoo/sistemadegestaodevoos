@@ -3422,20 +3422,27 @@ addEditCrew(){
       return '• '+c.num+' ('+c.toff.slice(0,5)+'–'+c.land.slice(0,5)+') — '+parts.join(' + ');
     }).join('\n');
   },
-  _showAeroConflictAlert(conflicts){
-    const lines=conflicts.map(c=>'<div style="margin:6px 0;padding:8px 12px;background:#fef2f2;border-left:3px solid #dc2626;border-radius:0">'
-      +'<strong>'+this.esc(c.num)+'</strong>'
-      +' &nbsp;<span style="color:var(--ink3);font-size:.87em">'+c.toff.slice(0,5)+'&nbsp;→&nbsp;'+c.land.slice(0,5)+'</span>'
-      +'<br><span style="font-size:.83em;color:#dc2626">Aeronave <strong>'+this.esc(c.aero)+'</strong> já está em missão neste horário</span>'
-      +'</div>').join('');
+  _showAeroConflictAlert(conflicts){ this._showConflictAlert(conflicts,'aero'); },
+  _showConflictAlert(conflicts,kind){
+    const isCrew=kind==='crew';
+    const lines=conflicts.map(c=>{
+      const detail=isCrew
+        ? '<span style="font-size:.83em;color:#dc2626">Tripulante(s) <strong>'+this.esc((c.overlapCrew||[]).join(', '))+'</strong> já em missão neste horário</span>'
+        : '<span style="font-size:.83em;color:#dc2626">Aeronave <strong>'+this.esc(c.aero)+'</strong> já está em missão neste horário</span>';
+      return '<div style="margin:6px 0;padding:8px 12px;background:#fef2f2;border-left:3px solid #dc2626;border-radius:0">'
+        +'<strong>'+this.esc(c.num)+'</strong>'
+        +' &nbsp;<span style="color:var(--ink3);font-size:.87em">'+c.toff.slice(0,5)+'&nbsp;→&nbsp;'+c.land.slice(0,5)+'</span>'
+        +'<br>'+detail
+        +'</div>';
+    }).join('');
     const html='<div style="font-size:.9em">'
-      +'<p style="margin:0 0 10px;font-weight:600;color:#dc2626">&#9888; Aeronave indisponível</p>'
-      +'<p style="margin:0 0 8px;color:var(--ink3)">Esta aeronave já tem missão registada no mesmo horário:</p>'
+      +'<p style="margin:0 0 10px;font-weight:600;color:#dc2626">&#9888; '+(isCrew?'Tripulante indisponível':'Aeronave indisponível')+'</p>'
+      +'<p style="margin:0 0 8px;color:var(--ink3)">'+(isCrew?'Um ou mais tripulantes já têm missão registada no mesmo horário:':'Esta aeronave já tem missão registada no mesmo horário:')+'</p>'
       +lines
-      +'<p style="margin:10px 0 0;font-size:.82em;color:var(--ink3)">Altere a aeronave, a data ou o horário para continuar.</p>'
+      +'<p style="margin:10px 0 0;font-size:.82em;color:var(--ink3)">Altere '+(isCrew?'os tripulantes':'a aeronave')+', a data ou o horário para continuar.</p>'
       +'</div>';
     const mod=document.createElement('div');
-    mod.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center';
+    mod.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10050;display:flex;align-items:center;justify-content:center';
     mod.innerHTML='<div style="background:var(--white);border-radius:0;padding:24px 28px;max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.22)">'
       +html
       +'<div style="text-align:right;margin-top:18px"><button class="btn btn-p" onclick="this.closest(\'div[style*=fixed]\').remove()">Fechar</button></div>'
@@ -3512,7 +3519,9 @@ addMissao(){
       return;
     }
     if(_crewConf.length){
-      if(!confirm('CONFLITO DE TRIPULANTE detetado:\n\n'+this.formatConflictMsg(_crewConf)+'\n\nRegistar mesmo assim?'))return;
+      this.showNotif('Tripulante indisponível nesse horário','err');
+      this._showConflictAlert(_crewConf,'crew');
+      return;
     }
   }
   // Verificar limites de horas mensais/anuais por tripulante
@@ -3546,7 +3555,7 @@ addMissao(){
     dur,crew,
     origem:(document.getElementById('iOrigem')?.value||'').trim(),
     destino:(document.getElementById('iDestino')?.value||'').trim(),
-    perna:'1',
+    perna:'',
     catering:document.getElementById('iCatering')?.checked||false,
     tags:(document.getElementById('iTags')?.value||'').split(',').map(s=>s.trim()).filter(Boolean),
     fuelAdd:document.getElementById('iFuelAdd')?.value?Number(document.getElementById('iFuelAdd').value):null,
@@ -3658,7 +3667,9 @@ saveEdit(){
       return;
     }
     if(_eCrewConf.length){
-      if(!confirm('CONFLITO DE TRIPULANTE detetado:\n\n'+this.formatConflictMsg(_eCrewConf)+'\n\nGuardar mesmo assim?'))return;
+      this.showNotif('Tripulante indisponível nesse horário','err');
+      this._showConflictAlert(_eCrewConf,'crew');
+      return;
     }
   }
   m.serie=document.getElementById('eSerie').value;
@@ -4722,6 +4733,7 @@ delContacto(id){
       history:[{ts:new Date().toISOString(),action:histAction}]
     };
     this._snapshot('Duplicar missão '+num);
+    if(isRegresso&&!mOrig.perna){mOrig.perna='1';} // só agora fica visível que esta missão tem pernas
     this.S.missoes.push(newM);
     if(!isRegresso)this._renumSerie(newM.serie,new Date(newDate+'T00:00:00').getFullYear());
     this.S.filtered=[...this.S.missoes];
@@ -4745,7 +4757,7 @@ delContacto(id){
     const sumPeriod=(y,m)=>{
       const ms=this.S.missoes.filter(x=>{const d=x.dt instanceof Date?x.dt:new Date(x.dt);return d.getFullYear()===y&&d.getMonth()===m&&(x.status||'Concluída')==='Concluída';});
       let mins=0;ms.forEach(x=>{const p=String(x.dur||'0:0').split(':').map(Number);mins+=(p[0]||0)*60+(p[1]||0);});
-      return{mis:ms.length,h:(mins/60).toFixed(1)};
+      return{mis:this._uniqueMissions(ms).length,h:(mins/60).toFixed(1)};
     };
     const cur=sumPeriod(now.getFullYear(),now.getMonth());
     const prev=sumPeriod(now.getMonth()===0?now.getFullYear()-1:now.getFullYear(),now.getMonth()===0?11:now.getMonth()-1);
@@ -4812,7 +4824,7 @@ delContacto(id){
       ms.forEach(m=>{const d=m.dt instanceof Date?m.dt:new Date(m.dt);const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');const btS=this.calcBT(m.boff,m.bon);const btMn=btS!=='—'?(()=>{const[bh,bm]=btS.split(':').map(Number);return bh*60+(bm||0);})():0;if(!months[k])months[k]={dur:0,bt:0};const p=String(m.dur||'0:0').split(':').map(Number);months[k].dur+=(p[0]||0)*60+(p[1]||0);months[k].bt+=btMn;});
 
       doc.setFont('helvetica','bold');doc.setFontSize(10);
-      doc.text('Resumo: '+ms.length+' missões   Duração: '+(totMin/60).toFixed(1)+'h   Block Time: '+Math.floor(totBT/60)+'h '+(totBT%60<10?'0':'')+(totBT%60)+'m',10,y);y+=5;
+      doc.text('Resumo: '+this._uniqueMissions(ms).length+' missões ('+ms.length+' voos)   Duração: '+(totMin/60).toFixed(1)+'h   Block Time: '+Math.floor(totBT/60)+'h '+(totBT%60<10?'0':'')+(totBT%60)+'m',10,y);y+=5;
 
       // Horas por mês
       const monthRows=Object.entries(months).sort().map(([k,v])=>[k,(v.dur/60).toFixed(2)+'h',Math.floor(v.bt/60)+'h '+(v.bt%60<10?'0':'')+(v.bt%60)+'m']);
@@ -5384,7 +5396,7 @@ renderFuelPeriodo(){
   const fmtL=v=>v.toLocaleString('pt-PT')+' L';
   const eff=totalAdd>0?Math.round(totalUse/totalAdd*100):0;
   const efcor=eff>95?'#dc2626':(eff>85?'#f59e0b':'var(--g7)');
-  el.innerHTML='<div style="display:flex;flex-direction:column;gap:10px">'+(totalAdd?'<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:.83em;font-weight:600;color:var(--ink2)">Adicionado</span><span style="font-family:var(--mono);font-weight:700">'+fmtL(totalAdd)+'</span></div>':'')+'<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:.83em;font-weight:600;color:var(--ink2)">Consumido</span><span style="font-family:var(--mono);font-weight:700;color:#dc2626">'+fmtL(totalUse)+'</span></div>'+(totalAdd>0?'<div><div style="display:flex;justify-content:space-between;font-size:.78em;margin-bottom:3px"><span style="color:var(--ink3)">Taxa de consumo</span><span style="font-weight:700;color:'+efcor+'">'+eff+'%</span></div><div style="height:6px;background:var(--g1);border-radius:0"><div style="height:100%;width:'+Math.min(100,eff)+'%;background:'+efcor+';border-radius:0;transition:width .4s"></div></div></div>':'')+'<div style="font-size:.75em;color:var(--ink3);padding-top:2px">'+mis.length+' missões concluídas</div></div>';
+  el.innerHTML='<div style="display:flex;flex-direction:column;gap:10px">'+(totalAdd?'<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:.83em;font-weight:600;color:var(--ink2)">Adicionado</span><span style="font-family:var(--mono);font-weight:700">'+fmtL(totalAdd)+'</span></div>':'')+'<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:.83em;font-weight:600;color:var(--ink2)">Consumido</span><span style="font-family:var(--mono);font-weight:700;color:#dc2626">'+fmtL(totalUse)+'</span></div>'+(totalAdd>0?'<div><div style="display:flex;justify-content:space-between;font-size:.78em;margin-bottom:3px"><span style="color:var(--ink3)">Taxa de consumo</span><span style="font-weight:700;color:'+efcor+'">'+eff+'%</span></div><div style="height:6px;background:var(--g1);border-radius:0"><div style="height:100%;width:'+Math.min(100,eff)+'%;background:'+efcor+';border-radius:0;transition:width .4s"></div></div></div>':'')+'<div style="font-size:.75em;color:var(--ink3);padding-top:2px">'+this._uniqueMissions(mis).length+' missões concluídas</div></div>';
 },
 
 // ─── ANÁLISES: KPIs de resumo do filtro activo ────────────────
@@ -5392,13 +5404,14 @@ renderAnaKpis(){
   const e=id=>document.getElementById(id);
   if(!e('anaMTot'))return;
   const mis=this.S.filtered;
-  e('anaMTot').textContent=mis.length;
-  if(e('anaMTotSub'))e('anaMTotSub').textContent='de '+this.S.missoes.length+' total';
+  const misU=this._uniqueMissions(mis);
+  e('anaMTot').textContent=misU.length;
+  if(e('anaMTotSub'))e('anaMTotSub').textContent='de '+this._uniqueMissions(this.S.missoes).length+' total';
   let bt=0;
   mis.forEach(m=>{const s=this.calcBT(m.boff,m.bon);if(s&&s!=='—'){const[h,mn]=s.split(':').map(Number);bt+=h*60+(mn||0);}else{const p=(m.dur||'0:0').split(':').map(Number);if(!isNaN(p[0])&&!isNaN(p[1]))bt+=p[0]*60+(p[1]||0);}});
   if(e('anaMHr'))e('anaMHr').textContent=Math.floor(bt/60)+'h '+(bt%60<10?'0':'')+(bt%60)+'m';
-  const concl=mis.filter(m=>m.status==='Concluída').length;
-  if(e('anaMTaxa'))e('anaMTaxa').textContent=mis.length?Math.round(concl/mis.length*100)+'%':'0%';
+  const concl=misU.filter(m=>m.status==='Concluída').length;
+  if(e('anaMTaxa'))e('anaMTaxa').textContent=misU.length?Math.round(concl/misU.length*100)+'%':'0%';
   if(!e('anaMLCusto'))return;
   const vPF=this.getVPF();const mv=this.getMealVals();
   let custo=0;
@@ -5451,8 +5464,9 @@ _uniqueMissions(arr){
 },
 renderMetrics(){
   const mis=this.S.filtered;
+  const misUniq=this._uniqueMissions(mis);
   const e=id=>document.getElementById(id);
-  if(e('mTot'))e('mTot').textContent=this._uniqueMissions(mis).length;
+  if(e('mTot'))e('mTot').textContent=misUniq.length;
   if(e('mTotSub'))e('mTotSub').textContent='de '+this._uniqueMissions(this.S.missoes).length+' total';
   let tot=0,ftTot=0;
   mis.forEach(m=>{const bt=this.calcBT(m.boff,m.bon);if(bt&&bt!=='—'){const[bh,bm]=bt.split(':').map(Number);tot+=bh*60+(bm||0);}else{const p=(m.dur||'0:0').split(':').map(Number);if(!isNaN(p[0])&&!isNaN(p[1]))tot+=p[0]*60+(p[1]||0);}const fp=(m.dur||'0:0').split(':').map(Number);if(!isNaN(fp[0])&&!isNaN(fp[1]))ftTot+=fp[0]*60+(fp[1]||0);});
@@ -5460,10 +5474,9 @@ renderMetrics(){
   if(e('mFT'))e('mFT').textContent=Math.floor(ftTot/60)+'h '+ftTot%60+'m';
   const trSet=new Set();mis.forEach(m=>(m.crew||[]).forEach(c=>trSet.add(c.nome)));
   if(e('mTrip'))e('mTrip').textContent=trSet.size;
-  const med=mis.length?tot/mis.length:0;
+  const med=misUniq.length?tot/misUniq.length:0;
   if(e('mMed'))e('mMed').textContent=Math.floor(med/60)+'h '+Math.floor(med%60)+'m';
   // ── Fila 3: KPIs operacionais (missões únicas — ida+volta conta 1 vez) ──
-  const misUniq=this._uniqueMissions(mis);
   const conc=misUniq.filter(m=>(m.status||'Concluída')==='Concluída').length;
   const canc=misUniq.filter(m=>(m.status||'Concluída')==='Cancelada').length;
   const taxaCon=misUniq.length?Math.round(conc/misUniq.length*100):0;
@@ -5928,14 +5941,17 @@ calcPag(){
     const mealR=(hasPA?mv.pa:0)+(hasA?mv.al:0)+(hasJ?mv.jn:0);
     const mCVE=(m.crew||[]).reduce((s,c)=>s+(vPF[c.fn]||1500)*(effMins/60)+mealR,0);
     const sk=m.serie||'—';
-    if(!bySerie[sk])bySerie[sk]={mis:0,min:0,cveTot:0};
-    bySerie[sk].mis++;bySerie[sk].min+=effMins;bySerie[sk].cveTot+=mCVE;
+    if(!bySerie[sk])bySerie[sk]={mis:0,min:0,cveTot:0,_seen:new Set()};
+    if(!bySerie[sk]._seen.has(m.num)){bySerie[sk]._seen.add(m.num);bySerie[sk].mis++;}
+    bySerie[sk].min+=effMins;bySerie[sk].cveTot+=mCVE;
     const aeroK=m.aero||'—';
-    if(!byAero[aeroK])byAero[aeroK]={mis:0,min:0};
-    byAero[aeroK].mis++;byAero[aeroK].min+=effMins;
+    if(!byAero[aeroK])byAero[aeroK]={mis:0,min:0,_seen:new Set()};
+    if(!byAero[aeroK]._seen.has(m.num)){byAero[aeroK]._seen.add(m.num);byAero[aeroK].mis++;}
+    byAero[aeroK].min+=effMins;
     (m.crew||[]).forEach(c=>{
-      if(!pag[c.nome])pag[c.nome]={nome:c.nome,fn:c.fn,mis:0,min:0,vH:0,pa:0,al:0,jn:0,vR:0,tot:0};
-      const p=pag[c.nome];p.mis++;
+      if(!pag[c.nome])pag[c.nome]={nome:c.nome,fn:c.fn,mis:0,min:0,vH:0,pa:0,al:0,jn:0,vR:0,tot:0,_seen:new Set()};
+      const p=pag[c.nome];
+      if(!p._seen.has(m.num)){p._seen.add(m.num);p.mis++;}
       p.min+=effMins;p.vH+=(vPF[c.fn]||1500)*(effMins/60);
       if(hasPA){p.pa++;p.vR+=mv.pa;totRef++;}
       if(hasA){p.al++;p.vR+=mv.al;totRef++;}
@@ -6352,8 +6368,9 @@ pagExcel(){
     const pxEff=pxBtMins||dMin;
     const hasPA=!m.catering&&this.overlaps(tMin,pxEff,0,8);const hasA=!m.catering&&this.overlaps(tMin,pxEff,12,14);const hasJ=!m.catering&&this.overlaps(tMin,pxEff,19,24);
     (m.crew||[]).forEach(c=>{
-      if(!pag[c.nome])pag[c.nome]={nome:c.nome,fn:c.fn,mis:0,min:0,vH:0,pa:0,al:0,jn:0,vR:0};
-      const p=pag[c.nome];p.mis++;
+      if(!pag[c.nome])pag[c.nome]={nome:c.nome,fn:c.fn,mis:0,min:0,vH:0,pa:0,al:0,jn:0,vR:0,_seen:new Set()};
+      const p=pag[c.nome];
+      if(!p._seen.has(m.num)){p._seen.add(m.num);p.mis++;}
       p.min+=pxEff;p.vH+=(pxVPF[c.fn]||1500)*(pxEff/60);
       if(hasPA){p.pa++;p.vR+=pxMV.pa;}if(hasA){p.al++;p.vR+=pxMV.al;}if(hasJ){p.jn++;p.vR+=pxMV.jn;}
     });
@@ -6374,8 +6391,8 @@ pagExcel(){
     const effMins=btMins||dMin;
     const mR=(this.overlaps(tMin,effMins,0,8)?pxMV.pa:0)+(this.overlaps(tMin,effMins,12,14)?pxMV.al:0)+(this.overlaps(tMin,effMins,19,24)?pxMV.jn:0);
     const mCVE=(m.crew||[]).reduce((s,c)=>s+(pxVPF[c.fn]||1500)*(effMins/60)+mR,0);
-    const sk=m.serie||'—';if(!pxBySerie[sk])pxBySerie[sk]={mis:0,min:0,cveTot:0};pxBySerie[sk].mis++;pxBySerie[sk].min+=effMins;pxBySerie[sk].cveTot+=mCVE;
-    const ak=m.aero||'—';if(!pxByAero[ak])pxByAero[ak]={mis:0,min:0};pxByAero[ak].mis++;pxByAero[ak].min+=effMins;
+    const sk=m.serie||'—';if(!pxBySerie[sk])pxBySerie[sk]={mis:0,min:0,cveTot:0,_seen:new Set()};if(!pxBySerie[sk]._seen.has(m.num)){pxBySerie[sk]._seen.add(m.num);pxBySerie[sk].mis++;}pxBySerie[sk].min+=effMins;pxBySerie[sk].cveTot+=mCVE;
+    const ak=m.aero||'—';if(!pxByAero[ak])pxByAero[ak]={mis:0,min:0,_seen:new Set()};if(!pxByAero[ak]._seen.has(m.num)){pxByAero[ak]._seen.add(m.num);pxByAero[ak].mis++;}pxByAero[ak].min+=effMins;
   });
   const fmtMinXl=m=>Math.floor(m/60)+'h '+(m%60)+'m';
   const rowsS=[['Série','Missões','Block Time','Total CVE']];
@@ -6419,8 +6436,9 @@ pagPDF(){
     const ppEff=ppBtMins||dMin;
     const hasPA=!m.catering&&this.overlaps(tMin,ppEff,0,8);const hasA=!m.catering&&this.overlaps(tMin,ppEff,12,14);const hasJ=!m.catering&&this.overlaps(tMin,ppEff,19,24);
     (m.crew||[]).forEach(c=>{
-      if(!pag[c.nome])pag[c.nome]={nome:c.nome,fn:c.fn,mis:0,min:0,vH:0,pa:0,al:0,jn:0,vR:0};
-      const p=pag[c.nome];p.mis++;
+      if(!pag[c.nome])pag[c.nome]={nome:c.nome,fn:c.fn,mis:0,min:0,vH:0,pa:0,al:0,jn:0,vR:0,_seen:new Set()};
+      const p=pag[c.nome];
+      if(!p._seen.has(m.num)){p._seen.add(m.num);p.mis++;}
       p.min+=ppEff;p.vH+=(ppVPF[c.fn]||1500)*(ppEff/60);
       if(hasPA){p.pa++;p.vR+=ppMV.pa;}if(hasA){p.al++;p.vR+=ppMV.al;}if(hasJ){p.jn++;p.vR+=ppMV.jn;}
     });
@@ -6440,8 +6458,8 @@ pagPDF(){
     const effMins=btMins||dMin;
     const mR=m.catering?0:(this.overlaps(tMin,effMins,0,8)?ppMV.pa:0)+(this.overlaps(tMin,effMins,12,14)?ppMV.al:0)+(this.overlaps(tMin,effMins,19,24)?ppMV.jn:0);
     const mCVE=(m.crew||[]).reduce((s,c)=>s+(ppVPF[c.fn]||1500)*(effMins/60)+mR,0);
-    const sk=m.serie||'—';if(!ppBySerie[sk])ppBySerie[sk]={mis:0,min:0,cveTot:0};ppBySerie[sk].mis++;ppBySerie[sk].min+=effMins;ppBySerie[sk].cveTot+=mCVE;
-    const ak=m.aero||'—';if(!ppByAero[ak])ppByAero[ak]={mis:0,min:0};ppByAero[ak].mis++;ppByAero[ak].min+=effMins;
+    const sk=m.serie||'—';if(!ppBySerie[sk])ppBySerie[sk]={mis:0,min:0,cveTot:0,_seen:new Set()};if(!ppBySerie[sk]._seen.has(m.num)){ppBySerie[sk]._seen.add(m.num);ppBySerie[sk].mis++;}ppBySerie[sk].min+=effMins;ppBySerie[sk].cveTot+=mCVE;
+    const ak=m.aero||'—';if(!ppByAero[ak])ppByAero[ak]={mis:0,min:0,_seen:new Set()};if(!ppByAero[ak]._seen.has(m.num)){ppByAero[ak]._seen.add(m.num);ppByAero[ak].mis++;}ppByAero[ak].min+=effMins;
   });
   const fmtM=m=>{const h=Math.floor(m/60),mn=m%60;return h+'h '+(mn<10?'0':'')+mn+'m';};
   try{
@@ -6963,7 +6981,7 @@ _buildEstadosChart(){
   const _s=new Set();
   const counts=keys.map(k=>mis.filter(m=>!_s.has(m.num+'|'+k)&&_s.add(m.num+'|'+k)&&(m.status||'Concluída')===k).length);
   const tc=this._textColor();
-  const pctFn=c=>{const tot=mis.length;return ' '+c.label+': '+c.raw+' ('+(tot?Math.round(c.raw/tot*100):0)+'%)';};
+  const pctFn=c=>{const tot=this._uniqueMissions(mis).length;return ' '+c.label+': '+c.raw+' ('+(tot?Math.round(c.raw/tot*100):0)+'%)';};
   this.S.charts['cEstados']=new Chart(ctx,{type:'doughnut',data:{labels:keys,datasets:[{data:counts,backgroundColor:cols,borderWidth:2,borderColor:this._isDark()?'#0e1f10':'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'right',labels:{font:{size:11},color:tc,boxWidth:14,padding:10}},tooltip:{callbacks:{label:pctFn}}}}});
 },
 
@@ -7016,7 +7034,7 @@ _renderAeroMes(){
   const now=new Date();
   const mis=this.S.missoes.filter(m=>{const d=m.dt instanceof Date?m.dt:new Date(m.dt);return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()&&m.status==='Concluída';});
   const map={};
-  mis.forEach(m=>{const k=m.aero||'—';if(!map[k])map[k]={mis:0,btMin:0};map[k].mis++;const btS=this.calcBT(m.boff,m.bon);if(btS&&btS!=='—'){const[bh,bm]=btS.split(':').map(Number);map[k].btMin+=bh*60+(bm||0);}});
+  mis.forEach(m=>{const k=m.aero||'—';if(!map[k])map[k]={mis:0,btMin:0,_seen:new Set()};if(!map[k]._seen.has(m.num)){map[k]._seen.add(m.num);map[k].mis++;}const btS=this.calcBT(m.boff,m.bon);if(btS&&btS!=='—'){const[bh,bm]=btS.split(':').map(Number);map[k].btMin+=bh*60+(bm||0);}});
   const list=Object.entries(map).sort((a,b)=>b[1].btMin-a[1].btMin);
   if(!list.length){el.innerHTML='<div style="color:var(--ink3);font-size:.9em;padding:6px 0">Sem voos concluídos este mês.</div>';return;}
   const fmtM=m=>Math.floor(m/60)+'h '+(m%60<10?'0':'')+(m%60)+'m';
@@ -8985,7 +9003,7 @@ _pilotoModal(nome){
       '</div>'+
     '</div>'+
     '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">'+
-      '<div style="background:var(--g0);border-radius:0;padding:10px;text-align:center"><div style="font-family:var(--mono);font-size:1.2em;font-weight:800;color:var(--ink)">'+mis.length+'</div><div style="font-size:.68em;color:var(--ink3);text-transform:uppercase;margin-top:2px">Total missões</div></div>'+
+      '<div style="background:var(--g0);border-radius:0;padding:10px;text-align:center"><div style="font-family:var(--mono);font-size:1.2em;font-weight:800;color:var(--ink)">'+this._uniqueMissions(mis).length+'</div><div style="font-size:.68em;color:var(--ink3);text-transform:uppercase;margin-top:2px">Total missões</div></div>'+
       '<div style="background:var(--g0);border-radius:0;padding:10px;text-align:center"><div style="font-family:var(--mono);font-size:1.2em;font-weight:800;color:var(--ink)">'+fmt(btMesMin)+'</div><div style="font-size:.68em;color:var(--ink3);text-transform:uppercase;margin-top:2px">BT este mês</div></div>'+
       '<div style="background:var(--g0);border-radius:0;padding:10px;text-align:center"><div style="font-family:var(--mono);font-size:1.2em;font-weight:800;color:var(--ink)">'+fmt(btTotMin)+'</div><div style="font-size:.68em;color:var(--ink3);text-transform:uppercase;margin-top:2px">BT total</div></div>'+
     '</div>'+
@@ -9013,11 +9031,12 @@ _pilotoModal(nome){
 _aeroModal(nome){
   const managed=(this.S.aeros||[]).find(a=>a.nome===nome);
   const mis=this.S.missoes.filter(m=>m.aero===nome);
+  const misU=this._uniqueMissions(mis);
   const conc=mis.filter(m=>m.status==='Concluída');
   const _btMin=(arr)=>arr.reduce((acc,m)=>{const bt=this.calcBT(m.boff,m.bon);if(bt==='—')return acc;const[bh,bm]=bt.split(':').map(Number);return acc+bh*60+(bm||0);},0);
   const btM=_btMin(conc);const btH=(btM/60).toFixed(1);
   let fuelAdd=0,fuelUse=0;mis.forEach(m=>{fuelAdd+=(m.fuelAdd||0);fuelUse+=(m.fuelUse||0);});
-  const types={};mis.forEach(m=>{types[m.tipo]=(types[m.tipo]||0)+1;});
+  const types={};misU.forEach(m=>{types[m.tipo]=(types[m.tipo]||0)+1;});
   const topTipo=Object.entries(types).sort((a,b)=>b[1]-a[1]).slice(0,4);
   const recent=mis.slice().sort((a,b)=>{const da=a.dt instanceof Date?a.dt:new Date(a.dt);const db=b.dt instanceof Date?b.dt:new Date(b.dt);return db-da;}).slice(0,10);
   const now=new Date();
@@ -9036,7 +9055,7 @@ _aeroModal(nome){
       '</div>'+
     '</div>'+
     '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">'+
-      '<div style="background:var(--g0);border-radius:0;padding:10px;text-align:center"><div style="font-family:var(--mono);font-size:1.2em;font-weight:800;color:var(--ink)">'+mis.length+'</div><div style="font-size:.68em;color:var(--ink3);text-transform:uppercase;margin-top:2px">Missões</div></div>'+
+      '<div style="background:var(--g0);border-radius:0;padding:10px;text-align:center"><div style="font-family:var(--mono);font-size:1.2em;font-weight:800;color:var(--ink)">'+misU.length+'</div><div style="font-size:.68em;color:var(--ink3);text-transform:uppercase;margin-top:2px">Missões</div></div>'+
       '<div style="background:var(--g0);border-radius:0;padding:10px;text-align:center"><div style="font-family:var(--mono);font-size:1.2em;font-weight:800;color:var(--ink)">'+btH+'h</div><div style="font-size:.68em;color:var(--ink3);text-transform:uppercase;margin-top:2px">Block Time</div></div>'+
       '<div style="background:var(--g0);border-radius:0;padding:10px;text-align:center"><div style="font-family:var(--mono);font-size:1.2em;font-weight:800;color:var(--ink)">'+(fuelAdd?fuelAdd+'L':'—')+'</div><div style="font-size:.68em;color:var(--ink3);text-transform:uppercase;margin-top:2px">Comb. add.</div></div>'+
     '</div>'+
@@ -9220,24 +9239,25 @@ renderIncidentes(){
     if(!list.length){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--ink3)">Nenhuma série criada. Adicione uma acima ou ao registar uma missão.</div>';return;}
     let h='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;padding:4px 0">';
     list.forEach(s=>{
-      const missoes=this.S.missoes.filter(m=>m.serie===s);
+      const missoesLegs=this.S.missoes.filter(m=>m.serie===s);
+      const missoes=this._uniqueMissions(missoesLegs);
       const used=missoes.length;
       const conc=missoes.filter(m=>m.status==='Concluída').length;
       const ativ=missoes.filter(m=>m.status==='Em Curso'||m.status==='Planeada').length;
       const isDefault=this.C.seriesDefault&&this.C.seriesDefault.includes(s);
       let btTot=0;
-      missoes.filter(m=>m.status==='Concluída').forEach(m=>{
+      missoesLegs.filter(m=>m.status==='Concluída').forEach(m=>{
         const bt=this.calcBT(m.boff,m.bon);
         if(bt&&bt!=='—'){const[bh,bm]=bt.split(':').map(Number);btTot+=bh*60+(bm||0);}
       });
       const btH=(btTot/60).toFixed(1);
       let lastDate='—';
-      if(missoes.length){
-        const dts=missoes.map(m=>m.dt instanceof Date?m.dt.toISOString().slice(0,10):String(m.dt||'')).filter(Boolean).sort();
+      if(missoesLegs.length){
+        const dts=missoesLegs.map(m=>m.dt instanceof Date?m.dt.toISOString().slice(0,10):String(m.dt||'')).filter(Boolean).sort();
         if(dts.length){const d=new Date(dts[dts.length-1]);lastDate=d.toLocaleDateString('pt-PT');}
       }
       const aeroCount={};
-      missoes.forEach(m=>{if(m.aero){aeroCount[m.aero]=(aeroCount[m.aero]||0)+1;}});
+      missoesLegs.forEach(m=>{if(m.aero){aeroCount[m.aero]=(aeroCount[m.aero]||0)+1;}});
       const topAero=Object.keys(aeroCount).sort((a,b)=>aeroCount[b]-aeroCount[a])[0]||null;
       const sSafe=s.replace(/'/g,"\'");
       h+='<div style="background:var(--white);border:1.5px solid var(--border);border-radius:0;padding:16px 16px 12px;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;flex-direction:column;gap:10px">'+
@@ -9662,6 +9682,7 @@ relatorioMensalPDF(){
   const concl=ms.filter(m=>m.status==='Concluída');
   const plan=ms.filter(m=>m.status==='Planeada');
   const cancel=ms.filter(m=>m.status==='Cancelada');
+  const msU=this._uniqueMissions(ms),conclU=this._uniqueMissions(concl),planU=this._uniqueMissions(plan),cancelU=this._uniqueMissions(cancel);
   const vPF=this.getVPF();const mv=this.getMealVals();
   const fmtM=m=>{const h=Math.floor(m/60),mn=m%60;return h+'h '+(mn<10?'0':'')+mn+'m';};
   // BT total
@@ -9674,12 +9695,18 @@ relatorioMensalPDF(){
     totFuelAdd+=(m.fuelAdd||0);totFuelUse+=(m.fuelUse||0);
     const tMin=this.t2m((m.toff||'00:00').slice(0,5));const effMins=btMin||this.dur2m(m.dur);
     const mR=(this.overlaps(tMin,effMins,0,8)?mv.pa:0)+(this.overlaps(tMin,effMins,12,14)?mv.al:0)+(this.overlaps(tMin,effMins,19,24)?mv.jn:0);
-    const k=m.aero||'—';if(!byAero[k])byAero[k]={mis:0,btMin:0};byAero[k].mis++;byAero[k].btMin+=btMin;
-    const t=m.tipo||'—';if(!byTipo[t])byTipo[t]={mis:0,pac:0};byTipo[t].mis++;byTipo[t].pac+=(m.nPac||0);
+    // "mis" conta missões únicas (por Nº Missão); btMin/pac somam sempre por perna voada
+    const k=m.aero||'—';if(!byAero[k])byAero[k]={mis:0,btMin:0,_seen:new Set()};
+    if(!byAero[k]._seen.has(m.num)){byAero[k]._seen.add(m.num);byAero[k].mis++;}
+    byAero[k].btMin+=btMin;
+    const t=m.tipo||'—';if(!byTipo[t])byTipo[t]={mis:0,pac:0,_seen:new Set(),_seenPac:new Set()};
+    if(!byTipo[t]._seen.has(m.num)){byTipo[t]._seen.add(m.num);byTipo[t].mis++;}
+    if(!byTipo[t]._seenPac.has(m.num)){byTipo[t]._seenPac.add(m.num);byTipo[t].pac+=(m.nPac||0);}
     (m.crew||[]).forEach(c=>{
       const cv=(vPF[c.fn]||1500)*(effMins/60)+mR;totCVE+=cv;
-      if(!byTrip[c.nome])byTrip[c.nome]={nome:c.nome,fn:c.fn,mis:0,btMin:0,cve:0};
-      byTrip[c.nome].mis++;byTrip[c.nome].btMin+=btMin;byTrip[c.nome].cve+=cv;
+      if(!byTrip[c.nome])byTrip[c.nome]={nome:c.nome,fn:c.fn,mis:0,btMin:0,cve:0,_seen:new Set()};
+      if(!byTrip[c.nome]._seen.has(m.num)){byTrip[c.nome]._seen.add(m.num);byTrip[c.nome].mis++;}
+      byTrip[c.nome].btMin+=btMin;byTrip[c.nome].cve+=cv;
     });
   });
   const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
@@ -9703,10 +9730,10 @@ relatorioMensalPDF(){
     doc.text(label,cx+21,cy+19,{align:'center'});
     doc.setTextColor(0,0,0);
   };
-  _kpi('Total Missões',ms.length,lm,y,[61,69,84]);
-  _kpi('Concluídas',concl.length,lm+44,y,[21,101,192]);
-  _kpi('Planeadas',plan.length,lm+88,y,[103,58,183]);
-  _kpi('Canceladas',cancel.length,lm+132,y,[198,40,40]);
+  _kpi('Total Missões',msU.length,lm,y,[61,69,84]);
+  _kpi('Concluídas',conclU.length,lm+44,y,[21,101,192]);
+  _kpi('Planeadas',planU.length,lm+88,y,[103,58,183]);
+  _kpi('Canceladas',cancelU.length,lm+132,y,[198,40,40]);
   y+=28;
   _kpi('Block Time',fmtM(totBT),lm,y,[0,105,92]);
   _kpi('Comb. Usado',totFuelUse?totFuelUse+'L':'—',lm+44,y,[230,81,0]);
@@ -9736,7 +9763,7 @@ relatorioMensalPDF(){
     doc.text('Missões por Tipo',lm,y);y+=5;
     doc.setTextColor(0,0,0);
     doc.autoTable({startY:y,head:[['Tipo de Missão','Missões','Pac.','%']],
-      body:tipoKeys.map(k=>[k,byTipo[k].mis,byTipo[k].pac||0,ms.length?Math.round(byTipo[k].mis/ms.length*100)+'%':'—']),
+      body:tipoKeys.map(k=>[k,byTipo[k].mis,byTipo[k].pac||0,msU.length?Math.round(byTipo[k].mis/msU.length*100)+'%':'—']),
       styles:{fontSize:8.5,cellPadding:2.5},headStyles:{fillColor:[97,106,120],textColor:255,fontStyle:'bold'},
       alternateRowStyles:{fillColor:[240,241,243]},margin:{left:lm,right:lm},
       columnStyles:{0:{cellWidth:74},1:{cellWidth:22,halign:'center'},2:{cellWidth:16,halign:'center'},3:{cellWidth:20,halign:'center'}},
@@ -9801,18 +9828,20 @@ relatorioAnualPDF(){
   const ano=anos[0];
   const ms=this.S.missoes.filter(m=>{const d=m.dt instanceof Date?m.dt:new Date(m.dt);return d.getFullYear()===ano;});
   const concl=ms.filter(m=>m.status==='Concluída');
+  const msU=this._uniqueMissions(ms),conclU=this._uniqueMissions(concl);
   const vPF=this.getVPF();const mv=this.getMealVals();
   const fmtM=m=>{const h=Math.floor(m/60),mn=m%60;return h+'h '+(mn<10?'0':'')+mn+'m';};
   // Aggregate por mês
-  const byMes=Array.from({length:12},(_,i)=>({mes:i+1,nome:this.C.NM[i].slice(0,3),mis:0,concl:0,cancel:0,btMin:0,cve:0,fuel:0}));
+  const byMes=Array.from({length:12},(_,i)=>({mes:i+1,nome:this.C.NM[i].slice(0,3),mis:0,concl:0,cancel:0,btMin:0,cve:0,fuel:0,_seenMis:new Set(),_seenConcl:new Set(),_seenCancel:new Set()}));
   const byAero={},byTipo={},byTrip={};
   let totBT=0,totCVE=0,totFuel=0;
   ms.forEach(m=>{
     const d=m.dt instanceof Date?m.dt:new Date(m.dt);
     const mo=d.getMonth();
-    byMes[mo].mis++;
-    if(m.status==='Concluída')byMes[mo].concl++;
-    if(m.status==='Cancelada')byMes[mo].cancel++;
+    // "mis/concl/cancel" contam missões únicas (por Nº Missão) dentro de cada mês
+    if(!byMes[mo]._seenMis.has(m.num)){byMes[mo]._seenMis.add(m.num);byMes[mo].mis++;}
+    if(m.status==='Concluída'&&!byMes[mo]._seenConcl.has(m.num)){byMes[mo]._seenConcl.add(m.num);byMes[mo].concl++;}
+    if(m.status==='Cancelada'&&!byMes[mo]._seenCancel.has(m.num)){byMes[mo]._seenCancel.add(m.num);byMes[mo].cancel++;}
     if(m.status!=='Concluída')return;
     const bt=this.calcBT(m.boff,m.bon);
     let btMin=0;if(bt&&bt!=='—'){const[bh,bm]=bt.split(':').map(Number);btMin=bh*60+(bm||0);}
@@ -9820,12 +9849,17 @@ relatorioAnualPDF(){
     totFuel+=(m.fuelUse||0);byMes[mo].fuel+=(m.fuelUse||0);
     const tMin=this.t2m((m.toff||'00:00').slice(0,5));const effMins=btMin||this.dur2m(m.dur);
     const mR=(this.overlaps(tMin,effMins,0,8)?mv.pa:0)+(this.overlaps(tMin,effMins,12,14)?mv.al:0)+(this.overlaps(tMin,effMins,19,24)?mv.jn:0);
-    const k=m.aero||'—';if(!byAero[k])byAero[k]={mis:0,btMin:0};byAero[k].mis++;byAero[k].btMin+=btMin;
-    const t=m.tipo||'—';if(!byTipo[t])byTipo[t]={mis:0,pac:0};byTipo[t].mis++;byTipo[t].pac+=(m.nPac||0);
+    const k=m.aero||'—';if(!byAero[k])byAero[k]={mis:0,btMin:0,_seen:new Set()};
+    if(!byAero[k]._seen.has(m.num)){byAero[k]._seen.add(m.num);byAero[k].mis++;}
+    byAero[k].btMin+=btMin;
+    const t=m.tipo||'—';if(!byTipo[t])byTipo[t]={mis:0,pac:0,_seen:new Set(),_seenPac:new Set()};
+    if(!byTipo[t]._seen.has(m.num)){byTipo[t]._seen.add(m.num);byTipo[t].mis++;}
+    if(!byTipo[t]._seenPac.has(m.num)){byTipo[t]._seenPac.add(m.num);byTipo[t].pac+=(m.nPac||0);}
     (m.crew||[]).forEach(c=>{
       const cv=(vPF[c.fn]||1500)*(effMins/60)+mR;totCVE+=cv;byMes[mo].cve+=cv;
-      if(!byTrip[c.nome])byTrip[c.nome]={nome:c.nome,fn:c.fn,mis:0,btMin:0,cve:0};
-      byTrip[c.nome].mis++;byTrip[c.nome].btMin+=btMin;byTrip[c.nome].cve+=cv;
+      if(!byTrip[c.nome])byTrip[c.nome]={nome:c.nome,fn:c.fn,mis:0,btMin:0,cve:0,_seen:new Set()};
+      if(!byTrip[c.nome]._seen.has(m.num)){byTrip[c.nome]._seen.add(m.num);byTrip[c.nome].mis++;}
+      byTrip[c.nome].btMin+=btMin;byTrip[c.nome].cve+=cv;
     });
   });
   const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
@@ -9839,8 +9873,8 @@ relatorioAnualPDF(){
   doc.setTextColor(0,0,0);let y=52;
   // KPIs anuais
   const _k=(l,v,cx,cy,col)=>{doc.setFillColor(...col);doc.roundedRect(cx,cy,56,20,3,3,'F');doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text(String(v),cx+28,cy+12,{align:'center'});doc.setFontSize(7);doc.setFont('helvetica','normal');doc.text(l,cx+28,cy+18,{align:'center'});doc.setTextColor(0,0,0);};
-  _k('Total Missões',ms.length,lm,y,[61,69,84]);
-  _k('Concluídas',concl.length,lm+58,y,[21,101,192]);
+  _k('Total Missões',msU.length,lm,y,[61,69,84]);
+  _k('Concluídas',conclU.length,lm+58,y,[21,101,192]);
   _k('Block Time',fmtM(totBT),lm+116,y,[0,105,92]);
   _k('Combustível',totFuel?totFuel+'L':'—',lm+174,y,[230,81,0]);
   _k('Pagto de Subsídio',this.cve(Math.round(totCVE)),lm+232,y,[97,106,120]);
@@ -9853,7 +9887,7 @@ relatorioAnualPDF(){
     styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[97,106,120],textColor:255,fontStyle:'bold',halign:'center'},
     alternateRowStyles:{fillColor:[223,225,229]},margin:{left:lm,right:lm},
     columnStyles:{0:{cellWidth:32},1:{cellWidth:22,halign:'center'},2:{cellWidth:24,halign:'center'},3:{cellWidth:22,halign:'center'},4:{cellWidth:28,halign:'center'},5:{cellWidth:24,halign:'center'},6:{cellWidth:32,halign:'right'}},
-    foot:[['TOTAL',ms.length,concl.length,ms.filter(m=>m.status==='Cancelada').length,fmtM(totBT),totFuel?totFuel+'L':'—',this.cve(Math.round(totCVE))]],
+    foot:[['TOTAL',msU.length,conclU.length,this._uniqueMissions(ms.filter(m=>m.status==='Cancelada')).length,fmtM(totBT),totFuel?totFuel+'L':'—',this.cve(Math.round(totCVE))]],
     footStyles:{fillColor:[197,201,209],textColor:[97,106,120],fontStyle:'bold'},
   });
   y=doc.lastAutoTable.finalY+8;
@@ -9883,7 +9917,7 @@ relatorioAnualPDF(){
     doc.text('Por Tipo de Missão',148,ySubLbl);doc.setTextColor(0,0,0);
     doc.autoTable({startY:ySubTbl,
       head:[['Tipo de Missão','Qtd','Pac.','%']],
-      body:tipoKeys.map(k=>[k,byTipo[k].mis,byTipo[k].pac||0,ms.length?Math.round(byTipo[k].mis/ms.length*100)+'%':'—']),
+      body:tipoKeys.map(k=>[k,byTipo[k].mis,byTipo[k].pac||0,msU.length?Math.round(byTipo[k].mis/msU.length*100)+'%':'—']),
       styles:{fontSize:8,cellPadding:2.5},
       headStyles:{fillColor:[97,106,120],textColor:255,fontStyle:'bold'},
       alternateRowStyles:{fillColor:[223,225,229]},
@@ -9959,6 +9993,8 @@ dashboardExecutivoPDF(){
   // Mês anterior comparativo (só faz sentido para mês específico)
   const moPrev=mo===1?12:mo-1,anoPrev=mo===1?ano-1:ano;
   const msPrev=todosOsMeses?[]:this.S.missoes.filter(m=>{const d=m.dt instanceof Date?m.dt:new Date(m.dt);return d.getFullYear()===anoPrev&&d.getMonth()+1===moPrev&&m.status==='Concluída';});
+  // Versões de missões únicas (ida+volta = 1) para todas as contagens (não para somas de horas/combustível)
+  const msAnoU=this._uniqueMissions(msAno),msMesU=this._uniqueMissions(msMes),msAnoConclU=this._uniqueMissions(msAnoConcl),msMesConclU=this._uniqueMissions(msMesConcl),msPrevU=this._uniqueMissions(msPrev);
   // Helpers
   const _btMin=(arr)=>{let t=0;arr.forEach(m=>{const bt=this.calcBT(m.boff,m.bon);if(bt&&bt!=='—'){const[bh,bm]=bt.split(':').map(Number);t+=bh*60+(bm||0);}});return t;};
   const _durMin=(arr)=>{let t=0;arr.forEach(m=>{t+=this.dur2m(m.dur)||0;});return t;};
@@ -9976,17 +10012,51 @@ dashboardExecutivoPDF(){
   const byAero={};
   msMesConcl.forEach(m=>{
     const btMin=_effMin(m);const k=m.aero||'—';
-    if(!byAero[k])byAero[k]={mis:0,btMin:0,durMin:0,fuelAdd:0,fuelUse:0,tipos:{}};
-    byAero[k].mis++;byAero[k].btMin+=btMin;byAero[k].durMin+=this.dur2m(m.dur)||0;
+    if(!byAero[k])byAero[k]={mis:0,btMin:0,durMin:0,fuelAdd:0,fuelUse:0,tipos:{},_seen:new Set()};
+    if(!byAero[k]._seen.has(m.num)){byAero[k]._seen.add(m.num);byAero[k].mis++;byAero[k].tipos[m.tipo]=(byAero[k].tipos[m.tipo]||0)+1;}
+    byAero[k].btMin+=btMin;byAero[k].durMin+=this.dur2m(m.dur)||0;
     byAero[k].fuelAdd+=(m.fuelAdd||0);byAero[k].fuelUse+=(m.fuelUse||0);
-    byAero[k].tipos[m.tipo]=(byAero[k].tipos[m.tipo]||0)+1;
   });
-  // Aggregate por tipo
+  // Aggregate por tipo (missões únicas; pac só somado 1x por missão)
   const byTipo={};
-  msMes.forEach(m=>{const t=m.tipo||'—';if(!byTipo[t])byTipo[t]={total:0,concl:0,plan:0,canc:0,btMin:0,durMin:0,pac:0};byTipo[t].total++;byTipo[t].pac+=(m.nPac||0);if(m.status==='Concluída'){byTipo[t].concl++;byTipo[t].btMin+=_effMin(m);byTipo[t].durMin+=this.dur2m(m.dur)||0;}if(m.status==='Planeada')byTipo[t].plan++;if(m.status==='Cancelada')byTipo[t].canc++;});
+  {
+    const _seenTot={},_seenPac={};
+    msMes.forEach(m=>{
+      const t=m.tipo||'—';if(!byTipo[t])byTipo[t]={total:0,concl:0,plan:0,canc:0,btMin:0,durMin:0,pac:0};
+      if(!_seenTot[t])_seenTot[t]=new Set();
+      if(!_seenTot[t].has(m.num)){_seenTot[t].add(m.num);byTipo[t].total++;
+        if(!_seenPac[t])_seenPac[t]=new Set();
+        if(!_seenPac[t].has(m.num)){_seenPac[t].add(m.num);byTipo[t].pac+=(m.nPac||0);}
+      }
+      if(m.status==='Concluída'){byTipo[t].btMin+=_effMin(m);byTipo[t].durMin+=this.dur2m(m.dur)||0;}
+    });
+    // concl/plan/canc contados por missão única, por tipo
+    const _seenStatus={};
+    msMes.forEach(m=>{
+      const t=m.tipo||'—';const key=t+'|'+(m.status||'');
+      if(!_seenStatus[key])_seenStatus[key]=new Set();
+      if(_seenStatus[key].has(m.num))return;
+      _seenStatus[key].add(m.num);
+      if(m.status==='Concluída')byTipo[t].concl++;
+      if(m.status==='Planeada')byTipo[t].plan++;
+      if(m.status==='Cancelada')byTipo[t].canc++;
+    });
+  }
   // Aggregate por série
   const bySerie={};
-  msMes.forEach(m=>{const s=m.serie||'—';if(!bySerie[s])bySerie[s]={total:0,concl:0,btMin:0,durMin:0};bySerie[s].total++;if(m.status==='Concluída'){bySerie[s].concl++;bySerie[s].btMin+=_effMin(m);bySerie[s].durMin+=this.dur2m(m.dur)||0;}});
+  {
+    const _seenTot={},_seenConcl={};
+    msMes.forEach(m=>{
+      const s=m.serie||'—';if(!bySerie[s])bySerie[s]={total:0,concl:0,btMin:0,durMin:0};
+      if(!_seenTot[s])_seenTot[s]=new Set();
+      if(!_seenTot[s].has(m.num)){_seenTot[s].add(m.num);bySerie[s].total++;}
+      if(m.status==='Concluída'){
+        if(!_seenConcl[s])_seenConcl[s]=new Set();
+        if(!_seenConcl[s].has(m.num)){_seenConcl[s].add(m.num);bySerie[s].concl++;}
+        bySerie[s].btMin+=_effMin(m);bySerie[s].durMin+=this.dur2m(m.dur)||0;
+      }
+    });
+  }
   // Tripulantes completos
   const byTrip={};
   msMesConcl.forEach(m=>{
@@ -9994,8 +10064,10 @@ dashboardExecutivoPDF(){
     const hasPA=this.overlaps(tMin,eff,0,8),hasA=this.overlaps(tMin,eff,12,14),hasJ=this.overlaps(tMin,eff,19,24);
     const mR=(hasPA?mv.pa:0)+(hasA?mv.al:0)+(hasJ?mv.jn:0);
     (m.crew||[]).forEach(c=>{
-      if(!byTrip[c.nome])byTrip[c.nome]={nome:c.nome,fn:c.fn,mis:0,btMin:0,durMin:0,cve:0,pa:0,al:0,jn:0,vR:0};
-      const p=byTrip[c.nome];p.mis++;p.btMin+=_btMin([m]);p.durMin+=this.dur2m(m.dur)||0;
+      if(!byTrip[c.nome])byTrip[c.nome]={nome:c.nome,fn:c.fn,mis:0,btMin:0,durMin:0,cve:0,pa:0,al:0,jn:0,vR:0,_seen:new Set()};
+      const p=byTrip[c.nome];
+      if(!p._seen.has(m.num)){p._seen.add(m.num);p.mis++;}
+      p.btMin+=_btMin([m]);p.durMin+=this.dur2m(m.dur)||0;
       p.cve+=(vPF[c.fn]||1500)*(eff/60)+mR;
       if(hasPA)p.pa++;if(hasA)p.al++;if(hasJ)p.jn++;p.vR+=mR;
     });
@@ -10060,13 +10132,13 @@ dashboardExecutivoPDF(){
     doc.setTextColor(0,0,0);doc.setDrawColor(0,0,0);doc.setLineWidth(0.2);
   };
   const step=bx+kpiGap;
-  _kpi('Total Missões',msMes.length,delta(msMes.length,msPrev.length),kpiStart,y,[61,69,84]);
-  _kpi('Concluídas',msMesConcl.length,delta(msMesConcl.length,msPrev.length),kpiStart+step,y,[21,101,192]);
-  _kpi('Planeadas',msMesPlan.length,'',kpiStart+step*2,y,[103,58,183]);
-  _kpi('Em Curso',msMesCur.length,'',kpiStart+step*3,y,[230,81,0]);
-  _kpi('Canceladas',msMesCanc.length,'',kpiStart+step*4,y,[198,40,40]);
+  _kpi('Total Missões',msMesU.length,delta(msMesU.length,msPrevU.length),kpiStart,y,[61,69,84]);
+  _kpi('Concluídas',msMesConclU.length,delta(msMesConclU.length,msPrevU.length),kpiStart+step,y,[21,101,192]);
+  _kpi('Planeadas',this._uniqueMissions(msMesPlan).length,'',kpiStart+step*2,y,[103,58,183]);
+  _kpi('Em Curso',this._uniqueMissions(msMesCur).length,'',kpiStart+step*3,y,[230,81,0]);
+  _kpi('Canceladas',this._uniqueMissions(msMesCanc).length,'',kpiStart+step*4,y,[198,40,40]);
   // ── KPIs operacionais, na mesma linha ──
-  const taxaConc=msMes.length?Math.round(msMesConcl.length/msMes.length*100):0;
+  const taxaConc=msMesU.length?Math.round(msMesConclU.length/msMesU.length*100):0;
   _kpi('Block Time',fmtM(btMes),delta(btMes,btPrev),kpiStart+step*5,y,[0,105,92]);
   _kpi('Combustível Adicionado',fuelAdd?fuelAdd+'L':'—','',kpiStart+step*6,y,[230,81,0]);
   _kpi('Combustível Usado',fuelUse?fuelUse+'L':'—','',kpiStart+step*7,y,[180,50,0]);
@@ -10076,7 +10148,7 @@ dashboardExecutivoPDF(){
   // ── Acumulado Ano ──
   doc.setFillColor(232,240,254);doc.rect(lm,y,cw,7,'F');
   doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(21,101,192);
-  doc.text('ACUMULADO '+ano+' — '+msAno.length+' missões totais   ·   '+msAnoConcl.length+' concluídas   ·   BT '+fmtM(btAno)+'   ·   Comb. '+fuelAno+'L   ·   Custo '+this.cve(Math.round(cveAno)),pw/2,y+4.8,{align:'center'});
+  doc.text('ACUMULADO '+ano+' — '+msAnoU.length+' missões totais   ·   '+msAnoConclU.length+' concluídas   ·   BT '+fmtM(btAno)+'   ·   Comb. '+fuelAno+'L   ·   Custo '+this.cve(Math.round(cveAno)),pw/2,y+4.8,{align:'center'});
   doc.setTextColor(0,0,0);y+=12;
   // ── Metas ──
   if(metas.mis||metas.hr||metas.fuel||metas.cve){
@@ -10090,7 +10162,7 @@ dashboardExecutivoPDF(){
       doc.setFillColor(...col);doc.roundedRect(cx,cy+1,bww*pct/100,3.5,1,1,'F');
     };
     const bww=(cw-6)/4;
-    if(metas.mis)_pb('Missões/Mes',msMesConcl.length,metas.mis,v=>String(v),lm,y,bww);
+    if(metas.mis)_pb('Missões/Mes',msMesConclU.length,metas.mis,v=>String(v),lm,y,bww);
     if(metas.hr)_pb('BT/Mes',+(btMes/60).toFixed(1),metas.hr,v=>v+'h',lm+bww+2,y,bww);
     if(metas.fuel)_pb('Combustivel/Mes',fuelUse,metas.fuel,v=>v+'L',lm+(bww+2)*2,y,bww);
     if(metas.cve)_pb('Custo/Mes',Math.round(cveMes),metas.cve,v=>this.cve(v),lm+(bww+2)*3,y,bww);
@@ -10150,7 +10222,7 @@ dashboardExecutivoPDF(){
     y=_sec('POR TIPO DE MISSÃO',[61,69,84],y);
     doc.autoTable({startY:y,
       head:[['Tipo de Missão','Total','Concluídas','Planeadas','Canceladas','Block Time','Flight Time','Pac.','% do Total']],
-      body:tipoKeys.map(k=>{const t=byTipo[k];return[k,t.total,t.concl,t.plan,t.canc,fmtM(t.btMin),fmtM(t.durMin),t.pac||0,msMes.length?Math.round(t.total/msMes.length*100)+'%':'—'];}),
+      body:tipoKeys.map(k=>{const t=byTipo[k];return[k,t.total,t.concl,t.plan,t.canc,fmtM(t.btMin),fmtM(t.durMin),t.pac||0,msMesU.length?Math.round(t.total/msMesU.length*100)+'%':'—'];}),
       styles:{fontSize:8,cellPadding:2.5},headStyles:HS,alternateRowStyles:AS,margin:{left:lm,right:lm},
       columnStyles:{0:{cellWidth:72},1:{cellWidth:18,halign:'center'},2:{cellWidth:26,halign:'center'},3:{cellWidth:26,halign:'center'},4:{cellWidth:26,halign:'center'},5:{cellWidth:28,halign:'center'},6:{cellWidth:14,halign:'center'},7:{cellWidth:20,halign:'center'}},
     });
@@ -10255,7 +10327,7 @@ dashboardExecutivoPDF(){
   this._pdfSig(doc,lm,rm,210);
   _footer();
   savePDF(doc,'Dashboard_Executivo_'+periodoLabel.replace(/ /g,'_')+'.pdf');
-  this.showNotif('Dashboard '+periodoLabel+' gerado com '+msMes.length+' missões!');
+  this.showNotif('Dashboard '+periodoLabel+' gerado com '+msMesU.length+' missões!');
 },
 
 // ─── T001: ORDEM DE SERVIÇO PDF (individual) ──────────────────
@@ -10615,13 +10687,14 @@ tripStats(nome){
   const t=this.S.trips.find(x=>x.nome===nome);
   const ms=this.S.missoes.filter(m=>(m.crew||[]).some(c=>c.nome===nome));
   const concl=ms.filter(m=>m.status==='Concluída');
-  // Aggregate by year+month
+  const msU=this._uniqueMissions(ms);
+  // Aggregate by year+month (missões únicas por Nº Missão; horas somam por perna)
   const byYM={};
   concl.forEach(m=>{
     const dt=m.dt instanceof Date?m.dt:new Date(m.dt);
     const ym=dt.getFullYear()+'-'+(dt.getMonth()+1).toString().padStart(2,'0');
-    if(!byYM[ym])byYM[ym]={mis:0,btMin:0};
-    byYM[ym].mis++;
+    if(!byYM[ym])byYM[ym]={mis:0,btMin:0,_seen:new Set()};
+    if(!byYM[ym]._seen.has(m.num)){byYM[ym]._seen.add(m.num);byYM[ym].mis++;}
     const bt=this.calcBT(m.boff,m.bon);
     if(bt&&bt!=='—'){const[bh,bm]=bt.split(':').map(Number);byYM[ym].btMin+=bh*60+(bm||0);}
   });
@@ -10648,7 +10721,7 @@ tripStats(nome){
   // Summary metrics
   h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">';
   const mc=(ic,lbl,val)=>'<div style="padding:10px;background:var(--g0);border-radius:0;border:1px solid var(--g2);text-align:center"><div style="font-size:1.2em">'+ic+'</div><div style="font-weight:800;font-size:1.1em;color:var(--g8)">'+val+'</div><div style="font-size:.72em;color:var(--ink3);margin-top:2px">'+lbl+'</div></div>';
-  h+=mc('','Total Missões',ms.length);
+  h+=mc('','Total Missões',msU.length);
   h+=mc('','Block Time',(totBtMin/60).toFixed(1)+'h');
   h+=mc('','Remuneração Est.',this.cve(Math.round(totPay)));
   h+='</div>';
@@ -10753,14 +10826,15 @@ _lbRender(yr,mo,aero){
   // Aggregate filtered
   let totFt=0,totBt=0;
   const byFn={},byAero={},byTipo={},byYear={};
+  const _seenFn={},_seenAe={},_seenTp={},_seenYr={};
   filtered.forEach(m=>{
     const fn=(m.crew||[]).find(cx=>cx.nome===nome)?.fn||'—';
     const ft=_ftMin(m),bt=_btMin(m);
     totFt+=ft;totBt+=bt;
-    if(!byFn[fn])byFn[fn]={mis:0,ft:0,bt:0};byFn[fn].mis++;byFn[fn].ft+=ft;byFn[fn].bt+=bt;
-    const ae=m.aero||'—';if(!byAero[ae])byAero[ae]={mis:0,ft:0};byAero[ae].mis++;byAero[ae].ft+=ft;
-    const tp=m.tipo||'—';if(!byTipo[tp])byTipo[tp]={mis:0,ft:0};byTipo[tp].mis++;byTipo[tp].ft+=ft;
-    const y2=m._dt.getFullYear();if(!byYear[y2])byYear[y2]={mis:0,ft:0,bt:0};byYear[y2].mis++;byYear[y2].ft+=ft;byYear[y2].bt+=bt;
+    if(!byFn[fn])byFn[fn]={mis:0,ft:0,bt:0};if(!_seenFn[fn])_seenFn[fn]=new Set();if(!_seenFn[fn].has(m.num)){_seenFn[fn].add(m.num);byFn[fn].mis++;}byFn[fn].ft+=ft;byFn[fn].bt+=bt;
+    const ae=m.aero||'—';if(!byAero[ae])byAero[ae]={mis:0,ft:0};if(!_seenAe[ae])_seenAe[ae]=new Set();if(!_seenAe[ae].has(m.num)){_seenAe[ae].add(m.num);byAero[ae].mis++;}byAero[ae].ft+=ft;
+    const tp=m.tipo||'—';if(!byTipo[tp])byTipo[tp]={mis:0,ft:0};if(!_seenTp[tp])_seenTp[tp]=new Set();if(!_seenTp[tp].has(m.num)){_seenTp[tp].add(m.num);byTipo[tp].mis++;}byTipo[tp].ft+=ft;
+    const y2=m._dt.getFullYear();if(!byYear[y2])byYear[y2]={mis:0,ft:0,bt:0};if(!_seenYr[y2])_seenYr[y2]=new Set();if(!_seenYr[y2].has(m.num)){_seenYr[y2].add(m.num);byYear[y2].mis++;}byYear[y2].ft+=ft;byYear[y2].bt+=bt;
   });
   // Pay (filtered)
   const vPF=this.getVPF();const mv=this.getMealVals();
@@ -10867,7 +10941,7 @@ _lbRender(yr,mo,aero){
   const t2el=document.getElementById('lbT2');
   if(t2el)t2el.textContent=`Registo (${filtered.length})`;
   const fc=document.getElementById('lbFCount');
-  if(fc)fc.textContent=(yr||mo)?`${filtered.length} de ${ms.length} missões`:'';
+  if(fc)fc.textContent=(yr||mo)?`${this._uniqueMissions(filtered).length} de ${this._uniqueMissions(ms).length} missões`:'';
 },
 
 _lbTab(n){
@@ -10903,13 +10977,14 @@ tripLogbookPDF(nome){
     const filterLabel=_fYr||_fMo?'Filtro: '+(_fMo?MESES_PT[Number(_fMo)-1]+' ':'')+(_fYr||''):'';
     let totFt=0,totBt=0;
     const byFn={},byAero={},byYear={};
+    const _seenFn={},_seenAe={},_seenYr={};
     pdfMs.forEach(m=>{
       const fn=(m.crew||[]).find(c=>c.nome===nome)?.fn||'—';
       const ft=_ftMin(m),bt=_btMin(m);
       totFt+=ft;totBt+=bt;
-      if(!byFn[fn])byFn[fn]={mis:0,ft:0,bt:0};byFn[fn].mis++;byFn[fn].ft+=ft;byFn[fn].bt+=bt;
-      const ae=m.aero||'—';if(!byAero[ae])byAero[ae]={mis:0,ft:0};byAero[ae].mis++;byAero[ae].ft+=ft;
-      const yr=m._dt.getFullYear();if(!byYear[yr])byYear[yr]={mis:0,ft:0,bt:0};byYear[yr].mis++;byYear[yr].ft+=ft;byYear[yr].bt+=bt;
+      if(!byFn[fn])byFn[fn]={mis:0,ft:0,bt:0};if(!_seenFn[fn])_seenFn[fn]=new Set();if(!_seenFn[fn].has(m.num)){_seenFn[fn].add(m.num);byFn[fn].mis++;}byFn[fn].ft+=ft;byFn[fn].bt+=bt;
+      const ae=m.aero||'—';if(!byAero[ae])byAero[ae]={mis:0,ft:0};if(!_seenAe[ae])_seenAe[ae]=new Set();if(!_seenAe[ae].has(m.num)){_seenAe[ae].add(m.num);byAero[ae].mis++;}byAero[ae].ft+=ft;
+      const yr=m._dt.getFullYear();if(!byYear[yr])byYear[yr]={mis:0,ft:0,bt:0};if(!_seenYr[yr])_seenYr[yr]=new Set();if(!_seenYr[yr].has(m.num)){_seenYr[yr].add(m.num);byYear[yr].mis++;}byYear[yr].ft+=ft;byYear[yr].bt+=bt;
     });
     const fH=min=>Math.floor(min/60)+'h '+(min%60<10?'0':'')+(min%60)+'m';
     const fD=min=>(min/60).toFixed(2)+'h';
