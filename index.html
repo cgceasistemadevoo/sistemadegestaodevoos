@@ -781,7 +781,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="fg"><label>Block Time estimado</label><input id="eBTPreview" readonly placeholder="—"></div>
     <div class="fg"><label>Origem</label><input id="eOrigem" placeholder="ex: Praia, SAL, CV01"></div>
     <div class="fg"><label>Destino</label><input id="eDestino" placeholder="ex: SAL, Boa Vista, CV02"></div>
-    <div class="fg"><label>Perna</label><select id="ePerna"><option value="">—</option><option value="1">1ª (Ida)</option><option value="2">2ª (Regresso)</option><option value="3">3ª</option><option value="4">4ª</option><option value="5">5ª</option><option value="6">6ª</option><option value="7">7ª</option><option value="8">8ª</option><option value="9">9ª</option><option value="10">10ª</option></select></div>
+    <div class="fg"><label>Perna</label><select id="ePerna" disabled title="Calculado automaticamente — não é editável aqui"><option value="">—</option><option value="1">1ª (Ida)</option><option value="2">2ª (Regresso)</option><option value="3">3ª</option><option value="4">4ª</option><option value="5">5ª</option><option value="6">6ª</option><option value="7">7ª</option><option value="8">8ª</option><option value="9">9ª</option><option value="10">10ª</option></select><small style="color:var(--ink3);font-weight:400">Definida automaticamente ao criar a perna — não editável</small></div>
     <div class="fg" id="eNPacRow" style="display:none"><label>Nº Pacientes (MEDEVAC)</label><input type="number" id="eNPac" placeholder="ex: 2" min="0" step="1" style="width:100%"></div>
     <div class="fg" style="align-self:end"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 2px;user-select:none"><input type="checkbox" id="eCatering" style="width:17px;height:17px;accent-color:#4e5a6b;flex-shrink:0"><span>Refeição fornecida por catering<br><small style="color:var(--ink3);font-weight:400">Não inclui subsídio de refeição</small></span></label></div>
     <div class="fg"><label>Comb. Adicionado (L)</label><input type="number" id="eFuelAdd" placeholder="ex: 450" min="0" step="1"></div>
@@ -1156,7 +1156,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
       <div class="fg"><label>Origem</label><input id="iOrigem" placeholder="ex: Praia, SAL, CV01"></div>
       <div class="fg"><label>Destino</label><input id="iDestino" placeholder="ex: SAL, Boa Vista, CV02"></div>
       <div class="fg"><label>Etiquetas</label><input id="iTags" placeholder="ex: noturno, urgente"></div>
-      <div class="fg"><label>Perna</label><select id="iPerna"><option value="">—</option><option value="1">1ª (Ida)</option><option value="2">2ª (Regresso)</option><option value="3">3ª</option><option value="4">4ª</option><option value="5">5ª</option><option value="6">6ª</option><option value="7">7ª</option><option value="8">8ª</option><option value="9">9ª</option><option value="10">10ª</option></select></div>
+      <div class="fg" style="grid-column:1/-1"><div style="font-size:.78em;color:var(--ink3);background:var(--g0);border-radius:0;padding:8px 10px">Esta missão fica registada como a <b>1ª perna (ida)</b>. Para adicionar a perna de regresso (ou mais pernas), grave esta missão e depois use <b>"⋮" → Criar perna de regresso</b> na lista de missões.</div></div>
       <div class="fg" id="iNPacRow" style="display:none"><label>Nº Pacientes (MEDEVAC)</label><input type="number" id="iNPac" placeholder="ex: 2" min="0" step="1" style="width:100%"></div>
       <div class="fg" style="align-self:end"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 2px;user-select:none"><input type="checkbox" id="iCatering" style="width:17px;height:17px;accent-color:#4e5a6b;flex-shrink:0"><span>Refeição fornecida por catering<br><small style="color:var(--ink3);font-weight:400">Não inclui subsídio de refeição</small></span></label></div>
       <div class="fg"><label>Estado</label>
@@ -3546,7 +3546,7 @@ addMissao(){
     dur,crew,
     origem:(document.getElementById('iOrigem')?.value||'').trim(),
     destino:(document.getElementById('iDestino')?.value||'').trim(),
-    perna:(document.getElementById('iPerna')?.value||'').trim(),
+    perna:'1',
     catering:document.getElementById('iCatering')?.checked||false,
     tags:(document.getElementById('iTags')?.value||'').split(',').map(s=>s.trim()).filter(Boolean),
     fuelAdd:document.getElementById('iFuelAdd')?.value?Number(document.getElementById('iFuelAdd').value):null,
@@ -4669,21 +4669,24 @@ delContacto(id){
     this.openInfoModal(html);
   },
 
-  // ─── DUPLICAR MISSÃO ───────────────────────────────────────────
-  dupMissao(id){
+  // ─── CRIAR PERNA DE REGRESSO / DUPLICAR MISSÃO ─────────────────
+  dupMissaoRegresso(id){ this._dupMissaoCore(id,true); },
+  dupMissaoIndependente(id){ this._dupMissaoCore(id,false); },
+  dupMissao(id){ this._dupMissaoCore(id,confirm('PERNA DE REGRESSO\n\nOK = Criar perna de regresso (mesmo número, origem/destino invertidos)\nCancelar = Duplicar como missão independente')); },
+  _dupMissaoCore(id,isRegresso){
     const mIdx=this.S.missoes.findIndex(x=>x.id===id);
     if(mIdx===-1){this.showNotif('Missão não encontrada','err');return;}
     const mOrig=this.S.missoes[mIdx];
-    const isRegresso=confirm('PERNA DE REGRESSO\n\nOK = Criar perna de regresso (mesmo número, origem/destino invertidos)\nCancelar = Duplicar como missão independente');
     const newDate=prompt('Data da missão (AAAA-MM-DD):',mOrig.dt.toISOString().slice(0,10));
     if(!newDate)return;
     if(!/^\d{4}-\d{2}-\d{2}$/.test(newDate)){this.showNotif('Data inválida (use AAAA-MM-DD)','err');return;}
     let num, perna, origemNova, destinoNovo, histAction;
     if(isRegresso){
       num=mOrig.num;
-      const _curP=mOrig.perna||'';
-      const _numP=parseInt(_curP)||0;
-      const _nextNum=_numP?_numP+1:(/^[A-Z]$/.test(_curP)?_curP.charCodeAt(0)-63:2);
+      // A próxima perna é sempre (maior perna já existente para este Nº Missão) + 1,
+      // independentemente de qual perna concreta foi clicada para iniciar a ação.
+      const _maxP=this.S.missoes.filter(m=>m.num===num).reduce((mx,m)=>Math.max(mx,parseInt(m.perna)||0),0);
+      const _nextNum=_maxP?_maxP+1:2;
       perna=String(Math.min(_nextNum,10));
       origemNova=mOrig.destino||'';
       destinoNovo=mOrig.origem||'';
@@ -4727,6 +4730,9 @@ delContacto(id){
     this.buildCharts();
     this.addAudit('Missão duplicada',mOrig.num+' → '+newM.num);
     this.showNotif(''+num+' criada (duplicada)');
+    // Abre logo a edição da nova perna — hora, data, origem/destino costumam
+    // precisar de ajuste manual e não faz sentido obrigar a procurá-la à parte.
+    this.editMissao(newId);
   },
 
   // ─── LIMITE HORAS ANUAL ────────────────────────────────────────
@@ -5433,11 +5439,21 @@ renderHrAlerts(){
   const el=document.getElementById('mHrAlert');if(el)el.textContent=cnt;
 },
 
+// Devolve uma missão por cada número de missão único (agrupa pernas ida/volta
+// da mesma missão), para contagens onde "missão" deve contar 1 vez, não 1 por perna.
+_uniqueMissions(arr){
+  const seen=new Set();const out=[];
+  (arr||[]).forEach(m=>{
+    const key=m.num||m.id;
+    if(!seen.has(key)){seen.add(key);out.push(m);}
+  });
+  return out;
+},
 renderMetrics(){
   const mis=this.S.filtered;
   const e=id=>document.getElementById(id);
-  if(e('mTot'))e('mTot').textContent=mis.length;
-  if(e('mTotSub'))e('mTotSub').textContent='de '+this.S.missoes.length+' total';
+  if(e('mTot'))e('mTot').textContent=this._uniqueMissions(mis).length;
+  if(e('mTotSub'))e('mTotSub').textContent='de '+this._uniqueMissions(this.S.missoes).length+' total';
   let tot=0,ftTot=0;
   mis.forEach(m=>{const bt=this.calcBT(m.boff,m.bon);if(bt&&bt!=='—'){const[bh,bm]=bt.split(':').map(Number);tot+=bh*60+(bm||0);}else{const p=(m.dur||'0:0').split(':').map(Number);if(!isNaN(p[0])&&!isNaN(p[1]))tot+=p[0]*60+(p[1]||0);}const fp=(m.dur||'0:0').split(':').map(Number);if(!isNaN(fp[0])&&!isNaN(fp[1]))ftTot+=fp[0]*60+(fp[1]||0);});
   if(e('mHr'))e('mHr').textContent=Math.floor(tot/60)+'h '+tot%60+'m';
@@ -5446,15 +5462,16 @@ renderMetrics(){
   if(e('mTrip'))e('mTrip').textContent=trSet.size;
   const med=mis.length?tot/mis.length:0;
   if(e('mMed'))e('mMed').textContent=Math.floor(med/60)+'h '+Math.floor(med%60)+'m';
-  // ── Fila 3: KPIs operacionais ──
-  const conc=mis.filter(m=>(m.status||'Concluída')==='Concluída').length;
-  const canc=mis.filter(m=>(m.status||'Concluída')==='Cancelada').length;
-  const taxaCon=mis.length?Math.round(conc/mis.length*100):0;
+  // ── Fila 3: KPIs operacionais (missões únicas — ida+volta conta 1 vez) ──
+  const misUniq=this._uniqueMissions(mis);
+  const conc=misUniq.filter(m=>(m.status||'Concluída')==='Concluída').length;
+  const canc=misUniq.filter(m=>(m.status||'Concluída')==='Cancelada').length;
+  const taxaCon=misUniq.length?Math.round(conc/misUniq.length*100):0;
   if(e('mTaxaCon'))e('mTaxaCon').textContent=taxaCon+'%';
   if(e('mCancel'))e('mCancel').textContent=canc;
   if(e('mCancelSub'))e('mCancelSub').textContent=canc===1?'missão cancelada':'missões canceladas';
-  // ── Pacientes MEDEVAC ──
-  const medevac=mis.filter(m=>m.tipo&&m.tipo.toLowerCase().includes('medvac'));
+  // ── Pacientes MEDEVAC (uma evacuação com pernas conta como 1, não 1 por perna) ──
+  const medevac=this._uniqueMissions(mis.filter(m=>m.tipo&&m.tipo.toLowerCase().includes('medvac')));
   const totalPac=medevac.reduce((s,m)=>s+(m.nPac||0),0);
   if(e('mPac'))e('mPac').textContent=totalPac;
   if(e('mPacSub'))e('mPacSub').textContent=medevac.length+(medevac.length===1?' evacuação':' evacuações');
@@ -5731,7 +5748,8 @@ renderVoos(list){
           '<button class="btn btn-xs btn-edit admin-only" onclick="A.editMissao(\''+eid+'\')" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'+
           '<button class="btn btn-xs" style="background:var(--g0);border:1px solid var(--border)" onclick="event.stopPropagation();A._rowMenuToggle(\'voMenu'+mIdx+'\')" title="Mais ações">⋮</button>'+
           '<div id="voMenu'+mIdx+'" class="row-action-menu" style="display:none;position:absolute;right:0;top:26px;background:var(--white);border:1.5px solid var(--border);border-radius:0;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:30;min-width:190px;overflow:hidden">'+
-            this._menuItem('Duplicar','A._rowMenuToggle(\'voMenu'+mIdx+'\');A.dupMissao(\''+eid+'\')',null,true)+
+            this._menuItem('+ Criar perna de regresso','A._rowMenuToggle(\'voMenu'+mIdx+'\');A.dupMissaoRegresso(\''+eid+'\')',null,true)+
+            this._menuItem('Duplicar como missão independente','A._rowMenuToggle(\'voMenu'+mIdx+'\');A.dupMissaoIndependente(\''+eid+'\')',null,true)+
             this._menuItem('Guardar como modelo','A._rowMenuToggle(\'voMenu'+mIdx+'\');A.saveTemplateFromMission(\''+eid+'\')',null,true)+
             this._menuItem('Histórico','A._rowMenuToggle(\'voMenu'+mIdx+'\');A.showHistoria(\''+eid+'\')')+
             this._menuItem('Documentos'+(m.docs&&m.docs.length?' ('+m.docs.length+')':''),'A._rowMenuToggle(\'voMenu'+mIdx+'\');A.gestaoDocs(\'miss\',\''+eid+'\')')+
@@ -5775,7 +5793,8 @@ _renderCards(list){
          '<button class="btn btn-xs btn-edit admin-only" onclick="A.editMissao(\''+eid+'\')" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'+
          '<button class="btn btn-xs" style="background:var(--g0);border:1px solid var(--border)" onclick="event.stopPropagation();A._rowMenuToggle(\'voCardMenu'+mIdx+'\')" title="Mais ações">⋮</button>'+
          '<div id="voCardMenu'+mIdx+'" class="row-action-menu" style="display:none;position:absolute;right:0;bottom:34px;background:var(--white);border:1.5px solid var(--border);border-radius:0;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:30;min-width:190px;overflow:hidden">'+
-            this._menuItem('Duplicar','A._rowMenuToggle(\'voCardMenu'+mIdx+'\');A.dupMissao(\''+eid+'\')',null,true)+
+            this._menuItem('+ Criar perna de regresso','A._rowMenuToggle(\'voCardMenu'+mIdx+'\');A.dupMissaoRegresso(\''+eid+'\')',null,true)+
+            this._menuItem('Duplicar como missão independente','A._rowMenuToggle(\'voCardMenu'+mIdx+'\');A.dupMissaoIndependente(\''+eid+'\')',null,true)+
             this._menuItem('Guardar como modelo','A._rowMenuToggle(\'voCardMenu'+mIdx+'\');A.saveTemplateFromMission(\''+eid+'\')',null,true)+
             this._menuItem('Histórico','A._rowMenuToggle(\'voCardMenu'+mIdx+'\');A.showHistoria(\''+eid+'\')')+
             this._menuItem('Documentos'+(m.docs&&m.docs.length?' ('+m.docs.length+')':''),'A._rowMenuToggle(\'voCardMenu'+mIdx+'\');A.gestaoDocs(\'miss\',\''+eid+'\')')+
@@ -6652,10 +6671,10 @@ _buildMedevacCharts(){
   for(let i=11;i>=0;i--){
     const d=new Date(now.getFullYear(),now.getMonth()-i,1);
     months.push(MLBL[d.getMonth()]+' '+String(d.getFullYear()).slice(2));
-    const medevacMes=mis.filter(m=>{
+    const medevacMes=this._uniqueMissions(mis.filter(m=>{
       const md=m.dt instanceof Date?m.dt:new Date(m.dt);
       return m.tipo&&m.tipo.toLowerCase().includes('medvac')&&md.getFullYear()===d.getFullYear()&&md.getMonth()===d.getMonth();
-    });
+    }));
     pacCounts.push(medevacMes.reduce((s,m)=>s+(m.nPac||0),0));
     missCounts.push(medevacMes.length);
   }
