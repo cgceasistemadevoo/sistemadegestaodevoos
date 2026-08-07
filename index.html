@@ -1224,7 +1224,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   <div class="card">
     <div class="card-hd" style="flex-direction:column;gap:10px;align-items:stretch">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <h3>Histórico de Missões <span id="vooCount" style="font-weight:400;color:var(--ink3)"></span></h3>
+        <h3>Histórico de Missões <span id="vooCount" style="font-weight:400;color:var(--ink3)"></span> <span style="font-weight:400;color:var(--ink3)">— Histórico de Voos <span id="vooCountVoos" style="font-weight:400;color:var(--ink3)"></span></span></h3>
         <div style="margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           <div class="view-toggle">
             <button class="view-btn active" id="vBtn-table" onclick="A.setView('table')">Tabela</button>
@@ -5747,7 +5747,9 @@ filterVoos(){
   if(vfdf){const d=new Date(vfdf+'T23:59:59');list=list.filter(m=>{const md=m.dt instanceof Date?m.dt:new Date(m.dt);return md<=d;});}
   this._filteredVoos=list;
   const vc=document.getElementById('vooCount');
-  if(vc) vc.textContent='('+list.length+')';
+  if(vc) vc.textContent='('+this._uniqueMissions(list).length+' missões)';
+  const vcv=document.getElementById('vooCountVoos');
+  if(vcv) vcv.textContent='('+list.length+' voos)';
   this.renderVoos(list);
 },
 limparFiltrosVoos(){
