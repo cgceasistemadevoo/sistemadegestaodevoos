@@ -2321,6 +2321,12 @@ closeInfoModal(){ document.getElementById('modalInfo').classList.remove('on'); }
 
 // ─── MODAL EDIÇÃO ─────────────────────────────────────────────
 closeModal(){
+  // Se estava aberto um rascunho de "Duplicar"/"Criar perna de regresso" e o utilizador
+  // fecha/cancela sem gravar, o rascunho é descartado — nunca chegou a entrar em S.missoes.
+  const _id=document.getElementById('editId')?.value;
+  if(this._pendingDup&&_id&&this._pendingDup.newM.id===_id){
+    this._pendingDup=null;
+  }
   document.getElementById('modalEdit').classList.remove('on');
   const _md=document.getElementById('modalDyn');if(_md)_md.classList.remove('on');
   const _eCL=document.getElementById('editCrewList');if(_eCL)_eCL.innerHTML='';
@@ -3476,6 +3482,9 @@ _focusInvalid(){
   }
 },
 addMissao(){
+  if(this._submittingMissao)return; // evita duplo-clique: 1º clique cria, 2º só apanha o conflito
+  this._submittingMissao=true;
+  setTimeout(()=>{this._submittingMissao=false;},1200);
   if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores podem criar missões','err');return;}
   const FIDS=['iSerie','novaSerie','iData','iTipo','iAero','iBOff','iTOff','iLand','iBOn'];
   this._clearInvalid(FIDS);
@@ -3635,9 +3644,15 @@ editMissao(id){
   document.getElementById('modalEdit').classList.add('on');
 },
 saveEdit(){
+  if(this._submittingMissao)return;
+  this._submittingMissao=true;
+  setTimeout(()=>{this._submittingMissao=false;},1200);
   if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores podem editar','err');return;}
   const id=document.getElementById('editId').value;
-  const m=this.S.missoes.find(x=>x.id===id);
+  // Se estamos a gravar um rascunho de "Duplicar"/"Criar perna de regresso", a missão
+  // ainda não existe em S.missoes — só é criada agora, ao confirmar.
+  const _pending=(this._pendingDup&&this._pendingDup.newM.id===id)?this._pendingDup:null;
+  const m=_pending?_pending.newM:this.S.missoes.find(x=>x.id===id);
   if(!m){this.showNotif('Missão não encontrada','err');return;}
   const FIDS=['eData','eTOff','eLand','eBOff','eBOn'];
   this._clearInvalid(FIDS);
@@ -3655,9 +3670,9 @@ saveEdit(){
   else if(crew.some(c=>!c.nome))crewErr='Selecione o nome de todos os tripulantes';
   if(crewErr&&ecl)ecl.classList.add('has-error');
   if(this._firstInvalid||crewErr){this._focusInvalid();this.showNotif(''+(crewErr||'Corrija os campos destacados'),'err');return;}
-  // Verificar conflitos de horário (excluindo a própria missão)
+  // Verificar conflitos de horário (excluindo a própria missão, se já existir na lista)
   const _eAero=document.getElementById('eAero').value;
-  const _eConflicts=this.checkConflicts(data,toff,land,_eAero,crew,id);
+  const _eConflicts=this.checkConflicts(data,toff,land,_eAero,crew,_pending?null:id);
   if(_eConflicts.length){
     const _eAeroConf=_eConflicts.filter(c=>c.sameAero);
     const _eCrewConf=_eConflicts.filter(c=>!c.sameAero);
@@ -3673,7 +3688,7 @@ saveEdit(){
     }
   }
   m.serie=document.getElementById('eSerie').value;
-  this._snapshot('Editar missão '+m.num);
+  if(!_pending)this._snapshot('Editar missão '+m.num);
   m.dt=new Date(data+'T'+toff+':00');
   m.tags=(document.getElementById('eTags')?.value||'').split(',').map(s=>s.trim()).filter(Boolean);
   m.tipo=document.getElementById('eTipo').value;
@@ -3693,6 +3708,35 @@ saveEdit(){
   m.fuelAdd=document.getElementById('eFuelAdd')?.value?Number(document.getElementById('eFuelAdd').value):null;
   m.fuelUse=document.getElementById('eFuelUse')?.value?Number(document.getElementById('eFuelUse').value):null;
   m.obs=(document.getElementById('eObs')?.value||'').trim();
+
+  if(_pending){
+    // Só agora a missão duplicada / perna de regresso é efetivamente criada e inserida na lista.
+    const mOrig=this.S.missoes.find(x=>x.id===_pending.origId);
+    if(_pending.isRegresso){
+      m.num=mOrig?mOrig.num:m.num;
+      const _maxP=this.S.missoes.filter(x=>x.num===m.num).reduce((mx,x)=>Math.max(mx,parseInt(x.perna)||0),0);
+      m.perna=String(Math.min(_maxP?_maxP+1:2,10));
+    } else {
+      m.num=this.genNum(m.serie,m.dt);
+    }
+    m.history=[{ts:new Date().toISOString(),action:_pending.isRegresso
+      ?('Perna '+m.perna+'ª criada (regresso de '+(mOrig?mOrig.num+(mOrig.perna||''):'')+')')
+      :('Missão criada (duplicada de '+(mOrig?mOrig.num+(mOrig.perna||''):'')+')')}];
+    this._snapshot('Duplicar missão '+m.num);
+    if(_pending.isRegresso&&mOrig&&!mOrig.perna){mOrig.perna='1';} // só agora fica visível que a missão original tem pernas
+    this.S.missoes.push(m);
+    if(!_pending.isRegresso)this._renumSerie(m.serie,m.dt.getFullYear());
+    this.S.filtered=[...this.S.missoes];
+    this.markDirty();
+    this.closeModal();
+    this.renderAll();
+    this.buildCharts();
+    this.addAudit('Missão duplicada',(mOrig?mOrig.num:'')+' → '+m.num);
+    this.showNotif(''+m.num+' criada (duplicada)');
+    this._pendingDup=null;
+    return;
+  }
+
   m.history=[...(m.history||[]),{ts:new Date().toISOString(),action:'Missão editada'}];
   this.S.filtered=[...this.S.missoes];
   this.markDirty();
@@ -4685,13 +4729,16 @@ delContacto(id){
   dupMissaoIndependente(id){ this._dupMissaoCore(id,false); },
   dupMissao(id){ this._dupMissaoCore(id,confirm('PERNA DE REGRESSO\n\nOK = Criar perna de regresso (mesmo número, origem/destino invertidos)\nCancelar = Duplicar como missão independente')); },
   _dupMissaoCore(id,isRegresso){
+    if(this._submittingMissao)return;
+    this._submittingMissao=true;
+    setTimeout(()=>{this._submittingMissao=false;},1200);
     const mIdx=this.S.missoes.findIndex(x=>x.id===id);
     if(mIdx===-1){this.showNotif('Missão não encontrada','err');return;}
     const mOrig=this.S.missoes[mIdx];
     const newDate=prompt('Data da missão (AAAA-MM-DD):',mOrig.dt.toISOString().slice(0,10));
     if(!newDate)return;
     if(!/^\d{4}-\d{2}-\d{2}$/.test(newDate)){this.showNotif('Data inválida (use AAAA-MM-DD)','err');return;}
-    let num, perna, origemNova, destinoNovo, histAction;
+    let num, perna, origemNova, destinoNovo;
     if(isRegresso){
       num=mOrig.num;
       // A próxima perna é sempre (maior perna já existente para este Nº Missão) + 1,
@@ -4701,13 +4748,11 @@ delContacto(id){
       perna=String(Math.min(_nextNum,10));
       origemNova=mOrig.destino||'';
       destinoNovo=mOrig.origem||'';
-      histAction='Perna '+perna+'ª criada (regresso de '+mOrig.num+(mOrig.perna||'')+')';
     } else {
       num=this.genNum(mOrig.serie,new Date(newDate));
       perna=mOrig.perna||'';
       origemNova=mOrig.origem||'';
       destinoNovo=mOrig.destino||'';
-      histAction='Missão criada (duplicada de '+mOrig.num+(mOrig.perna||'')+')';
     }
     const newId=num+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
     const crewCopy=(mOrig.crew||[]).map(c=>({nome:c.nome,fn:c.fn}));
@@ -4730,21 +4775,53 @@ delContacto(id){
       tags:tagsCopy,
       origem:origemNova,
       destino:destinoNovo,
-      history:[{ts:new Date().toISOString(),action:histAction}]
+      catering:mOrig.catering||false,
+      fuelAdd:null,
+      fuelUse:null,
+      nPac:null,
+      obs:'',
+      history:[]
     };
-    this._snapshot('Duplicar missão '+num);
-    if(isRegresso&&!mOrig.perna){mOrig.perna='1';} // só agora fica visível que esta missão tem pernas
-    this.S.missoes.push(newM);
-    if(!isRegresso)this._renumSerie(newM.serie,new Date(newDate+'T00:00:00').getFullYear());
-    this.S.filtered=[...this.S.missoes];
-    this.markDirty();
-    this.renderAll();
-    this.buildCharts();
-    this.addAudit('Missão duplicada',mOrig.num+' → '+newM.num);
-    this.showNotif(''+num+' criada (duplicada)');
-    // Abre logo a edição da nova perna — hora, data, origem/destino costumam
-    // precisar de ajuste manual e não faz sentido obrigar a procurá-la à parte.
-    this.editMissao(newId);
+    // IMPORTANTE: a missão NÃO é inserida em S.missoes aqui. Fica como rascunho
+    // pendente (_pendingDup) e só é efetivamente criada quando o utilizador
+    // clicar em "Gravar" no modal de edição que se abre de seguida. Se fechar/
+    // cancelar o modal, o rascunho é descartado e nada é gravado (ver closeModal).
+    this._pendingDup={newM,isRegresso,origId:mOrig.id};
+    this._openDupDraft(newM);
+  },
+  // Preenche o modal de edição a partir de um rascunho (missão ainda não criada),
+  // em vez de o ler de S.missoes como o editMissao normal faz.
+  _openDupDraft(m){
+    document.getElementById('editId').value=m.id;
+    document.getElementById('eNum').value=m.num;
+    document.getElementById('eData').value=m.dt.toISOString().split('T')[0];
+    document.getElementById('eSerie').value=m.serie;
+    document.getElementById('eTipo').value=m.tipo;
+    document.getElementById('eAero').value=m.aero;
+    document.getElementById('eBOff').value=(m.boff||'').slice(0,5);
+    document.getElementById('eTOff').value=(m.toff||'').slice(0,5);
+    document.getElementById('eLand').value=(m.land||'').slice(0,5);
+    document.getElementById('eBOn').value=(m.bon||'').slice(0,5);
+    this.calcDurPreview();
+    document.getElementById('eStatus').value=m.status||'Planeada';
+    const eT=document.getElementById('eTags');if(eT)eT.value=(m.tags||[]).join(', ');
+    const eOr=document.getElementById('eOrigem');if(eOr)eOr.value=m.origem||'';
+    const eDe=document.getElementById('eDestino');if(eDe)eDe.value=m.destino||'';
+    const ePe=document.getElementById('ePerna');if(ePe)ePe.value=m.perna||'';
+    const eNPacR=document.getElementById('eNPacRow');const eNPacInp=document.getElementById('eNPac');
+    const _isMEDVAC=m.tipo&&m.tipo.toLowerCase().includes('medvac');
+    if(eNPacR)eNPacR.style.display=_isMEDVAC?'':'none';
+    if(eNPacInp)eNPacInp.value=m.nPac!=null?m.nPac:'';
+    const eTipoEl=document.getElementById('eTipo');if(eTipoEl)eTipoEl.onchange=function(){A._onTipoChange(this.value,'eNPacRow');};
+    const eCat=document.getElementById('eCatering');if(eCat)eCat.checked=m.catering||false;
+    const eFa=document.getElementById('eFuelAdd');if(eFa)eFa.value=m.fuelAdd!=null?m.fuelAdd:'';
+    const eFu=document.getElementById('eFuelUse');if(eFu)eFu.value=m.fuelUse!=null?m.fuelUse:'';
+    const eOb=document.getElementById('eObs');if(eOb)eOb.value=m.obs||'';
+    const list=document.getElementById('editCrewList');
+    list.innerHTML='';
+    (m.crew||[]).forEach((c,i)=>{list.insertAdjacentHTML('beforeend',this._crewHtml(c.nome,c.fn,i,'editCrewList','editCrewBadge'));});
+    document.getElementById('editCrewBadge').textContent=(m.crew||[]).length;
+    document.getElementById('modalEdit').classList.add('on');
   },
 
   // ─── LIMITE HORAS ANUAL ────────────────────────────────────────
