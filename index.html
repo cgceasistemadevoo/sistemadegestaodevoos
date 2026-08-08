@@ -2044,8 +2044,12 @@ function setApiUrl(_url){ /* já não é configurável — a ligação ao Supaba
 function _parseDt(v){
   if(!v)return new Date(NaN);
   if(v instanceof Date)return v;
-  // Extrair os primeiros 10 caracteres: "AAAA-MM-DD"
-  var s=String(v).slice(0,10);
+  var full=String(v);
+  // Se vier com hora (ex: "AAAA-MM-DDTHH:MM:SS", como grava saveToCloud/_snapshot),
+  // preservar essa hora — só cair para meio-dia quando é mesmo uma data "só-dia".
+  var tm=/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/.exec(full);
+  if(tm)return new Date(+tm[1],+tm[2]-1,+tm[3],+tm[4],+tm[5],+(tm[6]||0),0);
+  var s=full.slice(0,10);
   var pts=s.split('-').map(Number);
   if(pts.length===3&&pts[0]>1000&&pts[1]>=1&&pts[1]<=12&&pts[2]>=1&&pts[2]<=31){
     // Criar data ao meio-dia local para evitar desfasamento de timezone (UTC-1)
@@ -2221,6 +2225,22 @@ aplicarCorrecaoNum(){
 _limparNumResult(){
   const el=document.getElementById('numCorrecaoResult');
   if(el)el.innerHTML='';
+},
+// ── Datas "só-dia" (inputs type=date, prompts) devem ser sempre interpretadas
+// em hora local. "new Date('AAAA-MM-DD')" nativo do JS interpreta como UTC
+// meia-noite, o que em fusos horários atrás de UTC (ex: Cabo Verde, UTC-1)
+// faz a data local "recuar" um dia. Usar sempre _pd()/_ymd() para isto.
+_pd(s){
+  if(s==null||s==='')return new Date(NaN);
+  if(s instanceof Date)return s;
+  const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s).trim());
+  if(m)return new Date(+m[1],+m[2]-1,+m[3],0,0,0,0);
+  return new Date(s);
+},
+_ymd(d){
+  if(!(d instanceof Date))d=this._pd(d);
+  if(isNaN(d))return'';
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 },
 genNum(serie,dt){
   if(!serie)return'';
@@ -3319,7 +3339,7 @@ refreshNum(){
   const pn=document.getElementById('prevNum');
   if(!pn)return;
   const _rv=document.getElementById('iData')?.value;
-  const _rdt=_rv?new Date(_rv):new Date();
+  const _rdt=_rv?this._pd(_rv):new Date();
   if(sel==='__nova__'){
     const nv=document.getElementById('novaSerie')?.value.trim().toUpperCase();
     pn.textContent=nv?this.genNum(nv,_rdt):'Digite o nome da série';
@@ -3392,23 +3412,27 @@ addEditCrew(){
 
 // ─── DETEÇÃO DE CONFLITOS ─────────────────────────────────────
   checkConflicts(date,toff,land,aero,crew,excludeId){
-    // Constrói intervalo da missão candidata em minutos desde 00:00
-    const [th,tm]=toff.split(':').map(Number);
-    const [lh,lm]=land.split(':').map(Number);
-    let s=th*60+tm, e=lh*60+lm;
-    if(e<=s)e+=24*60; // cruza meia-noite
-    const dayKey=date; // YYYY-MM-DD
+    // Constrói o intervalo real (data+hora) de uma missão, cruzando meia-noite se necessário
+    const _range=(dateStr,toffStr,landStr)=>{
+      const [th,tm]=(toffStr||'00:00').split(':').map(Number);
+      const [lh,lm]=(landStr||'00:00').split(':').map(Number);
+      const start=this._pd(dateStr);start.setHours(th||0,tm||0,0,0);
+      let end=this._pd(dateStr);end.setHours(lh||0,lm||0,0,0);
+      if(end<=start)end=new Date(end.getTime()+24*60*60000); // cruza meia-noite
+      return [start,end];
+    };
+    const [s,e]=_range(date,toff,land);
     const crewNames=new Set((crew||[]).map(c=>c.nome).filter(Boolean));
     const conflicts=[];
     this.S.missoes.forEach(m=>{
       if(excludeId&&m.id===excludeId)return;
       const md=m.dt instanceof Date?m.dt:new Date(m.dt);
-      const mDayKey=md.toISOString().slice(0,10);
-      if(mDayKey!==dayKey)return;
-      const [mth,mtm]=String(m.toff||'00:00').split(':').map(Number);
-      const [mlh,mlm]=String(m.land||'00:00').split(':').map(Number);
-      let ms=mth*60+mtm, me=mlh*60+mlm;
-      if(me<=ms)me+=24*60;
+      const mDateStr=this._ymd(md);
+      // Só vale a pena calcular o intervalo se a missão for de véspera, do mesmo dia, ou do dia
+      // seguinte — suficiente para apanhar qualquer cruzamento de meia-noite de ambos os lados.
+      const diffDays=Math.round((this._pd(mDateStr)-this._pd(date))/86400000);
+      if(Math.abs(diffDays)>1)return;
+      const [ms,me]=_range(mDateStr,m.toff,m.land);
       // Sobreposição estrita
       if(s<me&&ms<e){
         const sameAero=aero&&m.aero===aero;
@@ -3554,7 +3578,7 @@ addMissao(){
   if(_excedem.length){
     if(!confirm('LIMITE DE HORAS excedido:\n\n'+_excedem.join('\n')+'\n\nRegistar mesmo assim?'))return;
   }
-  const num=this.genNum(serie,new Date(data));
+  const num=this.genNum(serie,this._pd(data));
   const dur=this.calcDur(toff,land);
   const m={
     id:num+'_'+Date.now(),num,serie,
@@ -3614,7 +3638,7 @@ editMissao(id){
   if(!m)return;
   document.getElementById('editId').value=id;
   document.getElementById('eNum').value=m.num;
-  document.getElementById('eData').value=m.dt.toISOString().split('T')[0];
+  document.getElementById('eData').value=this._ymd(m.dt);
   document.getElementById('eSerie').value=m.serie;
   document.getElementById('eTipo').value=m.tipo;
   document.getElementById('eAero').value=m.aero;
@@ -4020,6 +4044,7 @@ renderContactos(){
   el.innerHTML=h;
 },
 editContacto(id){
+  if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores podem editar contactos','err');return;}
   const isNew=!id;
   const grupos=['Planos de Voo / ATC','TWR / Mapa da Missão','GENDEC','SLOTS','Contactos Adicionais'];
   const c=isNew?{id:'c'+Date.now(),grupo:'Contactos Adicionais',icao:'',nome:'',cargo:'',email:'',tel:'',movel1:'',movel2:'',aftn:'',obs:''}
@@ -4060,6 +4085,7 @@ editContacto(id){
   modal.classList.add('on');
 },
 saveContacto(id, isNew){
+  if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores podem editar contactos','err');return;}
   const get=i=>document.getElementById(i)?.value.trim()||'';
   const nome=get('_cNome');
   if(!nome){this.showNotif('Nome é obrigatório','warn');return;}
@@ -4078,6 +4104,7 @@ saveContacto(id, isNew){
   this.markDirty();this.closeModal();this.renderContactos();
 },
 delContacto(id){
+  if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores podem eliminar contactos','err');return;}
   if(!confirm('Eliminar este contacto?'))return;
   this.S.contactos=this.S.contactos.filter(x=>x.id!==id);
   this.markDirty();this.renderContactos();this.showNotif('Contacto eliminado','ok');
@@ -4206,7 +4233,7 @@ delContacto(id){
       });
       const crewExp=crewAll.filter(a=>a.status==='expired').sort((a,b)=>a.days-b.days);
       const crewSoon=crewAll.filter(a=>a.status==='soon').sort((a,b)=>a.days-b.days);
-      const crewOk=crewAll.filter(a=>a.status==='ok').sort((a,b)=>new Date(a.date)-new Date(b.date));
+      const crewOk=crewAll.filter(a=>a.status==='ok').sort((a,b)=>this._pd(a.date)-this._pd(b.date));
 
       // ── AERONAVES ────────────────────────────────────────────────
       const aeroAll2=(this.S.aeros||[]).flatMap(a=>{
@@ -4238,7 +4265,7 @@ delContacto(id){
         doc.autoTable({
           startY:y,
           head:[['Tripulante','Posto','Col.','Documento','Data','Estado']],
-          body:rows.map(a=>[a.nome,a.posto,a.col,a.tipo,a.date?new Date(a.date).toLocaleDateString('pt-PT'):'—',a.label]),
+          body:rows.map(a=>[a.nome,a.posto,a.col,a.tipo,a.date?this._pd(a.date).toLocaleDateString('pt-PT'):'—',a.label]),
           styles:{fontSize:8,cellPadding:2},
           headStyles:{fillColor:headColor,textColor:255,fontStyle:'bold'},
           alternateRowStyles:{fillColor:[245,245,245]},
@@ -4258,7 +4285,7 @@ delContacto(id){
         doc.autoTable({
           startY:y,
           head:[['Aeronave','Matrícula','Tipo de Inspecção','Data / Horas','Estado']],
-          body:rows.map(a=>[a.nome,a.matricula,a.tipo,a.date?new Date(a.date).toLocaleDateString('pt-PT'):a.label.includes('h')?a.label:'—',a.label]),
+          body:rows.map(a=>[a.nome,a.matricula,a.tipo,a.date?this._pd(a.date).toLocaleDateString('pt-PT'):a.label.includes('h')?a.label:'—',a.label]),
           styles:{fontSize:8,cellPadding:2},
           headStyles:{fillColor:headColor,textColor:255,fontStyle:'bold'},
           alternateRowStyles:{fillColor:[240,247,255]},
@@ -4306,7 +4333,7 @@ delContacto(id){
       }
       this._pdfSig(doc,10,200,297);
 
-      savePDF(doc,'CGC_Validades_'+new Date().toISOString().slice(0,10)+'.pdf');
+      savePDF(doc,'CGC_Validades_'+this._ymd(new Date())+'.pdf');
       this.showNotif('Relatório de validades exportado!');
       this.addAudit('PDF de validades exportado',totalExp+' expirado(s), '+totalSoon+' a expirar');
     }catch(e){this.showNotif('Erro ao gerar PDF: '+e.message,'err');}
@@ -4340,7 +4367,7 @@ delContacto(id){
           +'<div style="flex:1;min-width:160px"><b>'+this.esc(a.nome)+'</b> <span style="color:var(--ink3);font-size:.85em">— Aeronave</span></div>'
           +'<div style="font-size:.85em">'+a.tipo+'</div>'
           +'<div style="font-size:.85em;font-weight:700;color:'+bd+'">'+a.label+'</div>'
-          +(a.date?'<div style="font-size:.78em;color:var(--ink3);font-family:var(--mono)">'+new Date(a.date).toLocaleDateString('pt-PT')+'</div>':'')
+          +(a.date?'<div style="font-size:.78em;color:var(--ink3);font-family:var(--mono)">'+this._pd(a.date).toLocaleDateString('pt-PT')+'</div>':'')
           +'</div>';
       }else{
         h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:'+bg+';border-left:3px solid '+bd+';border-radius:0;flex-wrap:wrap">'
@@ -4348,7 +4375,7 @@ delContacto(id){
           +'<div style="flex:1;min-width:160px"><b>'+this.esc(a.nome)+'</b> <span style="color:var(--ink3);font-size:.85em">— '+this.esc(a.posto)+'</span></div>'
           +'<div style="font-size:.85em">'+a.tipo+'</div>'
           +'<div style="font-size:.85em;font-weight:700;color:'+bd+'">'+a.label+'</div>'
-          +(a.date?'<div style="font-size:.78em;color:var(--ink3);font-family:var(--mono)">'+new Date(a.date).toLocaleDateString('pt-PT')+'</div>':'')
+          +(a.date?'<div style="font-size:.78em;color:var(--ink3);font-family:var(--mono)">'+this._pd(a.date).toLocaleDateString('pt-PT')+'</div>':'')
           +'</div>';
       }
     });
@@ -4735,9 +4762,11 @@ delContacto(id){
     const mIdx=this.S.missoes.findIndex(x=>x.id===id);
     if(mIdx===-1){this.showNotif('Missão não encontrada','err');return;}
     const mOrig=this.S.missoes[mIdx];
-    const newDate=prompt('Data da missão (AAAA-MM-DD):',mOrig.dt.toISOString().slice(0,10));
-    if(!newDate)return;
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(newDate)){this.showNotif('Data inválida (use AAAA-MM-DD)','err');return;}
+    const _newDateInput=prompt('Data da missão (DD-MM-AAAA):',this._ymd(mOrig.dt).split('-').reverse().join('-'));
+    if(!_newDateInput)return;
+    const _ndMatch=/^(\d{2})-(\d{2})-(\d{4})$/.exec(_newDateInput.trim());
+    if(!_ndMatch){this.showNotif('Data inválida (use DD-MM-AAAA)','err');return;}
+    const newDate=_ndMatch[3]+'-'+_ndMatch[2]+'-'+_ndMatch[1];
     let num, perna, origemNova, destinoNovo;
     if(isRegresso){
       num=mOrig.num;
@@ -4749,7 +4778,7 @@ delContacto(id){
       origemNova=mOrig.destino||'';
       destinoNovo=mOrig.origem||'';
     } else {
-      num=this.genNum(mOrig.serie,new Date(newDate));
+      num=this.genNum(mOrig.serie,this._pd(newDate));
       perna=mOrig.perna||'';
       origemNova=mOrig.origem||'';
       destinoNovo=mOrig.destino||'';
@@ -4794,7 +4823,7 @@ delContacto(id){
   _openDupDraft(m){
     document.getElementById('editId').value=m.id;
     document.getElementById('eNum').value=m.num;
-    document.getElementById('eData').value=m.dt.toISOString().split('T')[0];
+    document.getElementById('eData').value=this._ymd(m.dt);
     document.getElementById('eSerie').value=m.serie;
     document.getElementById('eTipo').value=m.tipo;
     document.getElementById('eAero').value=m.aero;
@@ -4881,7 +4910,7 @@ delContacto(id){
       const valRows=types.map(([k,lab])=>{
         const v=t[k];if(!v)return[lab,'—','sem registo'];
         const st=this.validityStatus(v);
-        return[lab,new Date(v).toLocaleDateString('pt-PT'),st.label];
+        return[lab,this._pd(v).toLocaleDateString('pt-PT'),st.label];
       });
       doc.autoTable({startY:y,head:[['Documento','Data','Estado']],body:valRows,
         styles:{fontSize:8,cellPadding:2.5,valign:'middle'},
@@ -4937,7 +4966,7 @@ delContacto(id){
       const pages=doc.internal.getNumberOfPages();
       for(let i=1;i<=pages;i++){doc.setPage(i);doc.setFontSize(7);doc.setTextColor(120,120,120);doc.text('Página '+i+'/'+pages+' — CGC - EA - Sistema de Gestão de Voo',105,290,{align:'center'});}
       this._pdfSig(doc,10,200,297);
-      savePDF(doc,'CGC_'+nome.replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.pdf');
+      savePDF(doc,'CGC_'+nome.replace(/\s+/g,'_')+'_'+this._ymd(new Date())+'.pdf');
       this.showNotif('Relatório individual exportado!');
       this.addAudit('PDF individual exportado',nome);
     }catch(e){this.showNotif('Erro: '+e.message,'err');}
@@ -5142,7 +5171,7 @@ delContacto(id){
     const id=ev.dataTransfer.getData('text/mid');if(!id)return;
     const m=this.S.missoes.find(x=>x.id===id);if(!m)return;
     const oldDt=m.dt instanceof Date?m.dt:new Date(m.dt);
-    const oldStr=oldDt.toISOString().slice(0,10);
+    const oldStr=this._ymd(oldDt);
     if(oldStr===destDate)return;
     if(!confirm('Mover missão '+m.num+' de '+oldDt.toLocaleDateString('pt-PT')+' para '+destDate.split('-').reverse().join('/')+'?'))return;
     this._snapshot('Mover '+m.num);
@@ -5256,6 +5285,7 @@ renderTopTrip(){
 
 // ─── GUARDAR MISSÃO COMO MODELO ─────────────────────────────────
 saveTemplateFromMission(id){
+  if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores podem guardar modelos','err');return;}
   const m=this.S.missoes.find(x=>x.id===id);if(!m){this.showNotif('Missão não encontrada','err');return;}
   const def=m.tipo+' — '+m.aero;
   const nome=prompt('Nome do modelo:',def);
@@ -6350,7 +6380,7 @@ toExcel(){
     const tr=[['Nome','Posto','Colocação','NIF','Total Missões']];
     this.S.trips.forEach(t=>tr.push([t.nome,t.posto,t.col,t.nif,this.S.missoes.filter(m=>(m.crew||[]).some(c=>c.nome===t.nome)).length]));
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(tr),'Tripulantes');
-    XLSX.writeFile(wb,'CGC_EA_'+new Date().toISOString().slice(0,10)+'.xlsx');
+    XLSX.writeFile(wb,'CGC_EA_'+this._ymd(new Date())+'.xlsx');
     this.showNotif('Excel exportado!');
   }catch(e){this.showNotif('Erro: '+e.message,'err');}
 },
@@ -6414,7 +6444,7 @@ toPDF(){
       margin:{left:10,right:10},
     });
     this._pdfSig(doc,10,287,210);
-    savePDF(doc,'CGC_Missoes_'+new Date().toISOString().slice(0,10)+'.pdf');
+    savePDF(doc,'CGC_Missoes_'+this._ymd(new Date())+'.pdf');
     this.showNotif('PDF exportado!');
   }catch(e){this.showNotif('Erro: '+e.message,'err');}
 },
@@ -7343,7 +7373,7 @@ renderAeros(){
   const _estado=(hrTotal,inspHr,inspDate)=>{
     let lvl=0;
     if(inspHr&&inspHr>0){const pct=hrTotal/inspHr*100;if(pct>=100)lvl=2;else if(pct>=80)lvl=Math.max(lvl,1);}
-    if(inspDate){const diff=Math.round((new Date(inspDate)-new Date())/86400000);if(diff<0)lvl=2;else if(diff<=30)lvl=Math.max(lvl,1);}
+    if(inspDate){const diff=Math.round((this._pd(inspDate)-new Date())/86400000);if(diff<0)lvl=2;else if(diff<=30)lvl=Math.max(lvl,1);}
     return lvl;
   };
   const _estadoInfo=[
@@ -7417,7 +7447,7 @@ renderAeros(){
     // Data inspeção
     let inspDateHtml='';
     if(inspDate){
-      const d=new Date(inspDate);
+      const d=this._pd(inspDate);
       const diff=Math.round((d-new Date())/86400000);
       const col=diff<0?'#dc2626':diff<=30?'#d97706':'var(--ink3)';
       const label=diff<0?'Vencida há '+Math.abs(diff)+'d':diff===0?'Hoje':diff<=30?'Em '+diff+'d':''+d.toLocaleDateString('pt-PT');
@@ -7878,7 +7908,7 @@ checklistPDF(){
     doc.setFontSize(8);doc.setTextColor(80,80,80);
     doc.text('Total: '+checked+'/'+total+' itens completos ('+Math.round(checked/total*100)+'%)',10,283);
     doc.text('Gerado: '+new Date().toLocaleString('pt-PT'),200,283,{align:'right'});
-    window.savePDF(doc,'Checklist_'+( m.num||m.id)+'_'+m.dt.toISOString().slice(0,10)+'.pdf');
+    window.savePDF(doc,'Checklist_'+( m.num||m.id)+'_'+this._ymd(m.dt)+'.pdf');
   }catch(e){this.showNotif('\u274c Erro PDF: '+e.message,'err');}
 },
 
@@ -7945,15 +7975,15 @@ renderQuadro(){
   if(ck)ck.textContent=now.toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   if(dt)dt.textContent=now.toLocaleDateString('pt-PT',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   const filter=(document.getElementById('qdFilter')?.value)||'hoje';
-  const todayStr=now.toISOString().slice(0,10);
+  const todayStr=this._ymd(now);
   const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay()+1);
   const weekEnd=new Date(weekStart);weekEnd.setDate(weekStart.getDate()+6);
-  const _dtStr=m=>{const d=m.dt instanceof Date?m.dt:new Date(m.dt);return isNaN(d)?'':d.toISOString().slice(0,10);};
+  const _dtStr=m=>{const d=m.dt instanceof Date?m.dt:new Date(m.dt);return isNaN(d)?'':this._ymd(d);};
   const _concAge=m=>{
     const ds=_dtStr(m);if(!ds)return Infinity;
     const ts=(m.bon||m.land||'00:00').slice(0,5);
     const [hh,mm]=ts.split(':').map(Number);
-    const d=new Date(ds);d.setHours(hh,mm,0,0);return now-d;
+    const d=this._pd(ds);d.setHours(hh,mm,0,0);return now-d;
   };
   const QUINZE=15*60*1000;
   let missoes=this.S.missoes.filter(m=>{
@@ -8260,7 +8290,7 @@ escNovaSemana(){
   const diffMon=dow===0?1:(dow===1?0:8-dow);
   const mon=new Date(now.getTime()+diffMon*86400000);
   const sun=new Date(mon.getTime()+6*86400000);
-  const fmt=d=>d.toISOString().slice(0,10);
+  const fmt=d=>this._ymd(d);
   document.getElementById('escDtIni').value=fmt(mon);
   document.getElementById('escDtFim').value=fmt(sun);
   this._escFillSelects('','','','','','');
@@ -8351,7 +8381,7 @@ _escFillEstado(val){
 _escComputeEstado(s){
   const defs=this._escEstadoDefs();
   if(s.estadoForce&&defs[s.estadoForce])return defs[s.estadoForce];
-  const today=new Date().toISOString().slice(0,10);
+  const today=this._ymd(new Date());
   if(s.cancelado)return defs.cancelada;
   if(s.alterada)return defs.alterada;
   if(s.validado)return defs.validada;
@@ -8401,6 +8431,7 @@ _escAutoPosto(n){
 },
 
 escGuardar(){
+  if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores e gestores','err');return;}
   const dtIni=document.getElementById('escDtIni').value.trim();
   const dtFim=document.getElementById('escDtFim').value.trim();
   if(!dtIni||!dtFim){this.showNotif('Datas obrigatórias','warn');return;}
@@ -8447,6 +8478,7 @@ escGuardar(){
 },
 
 escEliminar(){
+  if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores e gestores','err');return;}
   const idxStr=document.getElementById('escEntradaIdx').value;
   if(idxStr==='')return;
   if(!confirm('Eliminar esta semana de escala?'))return;
@@ -8741,6 +8773,7 @@ _escCabAutoPosto(){
 },
 
 escCabineGuardar(){
+  if(!this.isAdmin()){this.showNotif('\u274c Sem permiss\u00e3o','err');return;}
   const key=document.getElementById('escCabEntradaKey').value;
   const nome=document.getElementById('escCabNome').value;
   const posto=document.getElementById('escCabPosto').value.trim();
@@ -8767,6 +8800,7 @@ escCabineGuardar(){
 },
 
 escCabineEliminar(){
+  if(!this.isAdmin()){this.showNotif('\u274c Sem permiss\u00e3o','err');return;}
   const key=document.getElementById('escCabEntradaKey').value;
   if(!key)return;
   if(!confirm('Eliminar este registo de cabine?'))return;
@@ -9069,7 +9103,7 @@ _pilotoModal(nome){
   const lim=this.S.hrLimit||80;const pct=Math.min(100,Math.round(btMesMin/(lim*60)*100));
   const pctCol=pct>=100?'#dc2626':pct>=85?'#f59e0b':'#616a78';
   const recent=mis.slice().sort((a,b)=>{const da=a.dt instanceof Date?a.dt:new Date(a.dt);const db=b.dt instanceof Date?b.dt:new Date(b.dt);return db-da;}).slice(0,8);
-  const valCell=(label,val)=>{if(!val)return '';const d=new Date(val);const diff=Math.round((d-now)/86400000);const col=diff<0?'#dc2626':diff<=30?'#f59e0b':'#616a78';return '<div style="display:flex;justify-content:space-between;font-size:.8em;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--ink3)">'+label+'</span><span style="font-weight:700;color:'+col+'">'+d.toLocaleDateString('pt-PT')+'</span></div>';};
+  const valCell=(label,val)=>{if(!val)return '';const d=this._pd(val);const diff=Math.round((d-now)/86400000);const col=diff<0?'#dc2626':diff<=30?'#f59e0b':'#616a78';return '<div style="display:flex;justify-content:space-between;font-size:.8em;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--ink3)">'+label+'</span><span style="font-weight:700;color:'+col+'">'+d.toLocaleDateString('pt-PT')+'</span></div>';};
   const cursosHtml=(t.cursos||[]).map(c=>valCell(this.esc(c.nome),c.validade)).join('');
   const html=
     '<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">'+
@@ -9123,7 +9157,7 @@ _aeroModal(nome){
   if(managed){
     const hrBase=managed.hrAtual||0;const hrTotal=hrBase+(btM/60);
     if(managed.inspHr){const pct=Math.min(100,Math.round(hrTotal/managed.inspHr*100));const col=pct>=100?'#dc2626':pct>=80?'#f59e0b':'#616a78';inspHtml+='<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:.78em;margin-bottom:4px"><span style="color:var(--ink3)">Horas inspeção ('+hrTotal.toFixed(1)+' / '+managed.inspHr+'h)</span><span style="font-weight:700;color:'+col+'">'+pct+'%</span></div><div style="height:8px;background:var(--g3);border-radius:0;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+col+';border-radius:0"></div></div></div>';}
-    if(managed.inspDate){const d=new Date(managed.inspDate);const diff=Math.round((d-now)/86400000);const col=diff<0?'#dc2626':diff<=30?'#f59e0b':'#616a78';inspHtml+='<div style="display:flex;justify-content:space-between;font-size:.8em;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--ink3)">Próxima inspeção</span><span style="font-weight:700;color:'+col+'">'+d.toLocaleDateString('pt-PT')+'</span></div>';}
+    if(managed.inspDate){const d=this._pd(managed.inspDate);const diff=Math.round((d-now)/86400000);const col=diff<0?'#dc2626':diff<=30?'#f59e0b':'#616a78';inspHtml+='<div style="display:flex;justify-content:space-between;font-size:.8em;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--ink3)">Próxima inspeção</span><span style="font-weight:700;color:'+col+'">'+d.toLocaleDateString('pt-PT')+'</span></div>';}
   }
   const html=
     '<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">'+
@@ -9332,8 +9366,8 @@ renderIncidentes(){
       const btH=(btTot/60).toFixed(1);
       let lastDate='—';
       if(missoesLegs.length){
-        const dts=missoesLegs.map(m=>m.dt instanceof Date?m.dt.toISOString().slice(0,10):String(m.dt||'')).filter(Boolean).sort();
-        if(dts.length){const d=new Date(dts[dts.length-1]);lastDate=d.toLocaleDateString('pt-PT');}
+        const dts=missoesLegs.map(m=>m.dt instanceof Date?this._ymd(m.dt):String(m.dt||'')).filter(Boolean).sort();
+        if(dts.length){const d=this._pd(dts[dts.length-1]);lastDate=d.toLocaleDateString('pt-PT');}
       }
       const aeroCount={};
       missoesLegs.forEach(m=>{if(m.aero){aeroCount[m.aero]=(aeroCount[m.aero]||0)+1;}});
@@ -9445,7 +9479,7 @@ openNovaVoo(){
   const ov=document.getElementById('formNovaVooOverlay');
   if(ov){ov.style.display='block';document.body.style.overflow='hidden';}
   const fd=document.getElementById('iData');
-  if(fd&&!fd.value)fd.value=new Date().toISOString().slice(0,10);
+  if(fd&&!fd.value)fd.value=this._ymd(new Date());
 },
 openNovoTrip(){
   const ov=document.getElementById('formNovoTripOverlay');
@@ -10544,7 +10578,7 @@ exportBackup(){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url;
-  const ts=new Date().toISOString().slice(0,10);
+  const ts=this._ymd(new Date());
   a.download='cgcea_backup_'+ts+'.json';
   a.click();
   URL.revokeObjectURL(url);
@@ -10696,7 +10730,7 @@ exportExcelCompleto(mes,ano){
   wsMaint['!cols']=[{wch:18},{wch:20},{wch:18},{wch:14},{wch:14},{wch:14},{wch:12},{wch:24}];
   XLSX.utils.book_append_sheet(wb,wsMaint,'Manutenção');
   // Guardar
-  const fn='cgcea_relatorio_'+periodLabel+'_'+new Date().toISOString().slice(0,10)+'.xlsx';
+  const fn='cgcea_relatorio_'+periodLabel+'_'+this._ymd(new Date())+'.xlsx';
   XLSX.writeFile(wb,fn);
   this.showNotif('Relatório Excel exportado! (5 folhas)');
 },
@@ -11108,7 +11142,7 @@ tripLogbookPDF(nome){
         doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(50,50,50);
         doc.text(tipo.length>15?tipo.slice(0,14)+'\u2026':tipo,vx,vy+5);
         doc.setFont('helvetica','normal');doc.setTextColor(...cor);
-        doc.text(new Date(date).toLocaleDateString('pt-PT')+'  '+st.label,vx,vy+10.5);
+        doc.text(this._pd(date).toLocaleDateString('pt-PT')+'  '+st.label,vx,vy+10.5);
         doc.setTextColor(0,0,0);
       });
       y+=rowH*nRows+4;
@@ -11191,7 +11225,7 @@ tripLogbookPDF(nome){
       doc.text('Pág. '+i+'/'+nPg,W-rm,pH-3,{align:'right'});
       doc.setTextColor(0,0,0);
     }
-    doc.save('Caderneta_'+nome.replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.pdf');
+    doc.save('Caderneta_'+nome.replace(/\s+/g,'_')+'_'+this._ymd(new Date())+'.pdf');
     this.showNotif('Caderneta PDF gerada','ok');
   }catch(ex){this.showNotif('Erro ao gerar PDF: '+ex.message,'err');}
 },
