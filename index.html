@@ -758,6 +758,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <span class="modal-x" onclick="A.closeModal()" aria-label="Fechar">×</span>
   </div>
   <input type="hidden" id="editId">
+  <div id="editWarnBanner" style="display:none;background:#fef3c7;border:1.5px solid #f59e0b;color:#92400e;padding:8px 12px;border-radius:0;font-size:.82em;font-weight:600;margin-bottom:12px"></div>
   <div class="fgrid2" style="margin-bottom:12px">
     <div class="fg"><label>Série</label><select id="eSerie"></select></div>
     <div class="fg"><label style="font-size:.6em">Etiquetas (separar por vírgulas)</label><input id="eTags" placeholder="ex: noturno, treino"></div>
@@ -1561,6 +1562,20 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   <div style="margin-bottom:16px">
     <h2 style="font-size:1.2em;font-weight:800;color:var(--ink);margin:0">Escala de Voo Tripulantes King Air 360ER</h2>
     <div id="escPeriodoTxt" style="font-size:.78em;color:var(--ink3);margin-top:2px">Período: —</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+      <div style="padding:10px 16px;background:var(--g0);border-radius:0;border-left:3px solid #6366f1;min-width:110px">
+        <div style="font-size:.7em;color:var(--ink3);text-transform:uppercase">Semanas</div>
+        <div id="escTotSem" style="font-size:1.3em;font-weight:800">0</div>
+      </div>
+      <div style="padding:10px 16px;background:var(--g0);border-radius:0;border-left:3px solid #10b981;min-width:110px">
+        <div style="font-size:.7em;color:var(--ink3);text-transform:uppercase">Validadas</div>
+        <div id="escValSem" style="font-size:1.3em;font-weight:800">0</div>
+      </div>
+      <div style="padding:10px 16px;background:var(--g0);border-radius:0;border-left:3px solid #f59e0b;min-width:110px">
+        <div style="font-size:.7em;color:var(--ink3);text-transform:uppercase">Pilotos</div>
+        <div id="escPilSem" style="font-size:1.3em;font-weight:800">0</div>
+      </div>
+    </div>
   </div>
   <div class="card">
     <div class="card-hd" style="flex-wrap:wrap;gap:8px">
@@ -2143,11 +2158,16 @@ corrigirNumeracao(){
   const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 
   // Build map: serieKey → { YYYY → [{m, dt, basePerna}] }
-  // For multi-leg missions (same num), use first occurrence as representative
-  const seen=new Map(); // num → representative entry
+  // Para missões com várias pernas (mesmo num), usa a data MAIS ANTIGA entre as
+  // pernas como representante — não a "primeira encontrada no array", que pode
+  // não ser a ida (ex: import fora de ordem, ou perna 2 inserida antes da 1).
+  const seen=new Map(); // num → representative entry (com a data mais antiga)
   this.S.missoes.forEach(m=>{
     if(!m.num||!m.serie)return;
-    if(!seen.has(m.num)) seen.set(m.num,m);
+    const dt=m.dt instanceof Date?m.dt:new Date(m.dt);
+    if(isNaN(dt))return;
+    const cur=seen.get(m.num);
+    if(!cur||dt<(cur.dt instanceof Date?cur.dt:new Date(cur.dt)))seen.set(m.num,m);
   });
 
   // Group unique missions by serie+year-from-date
@@ -2267,15 +2287,32 @@ _renumSerie(serie,year){
     const r=m.num?.match(re);
     return r&&+r[1]===year;
   });
-  toRen.sort((a,b)=>{
-    const da=a.dt instanceof Date?a.dt:new Date(a.dt);
-    const db=b.dt instanceof Date?b.dt:new Date(b.dt);
+  // IMPORTANTE: missões com várias pernas (ida+volta) partilham o mesmo "num" — têm de ser
+  // agrupadas pelo num ATUAL antes de renumerar, senão cada perna ficaria com um número
+  // diferente e a missão "partia-se" em duas. Agrupa primeiro, ordena os grupos pela perna
+  // mais antiga, e dá o MESMO número novo a todas as pernas do grupo.
+  const groups=new Map();
+  toRen.forEach(m=>{
+    const key=m.num||'';
+    if(!groups.has(key))groups.set(key,[]);
+    groups.get(key).push(m);
+  });
+  const groupArr=[...groups.values()];
+  groupArr.sort((ga,gb)=>{
+    const oldest=g=>g.reduce((min,m)=>{
+      const d=m.dt instanceof Date?m.dt:new Date(m.dt);
+      return (!min||d<min)?d:min;
+    },null);
+    const da=oldest(ga), db=oldest(gb);
     const dA=new Date(da.getFullYear(),da.getMonth(),da.getDate()).getTime();
     const dB=new Date(db.getFullYear(),db.getMonth(),db.getDate()).getTime();
     if(dA!==dB)return dA-dB;
     return da.getTime()-db.getTime();
   });
-  toRen.forEach((m,i)=>{m.num=serie+'-'+year+'-'+String(i+1).padStart(3,'0');});
+  groupArr.forEach((g,i)=>{
+    const newNum=serie+'-'+year+'-'+String(i+1).padStart(3,'0');
+    g.forEach(m=>{m.num=newNum;});
+  });
 },
 allSeries(){
   return [...new Set([...this.C.seriesDefault,...(this.S.series||[]),...this.S.missoes.map(m=>m.serie).filter(Boolean)])].sort();
@@ -2292,7 +2329,7 @@ allAeros(){
 
 // ─── AUDITORIA ────────────────────────────────────────────────
 addAudit(action,details){
-  this.S.auditLog.unshift({timestamp:new Date().toISOString(),action,details,user:'Sistema'});
+  this.S.auditLog.unshift({timestamp:new Date().toISOString(),action,details,user:this.S.currentUser||'Sistema'});
   if(this.S.auditLog.length>1000)this.S.auditLog.pop();
 },
 showAuditLog(){
@@ -2302,10 +2339,16 @@ showAuditLog(){
   const old90=log.filter(e=>new Date(e.timestamp)<cutoff90).length;
   const old60=log.filter(e=>new Date(e.timestamp)<cutoff60).length;
   const old30=log.filter(e=>new Date(e.timestamp)<cutoff30).length;
-  const rows=log.length===0
-    ?'<div style="padding:20px;text-align:center;color:var(--ink3)">Nenhum registo.</div>'
-    :log.map(e=>`<div class="audit-item"><strong>${new Date(e.timestamp).toLocaleString('pt-PT')}</strong><br>${this.esc(e.action)}<br><span style="color:var(--ink3)">${this.esc(e.details)}</span></div>`).join('');
+  const users=[...new Set(log.map(e=>e.user||'Sistema'))].sort((a,b)=>a.localeCompare(b));
   const btnStyle='padding:5px 12px;border-radius:0;border:1.5px solid var(--border);background:var(--surface);color:var(--ink);font-size:.8em;cursor:pointer';
+  const filterBar=`<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px">
+    <input id="auditSearch" type="text" placeholder="Pesquisar ação ou detalhes…" oninput="A._filterAuditLog()" style="flex:1;min-width:160px;padding:6px 10px;border:1.5px solid var(--border);border-radius:0;font-size:.82em;background:var(--white);color:var(--ink);outline:none">
+    <select id="auditUserSel" onchange="A._filterAuditLog()" style="padding:6px 8px;border:1.5px solid var(--border);border-radius:0;font-size:.82em;background:var(--white);color:var(--ink);outline:none">
+      <option value="">— Todos os utilizadores —</option>
+      ${users.map(u=>'<option value="'+this.esc(u)+'">'+this.esc(u)+'</option>').join('')}
+    </select>
+    <button class="btn btn-sm btn-pdf" onclick="A.exportAuditPDF()" style="font-size:.82em">PDF</button>
+  </div>`;
   const cleanBar=`<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:14px;padding:10px 12px;background:var(--surface);border:1.5px solid var(--border);border-radius:0">
     <span style="font-size:.82em;color:var(--ink3);flex:1;min-width:120px"><b>Limpar registos antigos:</b></span>
     <button style="${btnStyle}" onclick="A.clearOldAudit(30)" ${old30===0?'disabled':''}>+30 dias <span style="background:#fee2e2;color:#b91c1c;border-radius:0;padding:1px 6px;margin-left:4px">${old30}</span></button>
@@ -2313,10 +2356,61 @@ showAuditLog(){
     <button style="${btnStyle}" onclick="A.clearOldAudit(90)" ${old90===0?'disabled':''}>+90 dias <span style="background:#fee2e2;color:#b91c1c;border-radius:0;padding:1px 6px;margin-left:4px">${old90}</span></button>
     <span style="font-size:.78em;color:var(--ink3)">${log.length}/1000 registos</span>
   </div>`;
-  this.openInfoModal('<h3 style="margin-bottom:12px">Registo de Auditoria</h3>'+cleanBar+'<div style="max-height:55vh;overflow-y:auto">'+rows+'</div>');
+  this.openInfoModal('<h3 style="margin-bottom:12px">Registo de Auditoria</h3>'+filterBar+cleanBar+'<div id="auditRows" style="max-height:50vh;overflow-y:auto"></div>');
+  this._filterAuditLog();
+},
+_filterAuditLog(){
+  const el=document.getElementById('auditRows');
+  if(!el)return;
+  const q=(document.getElementById('auditSearch')?.value||'').trim().toLowerCase();
+  const userSel=document.getElementById('auditUserSel')?.value||'';
+  const log=this.S.auditLog.filter(e=>{
+    if(userSel&&(e.user||'Sistema')!==userSel)return false;
+    if(q){
+      const hay=((e.action||'')+' '+(e.details||'')).toLowerCase();
+      if(!hay.includes(q))return false;
+    }
+    return true;
+  });
+  el.innerHTML=log.length===0
+    ?'<div style="padding:20px;text-align:center;color:var(--ink3)">Nenhum registo com estes filtros.</div>'
+    :log.map(e=>`<div class="audit-item"><strong>${new Date(e.timestamp).toLocaleString('pt-PT')}</strong> <span style="color:var(--ink3);font-weight:600">— ${this.esc(e.user||'Sistema')}</span><br>${this.esc(e.action)}<br><span style="color:var(--ink3)">${this.esc(e.details)}</span></div>`).join('');
+},
+async exportAuditPDF(){
+  if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores','err');return;}
+  if(!window.jspdf){this.showNotif('Biblioteca PDF não carregada','err');return;}
+  const {jsPDF}=window.jspdf;
+  const q=(document.getElementById('auditSearch')?.value||'').trim().toLowerCase();
+  const userSel=document.getElementById('auditUserSel')?.value||'';
+  const log=this.S.auditLog.filter(e=>{
+    if(userSel&&(e.user||'Sistema')!==userSel)return false;
+    if(q){const hay=((e.action||'')+' '+(e.details||'')).toLowerCase();if(!hay.includes(q))return false;}
+    return true;
+  });
+  if(!log.length){this.showNotif('Sem registos para exportar com estes filtros','warn');return;}
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const pw=210,lm=12,rm=198;
+  doc.setFillColor(61,69,84);doc.rect(0,0,pw,18,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(12);
+  doc.text('CGC\u00b7EA \u2014 Registo de Auditoria',pw/2,9,{align:'center'});
+  doc.setFontSize(8);doc.setFont('helvetica','normal');
+  doc.text('Gerado em: '+new Date().toLocaleString('pt-PT')+(userSel?' \u00b7 Utilizador: '+userSel:'')+(q?' \u00b7 Pesquisa: "'+q+'"':''),pw/2,15,{align:'center'});
+  doc.setTextColor(0,0,0);
+  const HS={fillColor:[97,106,120],textColor:255,fontStyle:'bold'};
+  const AS={fillColor:[240,241,243]};
+  doc.autoTable({
+    startY:24,
+    head:[['Data/Hora','Utilizador','Ação','Detalhes']],
+    body:log.map(e=>[new Date(e.timestamp).toLocaleString('pt-PT'),e.user||'Sistema',e.action||'',e.details||'']),
+    styles:{fontSize:7.5,cellPadding:2},headStyles:HS,alternateRowStyles:AS,margin:{left:lm,right:pw-rm},
+    columnStyles:{0:{cellWidth:32},1:{cellWidth:30},2:{cellWidth:40},3:{cellWidth:'auto'}},
+  });
+  window.savePDF(doc,'CGC_Auditoria_'+this._ymd(new Date())+'.pdf');
+  this.showNotif('PDF exportado!');
 },
 
 async clearOldAudit(days){
+  if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores podem limpar a auditoria','err');return;}
   const cutoff=new Date(Date.now()-days*864e5);
   const before=this.S.auditLog.length;
   this.S.auditLog=this.S.auditLog.filter(e=>new Date(e.timestamp)>=cutoff);
@@ -2351,6 +2445,7 @@ closeModal(){
   const _md=document.getElementById('modalDyn');if(_md)_md.classList.remove('on');
   const _eCL=document.getElementById('editCrewList');if(_eCL)_eCL.innerHTML='';
   const _eCB=document.getElementById('editCrewBadge');if(_eCB)_eCB.textContent='0';
+  this._unwatchEdit();
 },
 
 // ─── SYNC STATUS ──────────────────────────────────────────────
@@ -2373,11 +2468,13 @@ syncUI(state,lastSave){
 markDirty(){
     this.S.dirty=true;
     this.syncUI('pending');
-    // Auto-save ao Drive (debounced 1.5s)
+    // Auto-save ao Drive (debounced 1.5s) — mas não insistir sozinho se já sabemos que há
+    // um conflito por resolver (o utilizador cancelou uma gravação por causa disso); nesse
+    // caso só uma ação explícita (gravar de novo, ou recarregar) deve continuar.
     if(typeof getApiUrl==='function' && getApiUrl()){
       clearTimeout(this._autoSaveT);
       this._autoSaveT=setTimeout(()=>{
-        if(this.S.dirty) this.saveToCloud();
+        if(this.S.dirty && !this.S._conflictPending) this.saveToCloud();
       },5000);
     }
   },
@@ -2388,6 +2485,25 @@ async saveToCloud(){
   if(!url){this.openSettings();this.showNotif('Configure primeiro o URL do servidor','warn');return;}
   this.syncUI('saving');
   try{
+    // Deteção de conflito: se sabemos a versão que carregámos (this.S._cloudVer), confirmar
+    // que ninguém gravou no servidor entretanto. Sem isto, gravar aqui apaga silenciosamente
+    // o trabalho de quem gravou primeiro — "o último a gravar ganha" sem aviso nenhum.
+    if(this.S._cloudVer){
+      const {data:_chk,error:_chkErr}=await supabaseClient.from('app_state').select('updated_at').eq('id',1).maybeSingle();
+      if(!_chkErr&&_chk&&_chk.updated_at&&_chk.updated_at!==this.S._cloudVer){
+        const _quando=new Date(_chk.updated_at).toLocaleString('pt-PT');
+        const _prosseguir=confirm('\u26a0\ufe0f Outra pessoa gravou alterações no servidor às '+_quando+', depois da última vez que carregaste os dados.\n\nSe continuares, essas alterações serão substituídas pelas tuas.\n\nRecomendado: clica em Cancelar e depois em "Recarregar do Drive" para veres as alterações mais recentes antes de gravar.\n\nGravar mesmo assim?');
+        if(!_prosseguir){
+          this.S._conflictPending=true;
+          this.syncUI('pending');
+          this.showNotif('Gravação cancelada — recarrega os dados mais recentes antes de continuar','warn');
+          this.addAudit('Gravação cancelada','Conflito detetado com alterações de outro utilizador (servidor às '+_quando+')');
+          return;
+        }
+        this.S._conflictPending=false;
+        this.addAudit('Gravação forçada','Utilizador optou por sobrepor alterações de outro utilizador (conflito às '+_quando+')');
+      }
+    }
     const data={
       trips:this.S.trips,
       missoes:this.S.missoes.map(m=>({...m,dt:m.dt instanceof Date?(()=>{const _d=m.dt;return _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0')+'T'+String(_d.getHours()).padStart(2,'0')+':'+String(_d.getMinutes()).padStart(2,'0')+':00'})():m.dt})),
@@ -2411,8 +2527,10 @@ async saveToCloud(){
         metas:this.getMetas(),
       },
     };
-    const {error:_supErr}=await supabaseClient.from('app_state').update({data,updated_at:new Date().toISOString()}).eq('id',1);
+    const _newTs=new Date().toISOString();
+    const {error:_supErr}=await supabaseClient.from('app_state').update({data,updated_at:_newTs}).eq('id',1);
     if(!_supErr){
+      this.S._cloudVer=_newTs;
       this.S.dirty=false;
       this.S.lastSave=new Date().toISOString();
       this.syncUI('synced',this.S.lastSave);
@@ -2441,8 +2559,12 @@ async loadFromCloud(){
   if(!url){this.syncUI('offline');return false;}
   this.syncUI('loading');
   try{
-    const {data:_row,error:_supErr}=await supabaseClient.from('app_state').select('data').eq('id',1).maybeSingle();
+    const {data:_row,error:_supErr}=await supabaseClient.from('app_state').select('data,updated_at').eq('id',1).maybeSingle();
     if(_supErr)throw new Error(_supErr.message);
+    // Guarda a versão que acabámos de carregar — usada em saveToCloud() para detetar
+    // se alguém grava por cima antes de nós voltarmos a gravar.
+    this.S._cloudVer=_row?.updated_at||null;
+    this.S._conflictPending=false;
     const _raw=_row?.data||{};
     // Suporte a respostas embrulhadas {ok:true,data:{...}} e resposta directa {missoes:[...]}
     const d=(_raw&&_raw.missoes)?_raw:(_raw&&_raw.data&&_raw.data.missoes?_raw.data:_raw);
@@ -2495,6 +2617,9 @@ async loadFromCloud(){
 async reloadCloud(){
   const url=getApiUrl();
   if(!url){this.openSettings();return;}
+  // Se há alterações locais por gravar, recarregar do Drive substitui-as silenciosamente
+  // — confirmar primeiro para não perder trabalho por engano.
+  if(this.S.dirty&&!confirm('Há alterações por gravar que serão perdidas se recarregar do Drive agora.\n\nContinuar mesmo assim?'))return;
   const ok=await this.loadFromCloud();
   this.S.filtered=[...this.S.missoes];
   this.fillSelects();
@@ -3198,13 +3323,13 @@ handleKey(e){
     if(mi&&mi.classList.contains('on')){this.closeInfoModal();e.preventDefault();return;}
     if(me&&me.classList.contains('on')){this.closeModal();e.preventDefault();return;}
     if(ma&&ma.classList.contains('on')){this.closeModalAero&&this.closeModalAero();e.preventDefault();return;}
-    if(inField&&e.target.id==='gSearch'){e.target.value='';this.globalSearch('');e.target.blur();e.preventDefault();return;}
+    if(inField&&e.target.id==='globalSearchInp'){e.target.value='';this._globalSearchHide();e.target.blur();e.preventDefault();return;}
   }
   // Ctrl/Cmd + tecla
   if(!(e.ctrlKey||e.metaKey))return;
   const k=e.key.toLowerCase();
   // Ctrl+F — focar pesquisa global
-  if(k==='f'){const gs=document.getElementById('gSearch');if(gs){e.preventDefault();gs.focus();gs.select();}return;}
+  if(k==='f'){const gs=document.getElementById('globalSearchInp');if(gs){e.preventDefault();gs.focus();gs.select();}return;}
   // Restantes atalhos não devem disparar dentro de campos
   if(inField)return;
   if(k==='n'){e.preventDefault();this.navTo('voos');setTimeout(()=>{const el=document.getElementById('iNum')||document.getElementById('iTipo');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.focus();}},80);this.showNotif('Nova missão');return;}
@@ -3386,10 +3511,82 @@ _crewSync(listId,badgeId){
   const el=document.getElementById(badgeId);
   if(el)el.textContent=document.getElementById(listId).querySelectorAll('.crew-row').length;
 },
+// Atualiza os números "1, 2, 3…" de cada linha e desativa a seta ▲ na primeira
+// linha / ▼ na última — chamado sempre que a ordem da lista de tripulantes muda.
+_crewRenumber(listId){
+  const list=document.getElementById(listId);
+  if(!list)return;
+  const rows=[...list.querySelectorAll('.crew-row')];
+  rows.forEach((r,i)=>{
+    const n=r.querySelector('.crew-num');
+    if(n)n.textContent=i+1;
+    const arrows=r.querySelectorAll('.crew-arrow');
+    if(arrows[0])arrows[0].disabled=(i===0);
+    if(arrows[1])arrows[1].disabled=(i===rows.length-1);
+  });
+},
+// Setas ▲▼ de reordenar
+_crewMove(rowId,listId,badgeId,dir){
+  const list=document.getElementById(listId);
+  const row=document.getElementById(rowId);
+  if(!list||!row)return;
+  if(dir<0){
+    const prev=row.previousElementSibling;
+    if(prev)list.insertBefore(row,prev);
+  }else{
+    const next=row.nextElementSibling;
+    if(next)list.insertBefore(next,row);
+  }
+  this._crewRenumber(listId);
+},
+// Arrastar para reordenar (drag & drop)
+_crewDragStart(ev){
+  const row=ev.target.closest('.crew-row');
+  if(!row)return;
+  this._crewDragId=row.id;
+  if(ev.dataTransfer){ev.dataTransfer.effectAllowed='move';try{ev.dataTransfer.setData('text/plain',row.id);}catch(_e){}}
+  row.classList.add('dragging');
+},
+_crewDragOver(ev){
+  ev.preventDefault();
+  const row=ev.target.closest('.crew-row');
+  if(!row||row.id===this._crewDragId)return;
+  const rect=row.getBoundingClientRect();
+  const before=(ev.clientY-rect.top)<rect.height/2;
+  row.classList.toggle('dragover-top',before);
+  row.classList.toggle('dragover-bot',!before);
+},
+_crewDragLeave(ev){
+  const row=ev.target.closest('.crew-row');
+  if(row)row.classList.remove('dragover-top','dragover-bot');
+},
+_crewDrop(ev,listId,badgeId){
+  ev.preventDefault();
+  const list=document.getElementById(listId);
+  const targetRow=ev.target.closest('.crew-row');
+  const draggedId=this._crewDragId||(ev.dataTransfer&&ev.dataTransfer.getData('text/plain'));
+  const dragged=draggedId?document.getElementById(draggedId):null;
+  if(list&&targetRow&&dragged&&dragged!==targetRow){
+    const before=targetRow.classList.contains('dragover-top');
+    if(before)list.insertBefore(dragged,targetRow);
+    else list.insertBefore(dragged,targetRow.nextElementSibling);
+  }
+  if(targetRow)targetRow.classList.remove('dragover-top','dragover-bot');
+  this._crewRenumber(listId);
+  this._crewSync(listId,badgeId);
+  this._crewDragId=null;
+},
+_crewDragEnd(ev){
+  const row=ev.target.closest('.crew-row');
+  if(row)row.classList.remove('dragging');
+  document.querySelectorAll('.crew-row.dragover-top,.crew-row.dragover-bot').forEach(r=>r.classList.remove('dragover-top','dragover-bot'));
+  this._crewDragId=null;
+},
 _crewRemove(rowId,listId,badgeId){
   const r=document.getElementById(rowId);
   if(r)r.remove();
   this._crewSync(listId,badgeId);
+  this._crewRenumber(listId);
 },
 _getCrew(listId){
   return [...document.getElementById(listId).querySelectorAll('.crew-row')].map(r=>{
@@ -3402,12 +3599,14 @@ addCrew(){
   const idx=list.querySelectorAll('.crew-row').length;
   list.insertAdjacentHTML('beforeend',this._crewHtml('',this.C.funcoes[0],idx,'crewList','crewBadge'));
   this._crewSync('crewList','crewBadge');
+  this._crewRenumber('crewList');
 },
 addEditCrew(){
   const list=document.getElementById('editCrewList');
   const idx=list.querySelectorAll('.crew-row').length;
   list.insertAdjacentHTML('beforeend',this._crewHtml('',this.C.funcoes[0],idx,'editCrewList','editCrewBadge'));
   this._crewSync('editCrewList','editCrewBadge');
+  this._crewRenumber('editCrewList');
 },
 
 // ─── DETEÇÃO DE CONFLITOS ─────────────────────────────────────
@@ -3633,6 +3832,48 @@ clearForm(){
 },
 
 // ─── EDITAR MISSÃO ────────────────────────────────────────────
+// Alias: o calendário e a pesquisa global chamam openEdit(id) — mantém o mesmo
+// nome usado nesses dois sítios, sem duplicar a lógica de editMissao.
+openEdit(id){this.editMissao(id);},
+// ─── PRESENÇA EM TEMPO REAL: avisar se alguém já está a editar a mesma missão ──
+// Usa canais de "presence" do Supabase Realtime — não precisa de nenhuma tabela
+// nova nem alteração no servidor, só do SDK que já está carregado.
+_watchEdit(id){
+  this._unwatchEdit();
+  if(typeof supabaseClient==='undefined'||!supabaseClient.channel)return;
+  try{
+    const me=this.S.currentUser||('convidado-'+Math.random().toString(36).slice(2,7));
+    const ch=supabaseClient.channel('edit-missao-'+id,{config:{presence:{key:me}}});
+    ch.on('presence',{event:'sync'},()=>{
+      const state=ch.presenceState();
+      const outros=Object.keys(state).filter(k=>k!==me).map(k=>state[k]?.[0]?.user||k);
+      this._showEditWarning(outros[0]||null);
+    });
+    ch.subscribe(async(status)=>{
+      if(status==='SUBSCRIBED'){
+        try{await ch.track({user:this.S.currentUser||'Convidado',since:new Date().toISOString()});}catch(_e){}
+      }
+    });
+    this._editChannel=ch;
+  }catch(_e){/* Realtime indisponível — falha em silêncio, não bloqueia a edição normal */}
+},
+_unwatchEdit(){
+  if(this._editChannel){
+    try{this._editChannel.untrack();supabaseClient.removeChannel(this._editChannel);}catch(_e){}
+    this._editChannel=null;
+  }
+  this._showEditWarning(null);
+},
+_showEditWarning(userName){
+  const el=document.getElementById('editWarnBanner');
+  if(!el)return;
+  if(userName&&userName!==(this.S.currentUser||'')){
+    el.style.display='block';
+    el.textContent='\u26a0\ufe0f '+userName+' também tem esta missão aberta para edição agora — coordenem-se para não perder alterações um do outro.';
+  }else{
+    el.style.display='none';
+  }
+},
 editMissao(id){
   const m=this.S.missoes.find(x=>x.id===id);
   if(!m)return;
@@ -3665,7 +3906,9 @@ editMissao(id){
   list.innerHTML='';
   (m.crew||[]).forEach((c,i)=>{list.insertAdjacentHTML('beforeend',this._crewHtml(c.nome,c.fn,i,'editCrewList','editCrewBadge'));});
   document.getElementById('editCrewBadge').textContent=(m.crew||[]).length;
+  this._crewRenumber('editCrewList');
   document.getElementById('modalEdit').classList.add('on');
+  this._watchEdit(id);
 },
 saveEdit(){
   if(this._submittingMissao)return;
@@ -4519,33 +4762,37 @@ delContacto(id){
         };
         const fixT=(v)=>{if(!v)return '';let s=String(v).trim();if(/^\d{1,2}:\d{2}$/.test(s))s+=':00';if(/^\d{1,2}:\d{2}:\d{2}$/.test(s))return s.padStart(8,'0');return s;};
         // ── Pré-processamento: agrupar pernas na mesma missão ──────
-        // Calcula o máximo actual por série (missões já existentes)
-        const _yr=new Date().getFullYear();
-        const _baseCtrl={};
+        // Calcula o máximo actual por série+ANO (missões já existentes). O ano usado na
+        // numeração tem de vir da Data de cada linha — nunca do ano corrente — senão uma
+        // importação de missões antigas ficava toda numerada com o ano de hoje.
+        const _baseCtrl={}; // chave: SERIE||ANO
         this.S.missoes.forEach(m=>{
           if(!m.serie||!m.num)return;
           const _r=m.num.match(new RegExp(m.serie.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'-(\\d{4})-(\\d+)'));
-          if(_r&&+_r[1]===_yr)_baseCtrl[m.serie]=Math.max(_baseCtrl[m.serie]||0,+_r[2]);
+          if(_r){const _k=m.serie+'||'+_r[1];_baseCtrl[_k]=Math.max(_baseCtrl[_k]||0,+_r[2]);}
         });
-        const _impCtrl={};   // serie → contador durante esta importação
-        const _lastNum={};   // serie → último número atribuído
+        const _impCtrl={};   // SERIE||ANO → contador durante esta importação
+        const _lastNum={};   // serie → último número atribuído (pernas seguintes herdam)
         const _numMap={};    // índice da linha → número de missão
         rows.forEach((r,i)=>{
           const _s=String(find(r,'serie','série')||'CGC-EA').trim().toUpperCase();
           const _rawN=String(find(r,'nº missão','num','numero','missao','mission')||'').trim().toUpperCase();
           if(_rawN){_numMap[i]=_rawN;_lastNum[_s]=_rawN;return;}
+          const _rowDt=parseDate(find(r,'data','date'));
+          const _rowYr=_rowDt?_rowDt.getFullYear():new Date().getFullYear();
+          const _key=_s+'||'+_rowYr;
           const _p=parseInt(String(find(r,'perna','leg','trecho')||'').trim())||0;
           const _isNew=_p<=1; // perna=1, perna=0 ou sem perna → nova missão
           if(_isNew){
-            if(!_impCtrl[_s])_impCtrl[_s]=(_baseCtrl[_s]||0);
-            _impCtrl[_s]++;
-            const _n=_s+'-'+_yr+'-'+String(_impCtrl[_s]).padStart(3,'0');
+            if(!_impCtrl[_key])_impCtrl[_key]=(_baseCtrl[_key]||0);
+            _impCtrl[_key]++;
+            const _n=_s+'-'+_rowYr+'-'+String(_impCtrl[_key]).padStart(3,'0');
             _numMap[i]=_n;_lastNum[_s]=_n;
           }else{
             if(!_lastNum[_s]){
-              if(!_impCtrl[_s])_impCtrl[_s]=(_baseCtrl[_s]||0);
-              _impCtrl[_s]++;
-              _lastNum[_s]=_s+'-'+_yr+'-'+String(_impCtrl[_s]).padStart(3,'0');
+              if(!_impCtrl[_key])_impCtrl[_key]=(_baseCtrl[_key]||0);
+              _impCtrl[_key]++;
+              _lastNum[_s]=_s+'-'+_rowYr+'-'+String(_impCtrl[_key]).padStart(3,'0');
             }
             _numMap[i]=_lastNum[_s];
           }
@@ -4850,6 +5097,7 @@ delContacto(id){
     list.innerHTML='';
     (m.crew||[]).forEach((c,i)=>{list.insertAdjacentHTML('beforeend',this._crewHtml(c.nome,c.fn,i,'editCrewList','editCrewBadge'));});
     document.getElementById('editCrewBadge').textContent=(m.crew||[]).length;
+    this._crewRenumber('editCrewList');
     document.getElementById('modalEdit').classList.add('on');
   },
 
@@ -5047,7 +5295,7 @@ delContacto(id){
       if(m.crew&&m.crew.length)txt+=' — '+m.crew.map(c=>c.nome.split(' ')[0]).join(', ');
       txt+='\n';
     });
-    txt+='\n─────────────────────────────\nTotal: '+ms.length+' missão(ões)';
+    txt+='\n─────────────────────────────\nTotal: '+this._uniqueMissions(ms).length+' missão(ões)';
     this._shareSummary('Programação Semanal',txt);
   },
 
@@ -5060,6 +5308,7 @@ delContacto(id){
     let totMin=0,totAno=0;
     const tipoCount={};
     const recent=[];
+    const _misNums=new Set();
     this.S.missoes.forEach(m=>{
       if(!(m.crew||[]).some(c=>c.nome===nome))return;
       const d=m.dt instanceof Date?m.dt:new Date(m.dt);
@@ -5069,6 +5318,7 @@ delContacto(id){
       const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
       minPorMes[k]=(minPorMes[k]||0)+min;
       tipoCount[m.tipo]=(tipoCount[m.tipo]||0)+1;
+      _misNums.add(m.num);
       recent.push({d,m});
     });
     recent.sort((a,b)=>b.d-a.d);
@@ -5082,7 +5332,7 @@ delContacto(id){
     const pctA=Math.min(100,Math.round(totAno/(limY*60)*100));
     let html='<h3>'+this.esc(nome)+' <span style="font-weight:400;color:var(--ink3);font-size:.7em">'+this.esc(t.posto||'')+' • '+this.esc(t.col||'')+'</span></h3>';
     html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:14px 0">';
-    html+='<div style="background:var(--g0);padding:10px;border-radius:0;border-left:3px solid #3b82f6"><div style="font-size:.72em;color:var(--ink3);text-transform:uppercase">Missões totais</div><div style="font-size:1.6em;font-weight:700">'+recent.length+'</div></div>';
+    html+='<div style="background:var(--g0);padding:10px;border-radius:0;border-left:3px solid #3b82f6"><div style="font-size:.72em;color:var(--ink3);text-transform:uppercase">Missões totais</div><div style="font-size:1.6em;font-weight:700">'+_misNums.size+'</div></div>';
     html+='<div style="background:var(--g0);padding:10px;border-radius:0;border-left:3px solid #10b981"><div style="font-size:.72em;color:var(--ink3);text-transform:uppercase">Horas totais</div><div style="font-size:1.6em;font-weight:700">'+hTot+'h</div></div>';
     html+='<div style="background:var(--g0);padding:10px;border-radius:0;border-left:3px solid '+(pctM>=85?'#dc2626':'#f59e0b')+'"><div style="font-size:.72em;color:var(--ink3);text-transform:uppercase">Mês atual</div><div style="font-size:1.6em;font-weight:700">'+hMes+'h <span style="font-size:.55em;color:var(--ink3)">/ '+lim+'h</span></div><div style="height:4px;background:var(--g1);border-radius:0;margin-top:4px"><div style="height:100%;width:'+pctM+'%;background:'+(pctM>=85?'#dc2626':'#10b981')+';border-radius:0"></div></div></div>';
     html+='<div style="background:var(--g0);padding:10px;border-radius:0;border-left:3px solid '+(pctA>=85?'#dc2626':'#6366f1')+'"><div style="font-size:.72em;color:var(--ink3);text-transform:uppercase">Ano atual</div><div style="font-size:1.6em;font-weight:700">'+hAno+'h <span style="font-size:.55em;color:var(--ink3)">/ '+limY+'h</span></div><div style="height:4px;background:var(--g1);border-radius:0;margin-top:4px"><div style="height:100%;width:'+pctA+'%;background:'+(pctA>=85?'#dc2626':'#6366f1')+';border-radius:0"></div></div></div>';
@@ -5238,49 +5488,6 @@ renderProximas(){
     h+='<tr><td>'+dLabel+'</td><td><span class="mtag">'+this.esc(m.num)+(m.perna?'<span class="perna-tag">'+this.esc(m.perna)+'</span>':'')+'</span></td><td><span class="bdg '+bc+'">'+this.esc(m.tipo.length>16?m.tipo.slice(0,14)+'…':m.tipo)+'</span></td><td>'+this.esc(m.aero)+'</td><td>'+(m.toff||'').slice(0,5)+'</td><td><span class="bdg '+sc+'">'+this.esc(m.status||'Planeada')+'</span></td></tr>';
   });
   el.innerHTML=h+'</tbody></table>';
-},
-renderTopTrip(){
-  const el=document.getElementById('tTopTrip');if(!el)return;
-  const lim=this.S.hrLimit||80;
-  const vPF=this.getVPF();const mv=this.getMealVals();
-  const mapBT={},mapCVE={};
-  this.S.filtered.forEach(m=>{
-    const btStr=this.calcBT(m.boff,m.bon);
-    const btMins=btStr!=='—'?(()=>{const[bh,bm]=btStr.split(':').map(Number);return bh*60+(bm||0);})():0;
-    const tMin=this.t2m((m.toff||'00:00').slice(0,5));const dMin=this.dur2m(m.dur);
-    const effMins=btMins||dMin;
-    const mR=(this.overlaps(tMin,effMins,0,8)?mv.pa:0)+(this.overlaps(tMin,effMins,12,14)?mv.al:0)+(this.overlaps(tMin,effMins,19,24)?mv.jn:0);
-    (m.crew||[]).forEach(c=>{
-      if(!c.nome)return;
-      mapBT[c.nome]=(mapBT[c.nome]||0)+effMins;
-      mapCVE[c.nome]=(mapCVE[c.nome]||0)+(vPF[c.fn]||1500)*(effMins/60)+mR;
-    });
-  });
-  const list=Object.entries(mapBT).sort((a,b)=>b[1]-a[1]).slice(0,6);
-  if(!list.length){el.innerHTML='<div style="padding:14px;text-align:center;color:var(--ink3)">Sem dados este mês</div>';return;}
-  const max=list[0][1]||1;
-  let h='<div style="display:flex;flex-direction:column;gap:7px">';
-  const medals=['','','','','',''];
-  list.forEach(([nome,min],i)=>{
-    const hrs=(min/60).toFixed(1);
-    const cve=mapCVE[nome]||0;
-    const pct=Math.round(min/max*100);
-    const pctLim=Math.round(min/(lim*60)*100);
-    const cor=pctLim>=100?'#dc2626':(pctLim>=85?'#f59e0b':'#10b981');
-    const ne=this.esc(nome).replace(/'/g,"\\'");
-    h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--g0);border-radius:0;cursor:pointer" onclick="A.tripLogbook(\''+ne+'\')" title="Ver caderneta">'+
-      (medals[i]?'<span style="font-size:1em;min-width:18px">'+medals[i]+'</span>':'')+
-      '<div style="flex:1;min-width:0">'+
-        '<div style="font-weight:600;font-size:.84em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+this.esc(nome)+'</div>'+
-        '<div style="height:5px;background:var(--g2);border-radius:0;margin-top:3px"><div style="height:100%;width:'+pct+'%;background:'+cor+';border-radius:0;transition:width .4s"></div></div>'+
-      '</div>'+
-      '<div style="text-align:right;min-width:76px">'+
-        '<div style="font-weight:700;font-size:.87em;color:'+cor+'">'+hrs+'h BT</div>'+
-        '<div style="font-size:.76em;color:var(--g8);font-weight:600">'+this.cve(cve)+'</div>'+
-      '</div>'+
-    '</div>';
-  });
-  el.innerHTML=h+'</div>';
 },
 
 // ─── GUARDAR MISSÃO COMO MODELO ─────────────────────────────────
@@ -7594,6 +7801,7 @@ _manuaisToggle(key){
   this.renderManuais();
 },
 abrirModalManual(){
+  if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores','err');return;}
   this._savingManual=false;
   // Preencher selector de aeronaves
   const sel=document.getElementById('mAero');
@@ -7617,6 +7825,7 @@ _fecharModalManual(){
   document.body.style.overflow='';
 },
 async _manualAdd(){
+  if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores','err');return;}
   // Protecção contra duplo-clique enquanto saveToCloud está em curso
   if(this._savingManual)return;
   const nome=(document.getElementById('mNome')?.value||'').trim();
@@ -7645,6 +7854,7 @@ async _manualAdd(){
   }
 },
 async _manualDel(idx){
+  if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores','err');return;}
   if(!confirm('Remover este manual?'))return;
   const removed=this.S.manuais.splice(idx,1)[0];
   this.markDirty();
@@ -7657,6 +7867,7 @@ async _manualDel(idx){
 
 // ─── CHECKLISTS DA ABA MANUAIS ───────────────────────────────────────
 abrirModalChecklist(){
+  if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores','err');return;}
   this._savingCl=false;
   const sel=document.getElementById('clAero');
   if(sel){
@@ -7678,6 +7889,7 @@ _fecharModalChecklist(){
   document.body.style.overflow='';
 },
 async _checklistAdd(){
+  if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores','err');return;}
   if(this._savingCl)return;
   const aero=(document.getElementById('clAero')?.value||'').trim();
   const secao=(document.getElementById('clSecao')?.value||'').trim();
@@ -7705,6 +7917,7 @@ async _checklistAdd(){
   }
 },
 async _checklistDel(idx){
+  if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores','err');return;}
   if(!confirm('Remover este checklist?'))return;
   const removed=this.S.checklistDocs.splice(idx,1)[0];
   this.markDirty();
@@ -7976,8 +8189,8 @@ renderQuadro(){
   if(dt)dt.textContent=now.toLocaleDateString('pt-PT',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   const filter=(document.getElementById('qdFilter')?.value)||'hoje';
   const todayStr=this._ymd(now);
-  const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay()+1);
-  const weekEnd=new Date(weekStart);weekEnd.setDate(weekStart.getDate()+6);
+  const weekStart=new Date(now);weekStart.setDate(now.getDate()-((now.getDay()+6)%7));weekStart.setHours(0,0,0,0);
+  const weekEnd=new Date(weekStart);weekEnd.setDate(weekStart.getDate()+6);weekEnd.setHours(23,59,59,999);
   const _dtStr=m=>{const d=m.dt instanceof Date?m.dt:new Date(m.dt);return isNaN(d)?'':this._ymd(d);};
   const _concAge=m=>{
     const ds=_dtStr(m);if(!ds)return Infinity;
@@ -10976,7 +11189,7 @@ _lbRender(yr,mo,aero){
   // ── Pane 1: Resumo ──
   const kp=(lbl,val,cor)=>`<div style="padding:10px;background:var(--g0);border-radius:0;border-left:3px solid ${cor}"><div style="font-size:.7em;color:var(--ink3);text-transform:uppercase;margin-bottom:2px">${lbl}</div><div style="font-size:1.3em;font-weight:800">${val}</div></div>`;
   let p1=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:10px;margin-bottom:12px">`;
-  p1+=kp('Missões',''+filtered.length,'#6366f1');
+  p1+=kp('Missões',''+this._uniqueMissions(filtered).length,'#6366f1');
   p1+=kp('Flight time',fH(totFt),'#3b82f6');
   p1+=kp('Block time',fH(totBt),'#10b981');
   if(filtered.length){const ds=filtered.map(m=>m._dt);const y0=Math.min(...ds.map(d=>d.getFullYear())),y1=Math.max(...ds.map(d=>d.getFullYear()));p1+=kp('Período',y0===y1?''+y0:y0+'–'+y1,'#f59e0b');}
