@@ -780,8 +780,8 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="fg"><label>Blocks On</label><input type="time" id="eBOn" oninput="A.calcDurPreview()"></div>
     <div class="fg"><label>Duração estimada</label><input id="eDurPreview" readonly placeholder="—"></div>
     <div class="fg"><label>Block Time estimado</label><input id="eBTPreview" readonly placeholder="—"></div>
-    <div class="fg"><label>Origem</label><input id="eOrigem" placeholder="ex: Praia, SAL, CV01"></div>
-    <div class="fg"><label>Destino</label><input id="eDestino" placeholder="ex: SAL, Boa Vista, CV02"></div>
+    <div class="fg"><label>Origem</label><input id="eOrigem" list="rotasList" placeholder="ex: Praia, SAL, CV01"></div>
+    <div class="fg"><label>Destino</label><input id="eDestino" list="rotasList" placeholder="ex: SAL, Boa Vista, CV02"></div>
     <div class="fg"><label>Perna</label><select id="ePerna" disabled title="Calculado automaticamente — não é editável aqui"><option value="">—</option><option value="1">1ª (Ida)</option><option value="2">2ª (Regresso)</option><option value="3">3ª</option><option value="4">4ª</option><option value="5">5ª</option><option value="6">6ª</option><option value="7">7ª</option><option value="8">8ª</option><option value="9">9ª</option><option value="10">10ª</option></select><small style="color:var(--ink3);font-weight:400">Definida automaticamente ao criar a perna — não editável</small></div>
     <div class="fg" id="eNPacRow" style="display:none"><label>Nº Pacientes (MEDEVAC)</label><input type="number" id="eNPac" placeholder="ex: 2" min="0" step="1" style="width:100%"></div>
     <div class="fg" style="align-self:end"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 2px;user-select:none"><input type="checkbox" id="eCatering" style="width:17px;height:17px;accent-color:#4e5a6b;flex-shrink:0"><span>Refeição fornecida por catering<br><small style="color:var(--ink3);font-weight:400">Não inclui subsídio de refeição</small></span></label></div>
@@ -1154,8 +1154,9 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
       <div class="fg"><label>Data *</label><input type="date" id="iData"></div>
       <div class="fg"><label>Tipo Missão *</label><select id="iTipo" onchange="A._onTipoChange(this.value,'iNPacRow')" ><option value="">— Selecione —</option></select></div>
       <div class="fg"><label>Aeronave *</label><select id="iAero"><option value="">— Selecione —</option></select></div>
-      <div class="fg"><label>Origem</label><input id="iOrigem" placeholder="ex: Praia, SAL, CV01"></div>
-      <div class="fg"><label>Destino</label><input id="iDestino" placeholder="ex: SAL, Boa Vista, CV02"></div>
+      <div class="fg"><label>Origem</label><input id="iOrigem" list="rotasList" placeholder="ex: Praia, SAL, CV01"></div>
+      <div class="fg"><label>Destino</label><input id="iDestino" list="rotasList" placeholder="ex: SAL, Boa Vista, CV02"></div>
+      <datalist id="rotasList"></datalist>
       <div class="fg"><label>Etiquetas</label><input id="iTags" placeholder="ex: noturno, urgente"></div>
       <div class="fg" style="grid-column:1/-1"><div style="font-size:.78em;color:var(--ink3);background:var(--g0);border-radius:0;padding:8px 10px">Esta missão fica registada como a <b>1ª perna (ida)</b>. Para adicionar a perna de regresso (ou mais pernas), grave esta missão e depois use <b>"⋮" → Criar perna de regresso</b> na lista de missões.</div></div>
       <div class="fg" id="iNPacRow" style="display:none"><label>Nº Pacientes (MEDEVAC)</label><input type="number" id="iNPac" placeholder="ex: 2" min="0" step="1" style="width:100%"></div>
@@ -1225,7 +1226,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   <div class="card">
     <div class="card-hd" style="flex-direction:column;gap:10px;align-items:stretch">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <h3>Histórico de Missões <span id="vooCount" style="font-weight:400;color:var(--ink3)"></span> <span style="font-weight:400;color:var(--ink3)">— Histórico de Voos <span id="vooCountVoos" style="font-weight:400;color:var(--ink3)"></span></span></h3>
+        <h3>Histórico <span id="vooCount" style="font-weight:400;color:var(--ink3)"></span></h3>
         <div style="margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           <div class="view-toggle">
             <button class="view-btn active" id="vBtn-table" onclick="A.setView('table')">Tabela</button>
@@ -1361,6 +1362,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   <!-- KPIs resumo do filtro activo -->
   <div class="mgrid" style="margin-bottom:4px">
     <div class="mcard" data-ic=""><div class="mcard-lbl">Missões</div><div class="mcard-val" id="anaMTot">0</div><div class="mcard-sub" id="anaMTotSub">no período</div></div>
+    <div class="mcard" data-ic=""><div class="mcard-lbl">Voos</div><div class="mcard-val" id="anaVTot">0</div><div class="mcard-sub" id="anaVTotSub">no período</div></div>
     <div class="mcard" data-ic=""><div class="mcard-lbl">Block Time</div><div class="mcard-val" id="anaMHr">0h 0m</div><div class="mcard-sub">total</div></div>
     <div class="mcard" data-ic=""><div class="mcard-lbl">Taxa Conclusão</div><div class="mcard-val" id="anaMTaxa">0%</div><div class="mcard-sub">missões concluídas</div></div>
     <div class="mcard" data-ic=""><div class="mcard-lbl">Custo Estimado</div><div class="mcard-val" id="anaMLCusto">—</div><div class="mcard-sub">período filtrado</div></div>
@@ -2268,16 +2270,24 @@ genNum(serie,dt){
   const y=d.getFullYear();
   const dDay=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();
   const re=new RegExp(serie.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'-(\\d{4})-(\\d+)');
-  const pos=this.S.missoes.filter(m=>{
-    if(m.serie!==serie)return false;
+  // IMPORTANTE: missões com várias pernas (ida+volta) partilham o mesmo "num" — contam
+  // como UMA só posição, não uma por perna. Agrupa primeiro por num (usando a perna mais
+  // antiga de cada grupo como data de referência), tal como em _renumSerie.
+  const seen=new Map(); // num → data mais antiga desse grupo
+  this.S.missoes.forEach(m=>{
+    if(m.serie!==serie)return;
     const r=m.num?.match(re);
-    if(!r||+r[1]!==y)return false;
+    if(!r||+r[1]!==y)return;
     const md=m.dt instanceof Date?m.dt:new Date(m.dt);
+    const cur=seen.get(m.num);
+    if(!cur||md<cur)seen.set(m.num,md);
+  });
+  let pos=0;
+  seen.forEach(md=>{
     const mdDay=new Date(md.getFullYear(),md.getMonth(),md.getDate()).getTime();
-    if(mdDay<dDay)return true;
-    if(mdDay>dDay)return false;
-    return md.getTime()<d.getTime();
-  }).length;
+    if(mdDay<dDay)pos++;
+    else if(mdDay===dDay&&md.getTime()<d.getTime())pos++;
+  });
   return serie+'-'+y+'-'+String(pos+1).padStart(3,'0');
 },
 _renumSerie(serie,year){
@@ -5626,6 +5636,21 @@ renderAll(){
   this.renderAeros();
   this.renderMetas();
   this.renderIncidentes();
+  this._refreshRotasList();
+},
+// Alimenta a lista suspensa de sugestões de Origem/Destino (campos "iOrigem",
+// "iDestino", "eOrigem", "eDestino") com todas as rotas já usadas em missões
+// anteriores — assim que uma rota é lançada, fica disponível para escolher
+// diretamente da lista em vez de escrever de novo.
+_refreshRotasList(){
+  const dl=document.getElementById('rotasList');
+  if(!dl)return;
+  const vals=new Set();
+  this.S.missoes.forEach(m=>{
+    if(m.origem)vals.add(m.origem.trim());
+    if(m.destino)vals.add(m.destino.trim());
+  });
+  dl.innerHTML=[...vals].sort((a,b)=>a.localeCompare(b)).map(v=>'<option value="'+this.esc(v)+'">').join('');
 },
 
 // ─── DASHBOARD: Custo acumulado mês atual ─────────────────────
@@ -5721,6 +5746,8 @@ renderAnaKpis(){
   const misU=this._uniqueMissions(mis);
   e('anaMTot').textContent=misU.length;
   if(e('anaMTotSub'))e('anaMTotSub').textContent='de '+this._uniqueMissions(this.S.missoes).length+' total';
+  if(e('anaVTot'))e('anaVTot').textContent=mis.length;
+  if(e('anaVTotSub'))e('anaVTotSub').textContent='de '+this.S.missoes.length+' total';
   let bt=0;
   mis.forEach(m=>{const s=this.calcBT(m.boff,m.bon);if(s&&s!=='—'){const[h,mn]=s.split(':').map(Number);bt+=h*60+(mn||0);}else{const p=(m.dur||'0:0').split(':').map(Number);if(!isNaN(p[0])&&!isNaN(p[1]))bt+=p[0]*60+(p[1]||0);}});
   if(e('anaMHr'))e('anaMHr').textContent=Math.floor(bt/60)+'h '+(bt%60<10?'0':'')+(bt%60)+'m';
@@ -5984,9 +6011,7 @@ filterVoos(){
   if(vfdf){const d=new Date(vfdf+'T23:59:59');list=list.filter(m=>{const md=m.dt instanceof Date?m.dt:new Date(m.dt);return md<=d;});}
   this._filteredVoos=list;
   const vc=document.getElementById('vooCount');
-  if(vc) vc.textContent='('+this._uniqueMissions(list).length+' missões)';
-  const vcv=document.getElementById('vooCountVoos');
-  if(vcv) vcv.textContent='('+list.length+' voos)';
+  if(vc) vc.textContent='('+this._uniqueMissions(list).length+' Missões) e ('+list.length+' Voos)';
   this.renderVoos(list);
 },
 limparFiltrosVoos(){
@@ -7591,7 +7616,9 @@ renderAeros(){
   let h='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;padding:4px 0">';
   // ── Aeronaves pré-definidas
   defaultAeros.forEach(nome=>{
-    const nm=this.S.missoes.filter(m=>m.aero===nome).length;
+    const _aeroMs=this.S.missoes.filter(m=>m.aero===nome);
+    const nmVoos=_aeroMs.length;
+    const nmMissoes=this._uniqueMissions(_aeroMs).length;
     const btM=_btMins(nome);const btH=(btM/60).toFixed(1);
     const fl=_fuelTotals(nome);
     const ic=_tipoIcon('');
@@ -7607,10 +7634,14 @@ renderAeros(){
         '</div>'+
         '<span style="background:#f0f1f3;color:#616a78;border:1px solid #c5c9d1;border-radius:0;padding:3px 10px;font-size:.7em;font-weight:700;white-space:nowrap">Operacional</span>'+
       '</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center">'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;text-align:center">'+
         '<div style="background:var(--g0);border-radius:0;padding:8px 4px">'+
-          '<div style="font-family:var(--mono);font-size:1.05em;font-weight:700;color:var(--g8)">'+nm+'</div>'+
-          '<div style="font-size:.65em;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-top:2px">Missoes</div>'+
+          '<div style="font-family:var(--mono);font-size:1.05em;font-weight:700;color:var(--g8)">'+nmMissoes+'</div>'+
+          '<div style="font-size:.65em;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-top:2px">Missões</div>'+
+        '</div>'+
+        '<div style="background:var(--g0);border-radius:0;padding:8px 4px">'+
+          '<div style="font-family:var(--mono);font-size:1.05em;font-weight:700;color:var(--g8)">'+nmVoos+'</div>'+
+          '<div style="font-size:.65em;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-top:2px">Voos</div>'+
         '</div>'+
         '<div style="background:var(--g0);border-radius:0;padding:8px 4px">'+
           '<div style="font-family:var(--mono);font-size:1.05em;font-weight:700;color:var(--g8)">'+btH+'h</div>'+
@@ -7626,8 +7657,10 @@ renderAeros(){
   });
   // ── Aeronaves geridas pelo utilizador
   managed.forEach((a,i)=>{
-    const nm=this.S.missoes.filter(m=>m.aero===a.nome).length;
-    const hasMissoes=nm>0;
+    const _aeroMs=this.S.missoes.filter(m=>m.aero===a.nome);
+    const nmVoos=_aeroMs.length;
+    const nmMissoes=this._uniqueMissions(_aeroMs).length;
+    const hasMissoes=nmVoos>0;
     const btM=_btMins(a.nome);const btH=(btM/60).toFixed(1);
     const hrBase=a.hrAtual||0;
     const hrTotal=hrBase+(btM/60);
@@ -7672,10 +7705,14 @@ renderAeros(){
         '</div>'+
         '<span style="background:'+ei.bg+';color:'+ei.cor+';border:1px solid '+ei.cor+'40;border-radius:0;padding:3px 10px;font-size:.7em;font-weight:700;white-space:nowrap">'+ei.txt+'</span>'+
       '</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center">'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;text-align:center">'+
         '<div style="background:var(--g0);border-radius:0;padding:8px 4px">'+
-          '<div style="font-family:var(--mono);font-size:1.05em;font-weight:700;color:var(--g8)">'+nm+'</div>'+
-          '<div style="font-size:.65em;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-top:2px">Missoes</div>'+
+          '<div style="font-family:var(--mono);font-size:1.05em;font-weight:700;color:var(--g8)">'+nmMissoes+'</div>'+
+          '<div style="font-size:.65em;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-top:2px">Missões</div>'+
+        '</div>'+
+        '<div style="background:var(--g0);border-radius:0;padding:8px 4px">'+
+          '<div style="font-family:var(--mono);font-size:1.05em;font-weight:700;color:var(--g8)">'+nmVoos+'</div>'+
+          '<div style="font-size:.65em;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-top:2px">Voos</div>'+
         '</div>'+
         '<div style="background:var(--g0);border-radius:0;padding:8px 4px">'+
           '<div style="font-family:var(--mono);font-size:1.05em;font-weight:700;color:var(--g8)">'+btH+'h</div>'+
