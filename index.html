@@ -2156,40 +2156,55 @@ corrigirNumeracao(){
   const el=document.getElementById('numCorrecaoResult');
   if(!el)return;
 
-  // Escape regex special chars in serie name
-  const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-
-  // Build map: serieKey → { YYYY → [{m, dt, basePerna}] }
-  // Para missões com várias pernas (mesmo num), usa a data MAIS ANTIGA entre as
-  // pernas como representante — não a "primeira encontrada no array", que pode
-  // não ser a ida (ex: import fora de ordem, ou perna 2 inserida antes da 1).
-  const seen=new Map(); // num → representative entry (com a data mais antiga)
+  // Agrupa por missão real usando o mesmo critério de _renumSerie: perna preenchida =
+  // pernas da MESMA missão (partilham num de propósito); perna vazia = missão
+  // independente, que NUNCA se funde com outra só porque, neste momento, coincide em
+  // num com ela (é precisamente esse cenário de números duplicados que esta ferramenta
+  // tem de conseguir detectar e separar, em vez de os esconder um dentro do outro).
+  const rawGroups=new Map(); // groupKey → [missões]
   this.S.missoes.forEach(m=>{
     if(!m.num||!m.serie)return;
     const dt=m.dt instanceof Date?m.dt:new Date(m.dt);
     if(isNaN(dt))return;
-    const cur=seen.get(m.num);
-    if(!cur||dt<(cur.dt instanceof Date?cur.dt:new Date(cur.dt)))seen.set(m.num,m);
+    const key=m.perna?('N:'+(m.serie||'').trim().toUpperCase()+'|'+m.num):('S:'+m.id);
+    if(!rawGroups.has(key))rawGroups.set(key,[]);
+    rawGroups.get(key).push(m);
   });
 
-  // Group unique missions by serie+year-from-date
-  const groups=new Map(); // 'SERIE||YYYY' → [{m, dt, oldNum}]
-  seen.forEach((m,num)=>{
-    const dt=m.dt instanceof Date?m.dt:new Date(m.dt);
-    if(isNaN(dt))return;
-    const yr=dt.getFullYear();
-    const key=m.serie+'||'+yr;
-    if(!groups.has(key))groups.set(key,[]);
-    groups.get(key).push({m,dt,oldNum:num,serie:m.serie,yr});
+  // Para cada grupo (= uma missão real, com 1 ou mais pernas), usa a data mais antiga
+  // como referência de ordenação, e guarda os IDs reais das entradas — é por ID que a
+  // correcção será aplicada depois, nunca por re-comparar o texto do num antigo (esse
+  // texto pode estar duplicado entre duas missões diferentes, que é o próprio problema).
+  const entries=[];
+  rawGroups.forEach(members=>{
+    let oldest=null;
+    members.forEach(m=>{
+      const dt=m.dt instanceof Date?m.dt:new Date(m.dt);
+      if(!oldest||dt<oldest)oldest=dt;
+    });
+    entries.push({
+      ids:members.map(m=>m.id),
+      dt:oldest,
+      serieNorm:(members[0].serie||'').trim().toUpperCase(),
+      yr:oldest.getFullYear(),
+      oldNum:members[0].num,
+    });
+  });
+
+  const bySerieYear=new Map(); // 'SERIE_NORM||YYYY' → [entry]
+  entries.forEach(e=>{
+    const key=e.serieNorm+'||'+e.yr;
+    if(!bySerieYear.has(key))bySerieYear.set(key,[]);
+    bySerieYear.get(key).push(e);
   });
 
   // Sort each group by date and assign new sequential numbers
-  const fixes=[]; // {oldNum, newNum, serie, yr, dt}
-  groups.forEach((entries,key)=>{
-    entries.sort((a,b)=>a.dt-b.dt);
-    entries.forEach((e,i)=>{
-      const newNum=e.serie+'-'+e.yr+'-'+String(i+1).padStart(3,'0');
-      if(newNum!==e.oldNum) fixes.push({oldNum:e.oldNum,newNum,serie:e.serie,yr:e.yr,dt:e.dt});
+  const fixes=[]; // {ids, oldNum, newNum, serie, yr, dt}
+  bySerieYear.forEach((list)=>{
+    list.sort((a,b)=>a.dt-b.dt);
+    list.forEach((e,i)=>{
+      const newNum=e.serieNorm+'-'+e.yr+'-'+String(i+1).padStart(3,'0');
+      if(newNum!==e.oldNum) fixes.push({ids:e.ids,oldNum:e.oldNum,newNum,serie:e.serieNorm,yr:e.yr,dt:e.dt});
     });
   });
 
@@ -2227,12 +2242,14 @@ corrigirNumeracao(){
 aplicarCorrecaoNum(){
   const fixes=this._numFixes;
   if(!fixes||!fixes.length)return;
-  // Build rename map oldNum→newNum
-  const renameMap=new Map(fixes.map(f=>[f.oldNum,f.newNum]));
+  // Aplica por ID (nunca re-comparando o num antigo em texto — esse texto pode estar
+  // duplicado entre duas missões diferentes, que é precisamente o que estamos a corrigir).
+  const idMap=new Map(); // id → newNum
+  fixes.forEach(f=>{f.ids.forEach(id=>idMap.set(id,f.newNum));});
   this.S.missoes.forEach(m=>{
-    if(renameMap.has(m.num)){
+    if(idMap.has(m.id)){
       const oldN=m.num;
-      m.num=renameMap.get(oldN);
+      m.num=idMap.get(m.id);
       if(m.history)m.history.forEach(h=>{if(h.txt)h.txt=h.txt.replace(oldN,m.num);});
     }
   });
@@ -2269,16 +2286,21 @@ genNum(serie,dt){
   const d=dt instanceof Date?dt:(dt?new Date(dt):new Date());
   const y=d.getFullYear();
   const dDay=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();
-  const re=new RegExp(serie.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'-(\\d{4})-(\\d+)');
+  // Comparação da série tolerante a maiúsculas/minúsculas e espaços a mais — uma missão
+  // cuja série tenha ficado gravada com formatação ligeiramente diferente (ex: espaço
+  // a mais vindo de uma importação) não pode ficar "invisível" para a contagem, senão o
+  // número previsto sai errado e pode chocar com o de outra missão próxima.
+  const serieNorm=serie.trim().toUpperCase();
   // IMPORTANTE: missões com várias pernas (ida+volta) partilham o mesmo "num" — contam
   // como UMA só posição, não uma por perna. Agrupa primeiro por num (usando a perna mais
-  // antiga de cada grupo como data de referência), tal como em _renumSerie.
+  // antiga de cada grupo como data de referência), tal como em _renumSerie. O ano de cada
+  // missão vem sempre da SUA PRÓPRIA DATA, nunca de tentar interpretar o texto do num
+  // antigo — isso falhava sempre que o num não seguia exactamente o padrão esperado.
   const seen=new Map(); // num → data mais antiga desse grupo
   this.S.missoes.forEach(m=>{
-    if(m.serie!==serie)return;
-    const r=m.num?.match(re);
-    if(!r||+r[1]!==y)return;
+    if((m.serie||'').trim().toUpperCase()!==serieNorm)return;
     const md=m.dt instanceof Date?m.dt:new Date(m.dt);
+    if(isNaN(md)||md.getFullYear()!==y)return;
     const cur=seen.get(m.num);
     if(!cur||md<cur)seen.set(m.num,md);
   });
@@ -2291,19 +2313,30 @@ genNum(serie,dt){
   return serie+'-'+y+'-'+String(pos+1).padStart(3,'0');
 },
 _renumSerie(serie,year){
-  const re=new RegExp(serie.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'-(\\d{4})-(\\d+)');
+  const serieNorm=serie.trim().toUpperCase();
+  // Inclui QUALQUER missão cuja série corresponda (tolerante a maiúsculas/espaços) e cuja
+  // DATA REAL caia no ano indicado — não depende de conseguir "ler" o ano a partir do
+  // texto do num antigo (isso falhava para números legados/importados fora do padrão,
+  // deixando essas missões de fora da renumeração e sujeitas a colidir com outras).
   const toRen=this.S.missoes.filter(m=>{
-    if(m.serie!==serie)return false;
-    const r=m.num?.match(re);
-    return r&&+r[1]===year;
+    if((m.serie||'').trim().toUpperCase()!==serieNorm)return false;
+    const md=m.dt instanceof Date?m.dt:new Date(m.dt);
+    return !isNaN(md)&&md.getFullYear()===year;
   });
-  // IMPORTANTE: missões com várias pernas (ida+volta) partilham o mesmo "num" — têm de ser
-  // agrupadas pelo num ATUAL antes de renumerar, senão cada perna ficaria com um número
-  // diferente e a missão "partia-se" em duas. Agrupa primeiro, ordena os grupos pela perna
-  // mais antiga, e dá o MESMO número novo a todas as pernas do grupo.
+  // IMPORTANTE: missões com várias pernas (ida+volta) partilham o mesmo "num" de propósito
+  // e têm de ficar juntas no mesmo grupo. MAS uma missão nova, recém-criada, também pode
+  // ficar temporariamente com o MESMO num de outra missão já existente só por coincidência
+  // — genNum() dá-lhe um "número provisório" que ainda não teve oportunidade de ser corrigido
+  // aqui. Se agrupássemos só por num, essas duas missões SEM relação nenhuma entre si
+  // ficariam fundidas num único grupo e sairiam com o mesmo número final — exactamente o
+  // bug relatado (missão do dia 1 e do dia 2 a ficarem ambas com o mesmo número).
+  // O campo "perna" é o sinal fiável de que duas entradas são mesmo pernas da mesma missão
+  // (só fica preenchido quando criadas via "Criar perna de regresso"); uma missão
+  // independente tem sempre perna vazia, por isso nunca se funde com outra só por
+  // coincidência de número — cada uma fica isolada no seu próprio grupo (chave = id).
   const groups=new Map();
   toRen.forEach(m=>{
-    const key=m.num||'';
+    const key=m.perna?('N:'+m.num):('S:'+m.id);
     if(!groups.has(key))groups.set(key,[]);
     groups.get(key).push(m);
   });
@@ -3852,7 +3885,12 @@ _watchEdit(id){
   this._unwatchEdit();
   if(typeof supabaseClient==='undefined'||!supabaseClient.channel)return;
   try{
-    const me=this.S.currentUser||('convidado-'+Math.random().toString(36).slice(2,7));
+    // Chave estável para todo o separador do browser — gerada só UMA vez, não a cada
+    // missão aberta. Sem isto, um "convidado" (sem sessão com nome) podia ver o aviso de
+    // "outra pessoa está a editar" por causa de SI PRÓPRIO: a chave anónima mudava
+    // sempre que reabria a mesma ou outra missão, parecendo uma pessoa diferente.
+    if(!this._guestSessionKey)this._guestSessionKey='convidado-'+Math.random().toString(36).slice(2,9);
+    const me=this.S.currentUser||this._guestSessionKey;
     const ch=supabaseClient.channel('edit-missao-'+id,{config:{presence:{key:me}}});
     ch.on('presence',{event:'sync'},()=>{
       const state=ch.presenceState();
@@ -5637,6 +5675,7 @@ renderAll(){
   this.renderMetas();
   this.renderIncidentes();
   this._refreshRotasList();
+  this.renderSeries();
 },
 // Alimenta a lista suspensa de sugestões de Origem/Destino (campos "iOrigem",
 // "iDestino", "eOrigem", "eDestino") com todas as rotas já usadas em missões
