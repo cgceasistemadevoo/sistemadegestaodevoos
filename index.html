@@ -1198,8 +1198,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center">
       <button class="btn btn-p admin-only" onclick="A.addMissao()">Registar Missão</button>
       <button class="btn btn-s" onclick="A.clearForm()">Limpar</button>
-      <select id="tplSelect" onchange="A.applyTemplate(this.value)" title="Carregar um modelo guardado a partir de uma missão" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:0;font-size:.85em;background:var(--white);color:var(--ink)"><option value="">Carregar modelo…</option></select>
-      <button class="btn btn-del btn-sm" onclick="A.deleteTemplate()" title="Apagar modelo selecionado">🗑</button>
     </div>
   </div>
   </div>
@@ -3198,7 +3196,6 @@ async init(){
     this.renderAll();
     this.buildCharts();
     this._refreshUndoBtn();
-    this._refreshTplSelect();
     setTimeout(()=>this.showStartupNotifs(),800);
     const n=new Date();
     const sa=document.getElementById('selAno');
@@ -3905,12 +3902,19 @@ _watchEdit(id){
     this._editChannel=ch;
   }catch(_e){/* Realtime indisponível — falha em silêncio, não bloqueia a edição normal */}
 },
-_unwatchEdit(){
-  if(this._editChannel){
-    try{this._editChannel.untrack();supabaseClient.removeChannel(this._editChannel);}catch(_e){}
-    this._editChannel=null;
-  }
+async _unwatchEdit(){
+  // Limpa o estado local e esconde o aviso já, de imediato, independentemente da rede.
+  const ch=this._editChannel;
+  this._editChannel=null;
   this._showEditWarning(null);
+  if(ch){
+    // IMPORTANTE: esperar que o untrack() termine antes de remover o canal. Se
+    // chamássemos removeChannel() logo a seguir (sem esperar), a mensagem "já não
+    // estou a editar" podia nunca chegar a sair — a ligação fechava-se primeiro — e o
+    // aviso ficava "pendurado" para quem estava a ver, mesmo depois de já termos saído.
+    try{await ch.untrack();}catch(_e){}
+    try{supabaseClient.removeChannel(ch);}catch(_e){}
+  }
 },
 _showEditWarning(userName){
   const el=document.getElementById('editWarnBanner');
@@ -5046,10 +5050,8 @@ delContacto(id){
     this.openInfoModal(html);
   },
 
-  // ─── CRIAR PERNA DE REGRESSO / DUPLICAR MISSÃO ─────────────────
+  // ─── CRIAR PERNA DE REGRESSO ────────────────────────────────────
   dupMissaoRegresso(id){ this._dupMissaoCore(id,true); },
-  dupMissaoIndependente(id){ this._dupMissaoCore(id,false); },
-  dupMissao(id){ this._dupMissaoCore(id,confirm('PERNA DE REGRESSO\n\nOK = Criar perna de regresso (mesmo número, origem/destino invertidos)\nCancelar = Duplicar como missão independente')); },
   _dupMissaoCore(id,isRegresso){
     if(this._submittingMissao)return;
     this._submittingMissao=true;
@@ -5409,59 +5411,6 @@ delContacto(id){
     this.openInfoModal(html);
   },
 
-  // ─── MODELOS DE MISSÃO ──────────────────────────────────────────
-  _refreshTplSelect(){
-    const sel=document.getElementById('tplSelect');if(!sel)return;
-    const cur=sel.value;
-    sel.innerHTML='<option value="">Carregar modelo…</option>'+(this.S.templates||[]).map((t,i)=>'<option value="'+i+'">'+this.esc(t.nome)+'</option>').join('');
-    if(cur&&sel.querySelector('option[value="'+cur+'"]'))sel.value=cur;
-  },
-  saveTemplate(){
-    const nome=prompt('Nome do modelo (ex: Treino rotina CGC123):','');
-    if(!nome||!nome.trim())return;
-    const tpl={
-      nome:nome.trim(),
-      serie:document.getElementById('iSerie')?.value||'',
-      tipo:document.getElementById('iTipo')?.value||'',
-      aero:document.getElementById('iAero')?.value||'',
-      boff:document.getElementById('iBOff')?.value||'',
-      toff:document.getElementById('iTOff')?.value||'',
-      land:document.getElementById('iLand')?.value||'',
-      bon:document.getElementById('iBOn')?.value||'',
-      status:document.getElementById('iStatus')?.value||'Concluída',
-      tags:document.getElementById('iTags')?.value||'',
-      crew:this._getCrew('crewList'),
-    };
-    this.S.templates=this.S.templates||[];
-    this.S.templates.push(tpl);
-    this._refreshTplSelect();
-    this.markDirty();
-    this.showNotif('Modelo "'+tpl.nome+'" guardado');
-  },
-  applyTemplate(idx){
-    if(idx===''||idx==null)return;
-    const tpl=(this.S.templates||[])[parseInt(idx)];
-    if(!tpl)return;
-    const set=(id,v)=>{const e=document.getElementById(id);if(e&&v!=null)e.value=v;};
-    set('iSerie',tpl.serie);set('iTipo',tpl.tipo);set('iAero',tpl.aero);
-    set('iBOff',tpl.boff);set('iTOff',tpl.toff);set('iLand',tpl.land);set('iBOn',tpl.bon);
-    set('iStatus',tpl.status);set('iTags',tpl.tags);
-    // Recriar tripulação
-    const cl=document.getElementById('crewList');
-    if(cl&&tpl.crew){cl.innerHTML='';(tpl.crew||[]).forEach(c=>{this.addCrewRow&&this.addCrewRow('crewList',c.nome,c.fn);});const cb=document.getElementById('crewBadge');if(cb)cb.textContent=String((tpl.crew||[]).length);}
-    if(typeof this.updateDur==='function')this.updateDur();
-    this.showNotif('Modelo "'+tpl.nome+'" carregado — ajuste a data e registe');
-  },
-  deleteTemplate(){
-    const sel=document.getElementById('tplSelect');if(!sel||!sel.value)return this.showNotif('Selecione primeiro um modelo','warn');
-    const idx=parseInt(sel.value);const tpl=(this.S.templates||[])[idx];if(!tpl)return;
-    if(!confirm('Apagar modelo "'+tpl.nome+'"?'))return;
-    this.S.templates.splice(idx,1);
-    this._refreshTplSelect();
-    this.markDirty();
-    this.showNotif('Modelo apagado');
-  },
-
   // ─── DRAG-DROP NO CALENDÁRIO ────────────────────────────────────
   _calDrop(ev,destDate){
     ev.preventDefault();
@@ -5536,27 +5485,6 @@ renderProximas(){
     h+='<tr><td>'+dLabel+'</td><td><span class="mtag">'+this.esc(m.num)+(m.perna?'<span class="perna-tag">'+this.esc(m.perna)+'</span>':'')+'</span></td><td><span class="bdg '+bc+'">'+this.esc(m.tipo.length>16?m.tipo.slice(0,14)+'…':m.tipo)+'</span></td><td>'+this.esc(m.aero)+'</td><td>'+(m.toff||'').slice(0,5)+'</td><td><span class="bdg '+sc+'">'+this.esc(m.status||'Planeada')+'</span></td></tr>';
   });
   el.innerHTML=h+'</tbody></table>';
-},
-
-// ─── GUARDAR MISSÃO COMO MODELO ─────────────────────────────────
-saveTemplateFromMission(id){
-  if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores podem guardar modelos','err');return;}
-  const m=this.S.missoes.find(x=>x.id===id);if(!m){this.showNotif('Missão não encontrada','err');return;}
-  const def=m.tipo+' — '+m.aero;
-  const nome=prompt('Nome do modelo:',def);
-  if(!nome||!nome.trim())return;
-  const tpl={
-    nome:nome.trim(),serie:m.serie,tipo:m.tipo,aero:m.aero,
-    boff:(m.boff||'').slice(0,5),toff:(m.toff||'').slice(0,5),
-    land:(m.land||'').slice(0,5),bon:(m.bon||'').slice(0,5),
-    status:'Planeada',tags:(m.tags||[]).join(', '),
-    crew:(m.crew||[]).map(c=>({nome:c.nome,fn:c.fn})),
-  };
-  this.S.templates=this.S.templates||[];
-  this.S.templates.push(tpl);
-  this._refreshTplSelect();
-  this.markDirty();
-  this.showNotif('Modelo "'+tpl.nome+'" guardado a partir de '+m.num);
 },
 
   showStartupNotifs(){
@@ -6142,8 +6070,6 @@ renderVoos(list){
           '<button class="btn btn-xs" style="background:var(--g0);border:1px solid var(--border)" onclick="event.stopPropagation();A._rowMenuToggle(\'voMenu'+mIdx+'\')" title="Mais ações">⋮</button>'+
           '<div id="voMenu'+mIdx+'" class="row-action-menu" style="display:none;position:absolute;right:0;top:26px;background:var(--white);border:1.5px solid var(--border);border-radius:0;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:30;min-width:190px;overflow:hidden">'+
             this._menuItem('+ Criar perna de regresso','A._rowMenuToggle(\'voMenu'+mIdx+'\');A.dupMissaoRegresso(\''+eid+'\')',null,true)+
-            this._menuItem('Duplicar como missão independente','A._rowMenuToggle(\'voMenu'+mIdx+'\');A.dupMissaoIndependente(\''+eid+'\')',null,true)+
-            this._menuItem('Guardar como modelo','A._rowMenuToggle(\'voMenu'+mIdx+'\');A.saveTemplateFromMission(\''+eid+'\')',null,true)+
             this._menuItem('Histórico','A._rowMenuToggle(\'voMenu'+mIdx+'\');A.showHistoria(\''+eid+'\')')+
             this._menuItem('Documentos'+(m.docs&&m.docs.length?' ('+m.docs.length+')':''),'A._rowMenuToggle(\'voMenu'+mIdx+'\');A.gestaoDocs(\'miss\',\''+eid+'\')')+
             this._menuItem('Eliminar','A._rowMenuToggle(\'voMenu'+mIdx+'\');A.delMissao(\''+eid+'\')','#dc2626',true)+
@@ -6187,8 +6113,6 @@ _renderCards(list){
          '<button class="btn btn-xs" style="background:var(--g0);border:1px solid var(--border)" onclick="event.stopPropagation();A._rowMenuToggle(\'voCardMenu'+mIdx+'\')" title="Mais ações">⋮</button>'+
          '<div id="voCardMenu'+mIdx+'" class="row-action-menu" style="display:none;position:absolute;right:0;bottom:34px;background:var(--white);border:1.5px solid var(--border);border-radius:0;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:30;min-width:190px;overflow:hidden">'+
             this._menuItem('+ Criar perna de regresso','A._rowMenuToggle(\'voCardMenu'+mIdx+'\');A.dupMissaoRegresso(\''+eid+'\')',null,true)+
-            this._menuItem('Duplicar como missão independente','A._rowMenuToggle(\'voCardMenu'+mIdx+'\');A.dupMissaoIndependente(\''+eid+'\')',null,true)+
-            this._menuItem('Guardar como modelo','A._rowMenuToggle(\'voCardMenu'+mIdx+'\');A.saveTemplateFromMission(\''+eid+'\')',null,true)+
             this._menuItem('Histórico','A._rowMenuToggle(\'voCardMenu'+mIdx+'\');A.showHistoria(\''+eid+'\')')+
             this._menuItem('Documentos'+(m.docs&&m.docs.length?' ('+m.docs.length+')':''),'A._rowMenuToggle(\'voCardMenu'+mIdx+'\');A.gestaoDocs(\'miss\',\''+eid+'\')')+
             this._menuItem('Eliminar','A._rowMenuToggle(\'voCardMenu'+mIdx+'\');A.delMissao(\''+eid+'\')','#dc2626',true)+
