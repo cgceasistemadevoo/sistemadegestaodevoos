@@ -2569,9 +2569,16 @@ async saveToCloud(){
       },
     };
     const _newTs=new Date().toISOString();
-    const {error:_supErr}=await supabaseClient.from('app_state').update({data,updated_at:_newTs}).eq('id',1);
+    // IMPORTANTE: não confiar no timestamp calculado no browser como sendo o que ficou
+    // realmente gravado — o servidor pode ter a sua própria forma de definir "updated_at"
+    // (ex: um trigger na base de dados), com uma diferença de milissegundos em relação ao
+    // relógio do browser. Se guardássemos localmente o valor que ENVIÁMOS em vez do valor
+    // que o servidor CONFIRMA ter guardado, a próxima gravação via comparar dois valores
+    // ligeiramente diferentes e mostraria "outra pessoa gravou" mesmo estando sozinho.
+    // `.select()` a seguir ao `.update()` devolve a linha tal como ficou gravada de facto.
+    const {data:_saved,error:_supErr}=await supabaseClient.from('app_state').update({data,updated_at:_newTs}).eq('id',1).select('updated_at').maybeSingle();
     if(!_supErr){
-      this.S._cloudVer=_newTs;
+      this.S._cloudVer=_saved?.updated_at||_newTs;
       this.S.dirty=false;
       this.S.lastSave=new Date().toISOString();
       this.syncUI('synced',this.S.lastSave);
@@ -3919,7 +3926,12 @@ async _unwatchEdit(){
 _showEditWarning(userName){
   const el=document.getElementById('editWarnBanner');
   if(!el)return;
-  if(userName&&userName!==(this.S.currentUser||'')){
+  // A exclusão de "sou eu próprio" já foi feita em _watchEdit (filtragem pela chave de
+  // presença, o identificador fiável) — aqui só resta mostrar ou esconder. Não repetir a
+  // comparação por nome: isso seria uma segunda fonte de verdade a poder ficar
+  // dessincronizada da primeira, e é exatamente esse tipo de inconsistência que causa
+  // avisos a aparecer para quem não devia.
+  if(userName){
     el.style.display='block';
     el.textContent='\u26a0\ufe0f '+userName+' também tem esta missão aberta para edição agora — coordenem-se para não perder alterações um do outro.';
   }else{
