@@ -9157,7 +9157,7 @@ renderMapa(){
     rotas[key].count++;rotas[key].missoes.push(m.num||'');rotas[key].full=rotas[key].full||[];rotas[key].full.push(m);
   });
   const routeColors=['#e11d48','#2563eb','#d97706','#7c3aed','#0891b2','#616a78','#dc2626','#9333ea','#0284c7','#4e5a6b'];
-  const rotaKeys=Object.keys(rotas);
+  const rotaKeys=Object.keys(rotas).sort((a,b)=>rotas[b].count-rotas[a].count||a.localeCompare(b));
   const inRoute=new Set();rotaKeys.forEach(k=>{inRoute.add(rotas[k].from);inRoute.add(rotas[k].to);});
   this._mapaRotasCache={rotas,ilhas,rk:k=>k.replace(/[^a-zA-Z0-9]/g,'_'),keyMap:{}};
   rotaKeys.forEach(k=>{this._mapaRotasCache.keyMap[this._mapaRotasCache.rk(k)]=k;});
@@ -9221,26 +9221,31 @@ renderMapa(){
   const kpi=document.getElementById('mapaKpis');
   if(kpi){
     const totalVoos=rotaKeys.reduce((s,k)=>s+rotas[k].count,0);
+    const totalMissoes=this._uniqueMissions(missoes).length;
     let topKey=null;rotaKeys.forEach(k=>{if(!topKey||rotas[k].count>rotas[topKey].count)topKey=k;});
     let lowKey=null;rotaKeys.forEach(k=>{if(!lowKey||rotas[k].count<rotas[lowKey].count||(rotas[k].count===rotas[lowKey].count&&k.localeCompare(lowKey)<0))lowKey=k;});
     const fn=n=>ilhas[n]?ilhas[n].label:n;
     const topLabel=topKey?(rotas[topKey].self?''+fn(rotas[topKey].from):fn(rotas[topKey].from)+' ↔ '+fn(rotas[topKey].to)):'—';
     const lowLabel=lowKey?(rotas[lowKey].self?''+fn(rotas[lowKey].from):fn(rotas[lowKey].from)+' ↔ '+fn(rotas[lowKey].to)):'—';
     kpi.innerHTML=
-      '<div style="background:var(--white);border:1.5px solid var(--border);border-radius:0;padding:10px 14px;flex:1;min-width:120px">'+
+      '<div style="background:var(--white);border:1.5px solid var(--border);border-radius:0;padding:10px 14px;flex:1;min-width:120px;text-align:center">'+
+        '<div style="font-size:.7em;color:var(--ink3);font-weight:700;text-transform:uppercase;letter-spacing:.03em">Total de Missões</div>'+
+        '<div style="font-family:var(--mono);font-size:1.3em;font-weight:800;color:var(--ink)">'+totalMissoes+'</div>'+
+      '</div>'+
+      '<div style="background:var(--white);border:1.5px solid var(--border);border-radius:0;padding:10px 14px;flex:1;min-width:120px;text-align:center">'+
         '<div style="font-size:.7em;color:var(--ink3);font-weight:700;text-transform:uppercase;letter-spacing:.03em">Total de voos</div>'+
         '<div style="font-family:var(--mono);font-size:1.3em;font-weight:800;color:var(--ink)">'+totalVoos+'</div>'+
       '</div>'+
-      '<div style="background:var(--white);border:1.5px solid var(--border);border-radius:0;padding:10px 14px;flex:1;min-width:120px">'+
+      '<div style="background:var(--white);border:1.5px solid var(--border);border-radius:0;padding:10px 14px;flex:1;min-width:120px;text-align:center">'+
         '<div style="font-size:.7em;color:var(--ink3);font-weight:700;text-transform:uppercase;letter-spacing:.03em">Ilhas activas</div>'+
         '<div style="font-family:var(--mono);font-size:1.3em;font-weight:800;color:var(--ink)">'+inRoute.size+' / '+Object.keys(ilhas).length+'</div>'+
       '</div>'+
-      '<div style="background:var(--white);border:1.5px solid var(--border);border-radius:0;padding:10px 14px;flex:2;min-width:180px">'+
+      '<div style="background:var(--white);border:1.5px solid var(--border);border-radius:0;padding:10px 14px;flex:2;min-width:180px;text-align:center">'+
         '<div style="font-size:.7em;color:var(--ink3);font-weight:700;text-transform:uppercase;letter-spacing:.03em">Rota mais frequente</div>'+
         '<div style="font-size:.92em;font-weight:800;color:var(--ink)">'+topLabel+(topKey?' ('+rotas[topKey].count+')':'')+'</div>'+
       '</div>'+
-      '<div style="background:var(--white);border:1.5px solid var(--border);border-radius:0;padding:10px 14px;flex:2;min-width:180px">'+
-        '<div style="font-size:.7em;color:var(--ink3);font-weight:700;text-transform:uppercase;letter-spacing:.03em">Rota com menos missões</div>'+
+      '<div style="background:var(--white);border:1.5px solid var(--border);border-radius:0;padding:10px 14px;flex:2;min-width:180px;text-align:center">'+
+        '<div style="font-size:.7em;color:var(--ink3);font-weight:700;text-transform:uppercase;letter-spacing:.03em">Rota menos frequente</div>'+
         '<div style="font-size:.92em;font-weight:800;color:var(--ink)">'+lowLabel+(lowKey?' ('+rotas[lowKey].count+')':'')+'</div>'+
       '</div>';
   }
