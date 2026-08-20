@@ -7014,12 +7014,12 @@ _buildMedevacCharts(){
   }
   const ctx=document.getElementById('cMedevac')?.getContext('2d');
   if(ctx){this.S.charts['cMedevac']=new Chart(ctx,{type:'bar',data:{labels:months,datasets:[
-    {label:'Pacientes',data:pacCounts,backgroundColor:'rgba(59,130,246,.75)',borderColor:'#3b82f6',borderWidth:1.5,yAxisID:'yPac',order:1},
-    {label:'Missões MEDEVAC',data:missCounts,type:'line',borderColor:'#60a5fa',backgroundColor:'rgba(96,165,250,.12)',pointBackgroundColor:'#60a5fa',tension:.3,yAxisID:'yMis',order:0}
+    {label:'Pacientes',data:pacCounts,backgroundColor:'rgba(61,69,84,.75)',borderColor:'#3d4554',borderWidth:1.5,yAxisID:'yPac',order:1},
+    {label:'Missões MEDEVAC',data:missCounts,type:'line',borderColor:'#8891a1',backgroundColor:'rgba(136,145,161,.12)',pointBackgroundColor:'#8891a1',tension:.3,yAxisID:'yMis',order:0}
   ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tc,font:{size:11}}}},scales:{
     x:{grid:{color:gc},ticks:{color:tc,font:{size:10}}},
-    yPac:{beginAtZero:true,grid:{color:gc},ticks:{color:'#3b82f6',font:{size:10},stepSize:1},title:{display:true,text:'Pacientes',color:'#3b82f6',font:{size:10}}},
-    yMis:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},ticks:{color:'#60a5fa',font:{size:10},stepSize:1},title:{display:true,text:'Missões',color:'#60a5fa',font:{size:10}}}
+    yPac:{beginAtZero:true,grid:{color:gc},ticks:{color:'#3d4554',font:{size:10},stepSize:1},title:{display:true,text:'Pacientes',color:'#3d4554',font:{size:10}}},
+    yMis:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},ticks:{color:'#8891a1',font:{size:10},stepSize:1},title:{display:true,text:'Missões',color:'#8891a1',font:{size:10}}}
   }}});}
   // Top rotas MEDEVAC — gráfico de barras horizontal
   const rotaMap={};
@@ -7041,8 +7041,8 @@ _buildMedevacCharts(){
       this.S.charts['cMedevacRotas']=new Chart(ctxRotas,{
         type:'bar',
         data:{labels,datasets:[
-          {label:'Pacientes',data:pacs,backgroundColor:'rgba(59,130,246,.75)',borderColor:'#3b82f6',borderWidth:1.5,borderRadius:4},
-          {label:'Missões',data:misss,backgroundColor:'rgba(96,165,250,.65)',borderColor:'#60a5fa',borderWidth:1.5,borderRadius:4}
+          {label:'Pacientes',data:pacs,backgroundColor:'rgba(61,69,84,.75)',borderColor:'#3d4554',borderWidth:1.5,borderRadius:4},
+          {label:'Missões',data:misss,backgroundColor:'rgba(136,145,161,.65)',borderColor:'#8891a1',borderWidth:1.5,borderRadius:4}
         ]},
         options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
           plugins:{legend:{labels:{color:tc,font:{size:11}}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.parsed.x}}},
