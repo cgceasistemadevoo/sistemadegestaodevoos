@@ -1760,7 +1760,8 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <select id="mapaMonth" onchange="A.renderMapa()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:0;font-size:.85em;background:var(--white);color:var(--ink);outline:none"></select>
     <select id="mapaYear" onchange="A.renderMapa()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:0;font-size:.85em;background:var(--white);color:var(--ink);outline:none"></select>
-      <button class="btn btn-sm" onclick="document.getElementById('mapaMonth').value='0';A.renderMapa()" style="font-size:.82em">Todos os meses</button>
+      <select id="mapaAero" onchange="A.renderMapa()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:0;font-size:.85em;background:var(--white);color:var(--ink);outline:none"><option value="">Todas as aeronaves</option></select>
+      <button class="btn btn-sm" onclick="document.getElementById('mapaMonth').value='0';document.getElementById('mapaAero').value='';A.renderMapa()" style="font-size:.82em">Todos os meses</button>
     </div>
   </div>
   <div id="mapaKpis" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px"></div>
@@ -2524,6 +2525,14 @@ markDirty(){
 async saveToCloud(){
   const url=getApiUrl();
   if(!url){this.openSettings();this.showNotif('Configure primeiro o URL do servidor','warn');return;}
+  if(this.S._demoMode){
+    // Os dados em memória são de demonstração/fallback (o carregamento real nunca chegou
+    // a confirmar-se) — gravar agora destruiria os dados verdadeiros no servidor. Bloqueado
+    // até "Recarregar do Drive" confirmar um carregamento real com sucesso.
+    this.syncUI('error');
+    this.showNotif('Sem dados reais carregados do servidor — gravação bloqueada para não apagar a base de dados. Recarregue a página ou use "Recarregar do Drive".','err');
+    return;
+  }
   this.syncUI('saving');
   try{
     // Deteção de conflito: se sabemos a versão que carregámos (this.S._cloudVer), confirmar
@@ -2613,6 +2622,7 @@ async loadFromCloud(){
     // se alguém grava por cima antes de nós voltarmos a gravar.
     this.S._cloudVer=_row?.updated_at||null;
     this.S._conflictPending=false;
+    this.S._demoMode=false; // carregamento real teve sucesso — já é seguro gravar
     const _raw=_row?.data||{};
     // Suporte a respostas embrulhadas {ok:true,data:{...}} e resposta directa {missoes:[...]}
     const d=(_raw&&_raw.missoes)?_raw:(_raw&&_raw.data&&_raw.data.missoes?_raw.data:_raw);
@@ -3180,11 +3190,29 @@ async init(){
   this.bindNav();
   this._updateConfigBtn();
   try{
-    // Timeout de segurança: se loadFromCloud demorar mais de 15s, continua sem dados
+    // Timeout de segurança: se loadFromCloud demorar mais de 20s, a interface deixa de
+    // ficar presa a girar para sempre — MAS (correção importante) isso NUNCA pode significar
+    // substituir os dados reais por dados de demonstração vazios enquanto o carregamento
+    // real ainda pode vir a ter sucesso. Antes desta correção, ao vencer a corrida por
+    // timeout, o sistema trocava logo tudo por dados vazios/demo — e como isso não marca
+    // `_cloudVer`, a proteção contra conflitos de gravação (secção 4.3 do manual técnico)
+    // ficava desligada: a primeira gravação seguinte apagava a base de dados real por
+    // cima, sem aviso nenhum. Isto tem de continuar a aguardar o carregamento real.
+    this.S._demoMode=false;
     const cloudPromise=this.loadFromCloud();
-    const timeoutPromise=new Promise(res=>setTimeout(()=>res(false),20000));
-    const ok=await Promise.race([cloudPromise,timeoutPromise]);
-    if(!ok){
+    const timeoutPromise=new Promise(res=>setTimeout(()=>res('timeout'),20000));
+    const raceResult=await Promise.race([cloudPromise,timeoutPromise]);
+    let ok=raceResult;
+    if(raceResult==='timeout'){
+      this.S._demoMode=true; // bloqueia saveToCloud() enquanto não soubermos o resultado real
+      this.syncUI('error');
+      this.showNotif('A ligação ao servidor está lenta — a aguardar resposta. Sem gravar nada até os dados reais carregarem.','warn');
+      ok=await cloudPromise; // continua a aguardar o carregamento verdadeiro, sem desistir
+    }
+    if(!ok&&this.S._demoMode){
+      // loadFromCloud() falhou mesmo (erro real de ligação) — NÃO confundir com o caso de
+      // "ficheiro vazio, primeira utilização", em que loadFromCloud() já deixa _demoMode=false
+      // por ser seguro começar a usar a aplicação do zero e gravar normalmente.
       this.S.trips=JSON.parse(JSON.stringify(this.C.defTrips));
       this.S.missoes=JSON.parse(JSON.stringify(this.C.defMissoes)).map(m=>({...m,dt:_parseDt(m.dt),status:m.status||'Concluída',history:m.history||[]}));
       this.S.series=[];this.S.colocacoes=[];this.S.aeros=[];this.S.auditLog=[];
@@ -3193,8 +3221,10 @@ async init(){
         this.showNotif('Configure a ligação ao servidor — clique em "Configurar Ligação"','warn');
       }else{
         this.syncUI('error');
-        this.showNotif('Sem acesso ao Drive — a usar dados de demonstração','warn');
+        this.showNotif('Sem acesso ao Drive — a usar dados de demonstração (leitura apenas; nada será gravado até recarregar com sucesso)','err');
       }
+    }else{
+      this.S._demoMode=false;
     }
     this.S.filtered=[...this.S.missoes];
     this.S.dirty=false;
@@ -4931,7 +4961,7 @@ delContacto(id){
 
   // ─── IMPRIMIR FOLHA DE SERVIÇO DIÁRIA ────────────────────────
   printDuty(y,mo,d){
-    const dayMs=this.S.missoes.filter(m=>{const dt=m.dt instanceof Date?m.dt:new Date(m.dt);return dt.getFullYear()===y&&dt.getMonth()===mo&&dt.getDate()===d;}).sort((a,b)=>String(a.toff||'').localeCompare(String(b.toff||'')));
+    const dayMs=this.S.missoes.filter(m=>{const dt=m.dt instanceof Date?m.dt:new Date(m.dt);return dt.getFullYear()===y&&dt.getMonth()===mo&&dt.getDate()===d;}).sort((a,b)=>String(a.toff||'').localeCompare(String(b.toff||''))||String(a.serie||'').localeCompare(String(b.serie||''),'pt'));
     if(!dayMs.length){this.showNotif('Sem missões para esta data','warn');return;}
     const dateStr=String(d).padStart(2,'0')+'/'+String(mo+1).padStart(2,'0')+'/'+y;
     const w=window.open('','_blank','width=900,height=700');
@@ -5937,7 +5967,7 @@ _validityCell(t,idx){
 renderUltimos(){
   const el=document.getElementById('tUltimos');
   if(!el)return;
-  const r=[...this.S.filtered].sort((a,b)=>b.dt-a.dt).slice(0,10);
+  const r=[...this.S.filtered].sort((a,b)=>b.dt-a.dt||String(a.serie||'').localeCompare(String(b.serie||''),'pt')).slice(0,10);
   if(!r.length){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--ink3)">Nenhuma missão</div>';return;}
   let h='<table><thead><tr><th>Série</th><th>Missão</th><th>Data</th><th>Tipo</th><th>Aeronave</th><th>FLIGHT TIME</th><th>Tripulação</th></tr></thead><tbody>';
   r.forEach(m=>{
@@ -6056,7 +6086,11 @@ renderVoos(list){
   const el=document.getElementById('tVoos');
   if(!el)return;
   if(!list.length){el.innerHTML='<div style="padding:24px;text-align:center;color:var(--ink3)">Nenhuma missão encontrada</div>';return;}
-  const sorted=[...list].sort((a,b)=>String(b.num||'').localeCompare(String(a.num||''),'pt',{numeric:true})||((a.perna||0)-(b.perna||0)));
+  const sorted=[...list].sort((a,b)=>{
+    const da=a.dt instanceof Date?a.dt:new Date(a.dt);
+    const db=b.dt instanceof Date?b.dt:new Date(b.dt);
+    return db-da || String(a.serie||'').localeCompare(String(b.serie||''),'pt') || String(b.num||'').localeCompare(String(a.num||''),'pt',{numeric:true}) || ((a.perna||0)-(b.perna||0));
+  });
   let h='<div class="tscroll"><table style="min-width:1100px"><thead><tr><th>Série</th><th>Nº Missão</th><th>Data</th><th>Estado</th><th>Tipo</th><th>Aeronave</th><th>Origem</th><th>Destino</th><th>FLIGHT TIME</th><th>Block Time</th><th>Tripulação</th><th>Obs.</th><th>Ações</th></tr></thead><tbody>';
   sorted.forEach((m,mIdx)=>{
     const bc=this.C.bdgTipo[m.tipo]||'bdg-log';
@@ -6095,7 +6129,11 @@ _renderCards(list){
   const el=document.getElementById('tVoos');
   if(!el)return;
   if(!list.length){el.innerHTML='<div style="padding:24px;text-align:center;color:var(--ink3)">Nenhuma missão encontrada</div>';return;}
-  const sorted=[...list].sort((a,b)=>String(b.num||'').localeCompare(String(a.num||''),'pt',{numeric:true})||((a.perna||0)-(b.perna||0)));
+  const sorted=[...list].sort((a,b)=>{
+    const da=a.dt instanceof Date?a.dt:new Date(a.dt);
+    const db=b.dt instanceof Date?b.dt:new Date(b.dt);
+    return db-da || String(a.serie||'').localeCompare(String(b.serie||''),'pt') || String(b.num||'').localeCompare(String(a.num||''),'pt',{numeric:true}) || ((a.perna||0)-(b.perna||0));
+  });
   let h='<div class="voo-cards">';
   sorted.forEach((m,mIdx)=>{
     const bc=this.C.bdgTipo[m.tipo]||'bdg-log';
@@ -6622,7 +6660,7 @@ toPDF(){
       doc.setFont('helvetica','normal');doc.text(fParts.join('  |  '),55,sy+5.8,{maxWidth:228});
       doc.setTextColor(0,0,0);sy+=12;
     }
-    const rows=_data.slice().sort((a,b)=>b.dt-a.dt).map(m=>[
+    const rows=_data.slice().sort((a,b)=>b.dt-a.dt||String(a.serie||'').localeCompare(String(b.serie||''),'pt')).map(m=>[
       m.num,m.serie,m.dt.toLocaleDateString('pt-PT'),m.status||'Concluída',m.tipo.slice(0,20),m.aero,m.origem||'—',m.destino||'—',m.dur?.slice(0,5)||'—',this.calcBT(m.boff,m.bon),
       (m.tipo&&m.tipo.toLowerCase().includes('medvac')&&m.nPac!=null)?String(m.nPac):'—',
       (m.crew||[]).map(c=>(n=>{const p=n.trim().split(/\s+/);return p.length>1?p[0][0].toUpperCase()+'. '+p[p.length-1]:n;})(c.nome)+' ('+c.fn+')').join('\n')
@@ -9116,8 +9154,16 @@ renderMapa(){
     const now=new Date();
     for(let y=now.getFullYear();y>=now.getFullYear()-4;y--)ys.insertAdjacentHTML('beforeend','<option value="'+y+'">'+y+'</option>');
   }
+  const aeroSel=document.getElementById('mapaAero');
+  if(aeroSel){
+    const curAero=aeroSel.value;
+    const aeroList=[...new Set(this.S.missoes.map(m=>m.aero).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt'));
+    aeroSel.innerHTML='<option value="">Todas as aeronaves</option>'+aeroList.map(a=>'<option value="'+this.esc(a)+'">'+this.esc(a)+'</option>').join('');
+    if(curAero&&aeroList.includes(curAero))aeroSel.value=curAero;
+  }
   const selM=parseInt(ms?.value||'0');
   const selY=parseInt(ys?.value||(new Date().getFullYear()));
+  const selAero=document.getElementById('mapaAero')?.value||'';
   // Coordenadas exactas calculadas por análise de pixels do PNG 600×500
   const ilhas={
     'Santo Antao': {x:83,  y:35,  label:'Santo Antão',  icao:'', lx:5,   ly:-14, anchor:'start'},
@@ -9148,6 +9194,7 @@ renderMapa(){
   let missoes=this.S.missoes.filter(m=>m.origem&&m.destino&&m.status==='Concluída');
   if(selY)missoes=missoes.filter(m=>{const d=m.dt instanceof Date?m.dt:new Date(m.dt);return !isNaN(d)&&d.getFullYear()===selY;});
   if(selM>0)missoes=missoes.filter(m=>{const d=m.dt instanceof Date?m.dt:new Date(m.dt);return !isNaN(d)&&d.getMonth()+1===selM;});
+  if(selAero)missoes=missoes.filter(m=>m.aero===selAero);
   const rotas={};let semRota=0;
   missoes.forEach(m=>{
     const o=lookup(m.origem);const d=lookup(m.destino);
@@ -10136,7 +10183,7 @@ relatorioMensalPDF(){
     doc.setTextColor(0,0,0);
     doc.autoTable({startY:y,
       head:[['Nº Missão','Data','Estado','Tipo','Aeronave','Block Time','Pac.','Tripulação']],
-      body:ms.sort((a,b)=>a.dt-b.dt).map(m=>{
+      body:ms.sort((a,b)=>a.dt-b.dt||String(a.serie||'').localeCompare(String(b.serie||''),'pt')).map(m=>{
         const dt=m.dt instanceof Date?m.dt:new Date(m.dt);
         const bt=this.calcBT(m.boff,m.bon);
         const crew=(m.crew||[]).map(c=>{const p=c.nome.trim().split(/\s+/);return(p.length>1?p[0][0]+'. '+p[p.length-1]:c.nome)+' ('+c.fn+')'}).join(', ');
@@ -11082,7 +11129,7 @@ tripStats(nome){
     h+='</tbody></table>';
   }
   // Recent missions (last 10)
-  const recent=[...ms].sort((a,b)=>b.dt-a.dt).slice(0,10);
+  const recent=[...ms].sort((a,b)=>b.dt-a.dt||String(a.serie||'').localeCompare(String(b.serie||''),'pt')).slice(0,10);
   if(recent.length){
     h+='<div style="font-weight:700;font-size:.88em;color:var(--g8);margin-bottom:6px">Missões Recentes</div>';
     h+='<div style="max-height:180px;overflow-y:auto"><table style="width:100%;border-collapse:collapse;font-size:.82em"><thead><tr style="background:var(--g1)"><th style="padding:4px 6px;text-align:left">Nº</th><th style="padding:4px 6px;text-align:left">Data</th><th style="padding:4px 6px;text-align:left">Tipo</th><th style="padding:4px 6px;text-align:right">BT</th><th style="padding:4px 6px;text-align:center">Estado</th></tr></thead><tbody>';
@@ -11105,7 +11152,7 @@ tripLogbook(nome){
   const allMs=this.S.missoes
     .filter(m=>(m.crew||[]).some(c=>c.nome===nome))
     .map(m=>({...m,_dt:m.dt instanceof Date?m.dt:new Date(m.dt)}))
-    .sort((a,b)=>b._dt-a._dt);
+    .sort((a,b)=>b._dt-a._dt||String(a.serie||'').localeCompare(String(b.serie||''),'pt'));
   this._lbCache={nome,ms:allMs,t};
   const yrs=[...new Set(allMs.map(m=>m._dt.getFullYear()))].sort((a,b)=>b-a);
   const yrOpts=yrs.map(y=>`<option value="${y}">${y}</option>`).join('');
@@ -11307,7 +11354,7 @@ tripLogbookPDF(nome){
     const allMs=this.S.missoes
       .filter(m=>(m.crew||[]).some(c=>c.nome===nome))
       .map(m=>({...m,_dt:m.dt instanceof Date?m.dt:new Date(m.dt)}))
-      .sort((a,b)=>a._dt-b._dt);
+      .sort((a,b)=>a._dt-b._dt||String(a.serie||'').localeCompare(String(b.serie||''),'pt'));
     // Apply active modal filter if present
     const _fYr=document.getElementById('lbFYear')?.value||'';
     const _fMo=document.getElementById('lbFMonth')?.value||'';
