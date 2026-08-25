@@ -1562,6 +1562,10 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   <div style="margin-bottom:16px">
     <h2 style="font-size:1.2em;font-weight:800;color:var(--ink);margin:0">Escala de Voo Tripulantes King Air 360ER</h2>
     <div id="escPeriodoTxt" style="font-size:.78em;color:var(--ink3);margin-top:2px">Período: —</div>
+    <div style="display:flex;gap:6px;margin-top:12px">
+      <button id="escProgBtnGc" class="btn btn-sm" onclick="A._escSetPrograma('gc')" style="font-weight:700">Guarda Costeira</button>
+      <button id="escProgBtnFx" class="btn btn-sm btn-s" onclick="A._escSetPrograma('frontex')" style="font-weight:700">Frontex</button>
+    </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
       <div style="padding:10px 16px;background:var(--g0);border-radius:0;border-left:3px solid #6366f1;min-width:110px">
         <div style="font-size:.7em;color:var(--ink3);text-transform:uppercase">Semanas</div>
@@ -1579,7 +1583,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   </div>
   <div class="card">
     <div class="card-hd" style="flex-wrap:wrap;gap:8px">
-      <h3>Escala de Serviço Semanal de Pilotos</h3>
+      <h3 id="escTituloTabela">Escala de Serviço Semanal de Pilotos</h3>
       <div style="display:flex;gap:8px;align-items:center;margin-left:auto;flex-wrap:wrap">
         <select id="escMes" onchange="A.renderEscala()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:0;font-size:.82em;background:var(--white);color:var(--ink);outline:none">
           <option value="0">Todos os meses</option>
@@ -2083,7 +2087,7 @@ const A = {
 // ─── ESTADO ───────────────────────────────────────────────────
 S:{
   trips:[], missoes:[], filtered:[], series:[],
-  aeros:[], incidentes:[], contactos:[], escala:[], escalaCabine:[],
+  aeros:[], incidentes:[], contactos:[], escala:[], escalaFrontex:[], escalaCabine:[],
   auditLog:[], templates:[], charts:{}, viewMode:'table', hrLimit:80, hrLimitYear:800, dirty:false,
   lastSave:null, role:null, currentUser:null, sessionToken:null, usersCache:null,
 },
@@ -2496,6 +2500,15 @@ syncUI(state,lastSave){
   const text=document.getElementById('syncText');
   const btnSave=document.getElementById('btnSave');
   if(!pill||!text)return;
+  // O modo de demonstração/bloqueado tem sempre prioridade visual sobre qualquer outro
+  // estado — o utilizador nunca pode confundir isto com um "erro passageiro que já vai
+  // resolver sozinho": aqui, nada do que fizer será gravado até recarregar com sucesso.
+  if(this.S._demoMode&&state!=='loading'){
+    pill.className='sync-pill error';
+    text.textContent='Sem gravar — dados de demonstração';
+    if(btnSave)btnSave.disabled=true;
+    return;
+  }
   pill.className='sync-pill '+state;
   const labels={synced:'Sincronizado',pending:'Alterações pendentes',saving:'A guardar...',error:'Erro',offline:'Modo offline',loading:'A carregar...'};
   let label=labels[state]||state;
@@ -2511,17 +2524,30 @@ markDirty(){
     this.S.dirty=true;
     this.syncUI('pending');
     // Auto-save ao Drive (debounced 1.5s) — mas não insistir sozinho se já sabemos que há
-    // um conflito por resolver (o utilizador cancelou uma gravação por causa disso); nesse
-    // caso só uma ação explícita (gravar de novo, ou recarregar) deve continuar.
+    // um conflito por resolver (o utilizador cancelou uma gravação por causa disso), nem em
+    // modo de demonstração (a gravação está bloqueada e só repetiria o mesmo aviso a cada
+    // poucos segundos, sem qualquer utilidade) — nesses casos só uma ação explícita
+    // (gravar de novo, ou recarregar) deve continuar.
     if(typeof getApiUrl==='function' && getApiUrl()){
       clearTimeout(this._autoSaveT);
       this._autoSaveT=setTimeout(()=>{
-        if(this.S.dirty && !this.S._conflictPending) this.saveToCloud();
+        if(this.S.dirty && !this.S._conflictPending && !this.S._demoMode) this.saveToCloud();
       },5000);
     }
   },
 
 // ─── GUARDAR NO DRIVE ─────────────────────────────────────────
+_downloadJson(obj,filenamePrefix){
+  try{
+    const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=filenamePrefix+'_'+this._ymd(new Date())+'_'+new Date().toTimeString().slice(0,8).replace(/:/g,'')+'.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }catch(_e){/* melhor esforço — nunca bloquear o fluxo principal por causa disto */}
+},
 async saveToCloud(){
   const url=getApiUrl();
   if(!url){this.openSettings();this.showNotif('Configure primeiro o URL do servidor','warn');return;}
@@ -2542,7 +2568,7 @@ async saveToCloud(){
       const {data:_chk,error:_chkErr}=await supabaseClient.from('app_state').select('updated_at').eq('id',1).maybeSingle();
       if(!_chkErr&&_chk&&_chk.updated_at&&_chk.updated_at!==this.S._cloudVer){
         const _quando=new Date(_chk.updated_at).toLocaleString('pt-PT');
-        const _prosseguir=confirm('\u26a0\ufe0f Outra pessoa gravou alterações no servidor às '+_quando+', depois da última vez que carregaste os dados.\n\nSe continuares, essas alterações serão substituídas pelas tuas.\n\nRecomendado: clica em Cancelar e depois em "Recarregar do Drive" para veres as alterações mais recentes antes de gravar.\n\nGravar mesmo assim?');
+        const _prosseguir=confirm('\u26a0\ufe0f Outra pessoa gravou alterações no servidor às '+_quando+', depois da última vez que carregaste os dados.\n\nSe continuares, essas alterações serão substituídas pelas tuas — mas antes disso, o sistema descarrega automaticamente uma cópia de segurança do que está no servidor agora, para nada se perder de vez.\n\nRecomendado: clica em Cancelar e depois em "Recarregar do Drive" para veres as alterações mais recentes antes de gravar.\n\nGravar mesmo assim?');
         if(!_prosseguir){
           this.S._conflictPending=true;
           this.syncUI('pending');
@@ -2550,8 +2576,18 @@ async saveToCloud(){
           this.addAudit('Gravação cancelada','Conflito detetado com alterações de outro utilizador (servidor às '+_quando+')');
           return;
         }
+        // Rede de segurança: antes de sobrepor, descarregar uma cópia do que está REALMENTE
+        // no servidor neste momento (o trabalho da outra pessoa) — mesmo que a gravação a
+        // seguir a substitua, fica um ficheiro local para poder ser recuperado/reunido à mão.
+        try{
+          const {data:_otherRow}=await supabaseClient.from('app_state').select('data').eq('id',1).maybeSingle();
+          if(_otherRow&&_otherRow.data){
+            this._downloadJson(_otherRow.data,'cgcea_ALTERACOES_DE_OUTRO_UTILIZADOR');
+            this.showNotif('Cópia de segurança das alterações da outra pessoa descarregada antes de gravar.','warn');
+          }
+        }catch(_bkErr){/* não bloquear a gravação por causa disto, mas tenta sempre */}
         this.S._conflictPending=false;
-        this.addAudit('Gravação forçada','Utilizador optou por sobrepor alterações de outro utilizador (conflito às '+_quando+')');
+        this.addAudit('Gravação forçada','Utilizador optou por sobrepor alterações de outro utilizador (conflito às '+_quando+') — cópia de segurança descarregada');
       }
     }
     const data={
@@ -2564,6 +2600,7 @@ async saveToCloud(){
       incidentes:this.S.incidentes,
       contactos:this.S.contactos,
       escala:this.S.escala,
+      escalaFrontex:this.S.escalaFrontex||[],
       escalaCabine:this.S.escalaCabine,
       manuais:this.S.manuais||[],
       checklists:this.S.checklists||[],
@@ -2639,6 +2676,7 @@ async loadFromCloud(){
       this.S.incidentes=d.incidentes||[];
       this.S.contactos=d.contactos||[];
       this.S.escala=d.escala||[];
+      this.S.escalaFrontex=d.escalaFrontex||[];
       this.S.escalaCabine=d.escalaCabine||[];
       // ── Restaurar configurações guardadas no Drive ──
       if(d.config){
@@ -2666,6 +2704,14 @@ async loadFromCloud(){
       return false;
     }
   }catch(e){
+    // Falha real (rede, CORS, servidor em baixo, etc.). Só bloquear a gravação se ainda não
+    // tínhamos NENHUM carregamento real confirmado nesta sessão (_cloudVer por definir) —
+    // isto é, uma falha logo no arranque, o cenário perigoso. Se já tínhamos dados reais
+    // válidos em memória (_cloudVer já definido de um carregamento anterior com sucesso) e
+    // isto foi só uma tentativa de "Recarregar" que falhou a meio da sessão, não faz sentido
+    // bloquear a gravação do trabalho válido que já lá estava — a deteção de conflito normal
+    // (comparação de _cloudVer) continua a proteger esse caso.
+    if(!this.S._cloudVer) this.S._demoMode=true;
     this.addAudit('Erro ao carregar',String(e));
     this.syncUI('error');
   }
@@ -2675,16 +2721,33 @@ async loadFromCloud(){
 async reloadCloud(){
   const url=getApiUrl();
   if(!url){this.openSettings();return;}
-  // Se há alterações locais por gravar, recarregar do Drive substitui-as silenciosamente
-  // — confirmar primeiro para não perder trabalho por engano.
-  if(this.S.dirty&&!confirm('Há alterações por gravar que serão perdidas se recarregar do Drive agora.\n\nContinuar mesmo assim?'))return;
+  // Se há alterações locais por gravar, recarregar do Drive substitui-as — confirmar
+  // primeiro para não perder trabalho por engano, e guardar sempre uma cópia de segurança
+  // do que estava em memória antes de o substituir (mesma rede de segurança usada em
+  // saveToCloud() quando se sobrepõe o trabalho de outra pessoa, aqui na direção inversa).
+  if(this.S.dirty){
+    if(!confirm('Há alterações por gravar que serão perdidas se recarregar do Drive agora.\n\nContinuar mesmo assim?'))return;
+    try{
+      const _localBackup={
+        trips:this.S.trips,
+        missoes:this.S.missoes.map(m=>({...m,dt:m.dt instanceof Date?this._ymd(m.dt)+'T'+String(m.dt.getHours()).padStart(2,'0')+':'+String(m.dt.getMinutes()).padStart(2,'0')+':00':m.dt})),
+        series:this.S.series,colocacoes:this.S.colocacoes,aeros:this.S.aeros,
+        auditLog:this.S.auditLog,incidentes:this.S.incidentes,contactos:this.S.contactos,
+        escala:this.S.escala,escalaFrontex:this.S.escalaFrontex||[],escalaCabine:this.S.escalaCabine,
+        manuais:this.S.manuais||[],checklists:this.S.checklists||[],checklistDocs:this.S.checklistDocs||[],
+      };
+      this._downloadJson(_localBackup,'cgcea_ALTERACOES_LOCAIS_POR_GRAVAR');
+      this.showNotif('Cópia de segurança das tuas alterações por gravar descarregada antes de recarregar.','warn');
+    }catch(_bkErr){/* não bloquear o recarregamento por causa disto */}
+  }
   const ok=await this.loadFromCloud();
   this.S.filtered=[...this.S.missoes];
   this.fillSelects();
   this.renderAll();
   this.buildCharts();
   if(ok) this.showNotif('Dados recarregados do Drive');
-  else this.showNotif('Sem dados no Drive — a usar demonstração','warn');
+  else if(this.S._demoMode) this.showNotif('Sem dados no Drive — a usar demonstração (gravação bloqueada)','err');
+  else this.showNotif('Não foi possível recarregar — a manter os dados já carregados nesta sessão','warn');
 },
 
 // ─── CONFIGURAÇÕES (tabbed) ───────────────────────────────────
@@ -6816,6 +6879,7 @@ pagPDF(){
     const ak=m.aero||'—';if(!ppByAero[ak])ppByAero[ak]={mis:0,min:0,_seen:new Set()};if(!ppByAero[ak]._seen.has(m.num)){ppByAero[ak]._seen.add(m.num);ppByAero[ak].mis++;}ppByAero[ak].min+=effMins;
   });
   const fmtM=m=>{const h=Math.floor(m/60),mn=m%60;return h+'h '+(mn<10?'0':'')+mn+'m';};
+  const nifOf=nome=>{const t=this.S.trips.find(x=>x.nome===nome);return (t&&t.nif)?t.nif:'—';};
   try{
     const{jsPDF}=window.jspdf;
     const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
@@ -6837,24 +6901,25 @@ pagPDF(){
     doc.setTextColor(0,0,0);
     doc.autoTable({
       startY:38,
-      head:[['Tripulante','Funcao','Mis.','Block Time','Val/BT','PA','Alm.','Jan.','Refeicoes','Total']],
-      body:lista.map(p=>[p.nome,p.fn,p.mis,(p.min/60).toFixed(2)+'h',this.cve(p.vH),p.pa,p.al,p.jn,this.cve(p.vR),this.cve(p.vH+p.vR)]),
+      head:[['NIF','Tripulante','Funcao','Mis.','Block Time','Val/BT','PA','Alm.','Jan.','Refeicoes','Total']],
+      body:lista.map(p=>[nifOf(p.nome),p.nome,p.fn,p.mis,(p.min/60).toFixed(2)+'h',this.cve(p.vH),p.pa,p.al,p.jn,this.cve(p.vR),this.cve(p.vH+p.vR)]),
       styles:{fontSize:8,cellPadding:2.5,valign:'middle'},
       headStyles:{fillColor:[97,106,120],textColor:255,fontStyle:'bold',halign:'center'},
       alternateRowStyles:{fillColor:[223,225,229]},
       columnStyles:{
-        0:{cellWidth:62,halign:'left'},
-        1:{cellWidth:47,halign:'left'},
-        2:{cellWidth:13,halign:'center'},
-        3:{cellWidth:25,halign:'center'},
-        4:{cellWidth:30,halign:'right'},
-        5:{cellWidth:12,halign:'center'},
+        0:{cellWidth:22,halign:'left'},
+        1:{cellWidth:40,halign:'left'},
+        2:{cellWidth:47,halign:'left'},
+        3:{cellWidth:13,halign:'center'},
+        4:{cellWidth:25,halign:'center'},
+        5:{cellWidth:30,halign:'right'},
         6:{cellWidth:12,halign:'center'},
         7:{cellWidth:12,halign:'center'},
-        8:{cellWidth:32,halign:'right'},
-        9:{cellWidth:32,halign:'right',fontStyle:'bold'},
+        8:{cellWidth:12,halign:'center'},
+        9:{cellWidth:32,halign:'right'},
+        10:{cellWidth:32,halign:'right',fontStyle:'bold'},
       },
-      foot:[['','','','','','','','','TOTAL',this.cve(totVal)]],
+      foot:[['','','','','','','','','','TOTAL',this.cve(totVal)]],
       footStyles:{fillColor:[197,201,209],textColor:[97,106,120],fontStyle:'bold',halign:'right'},
       margin:{left:10,right:10},
     });
@@ -8383,6 +8448,27 @@ _fnChip(fn){
   return'<span style="color:'+bg+';font-size:.72em;font-weight:800;letter-spacing:.02em;white-space:nowrap">'+this.esc(fn)+'</span>';
 },
 
+// ─── ESCALA: alternar entre programas (Guarda Costeira / Frontex) ─────
+// São dois programas paralelos, cada um com as suas próprias semanas — mas partilham
+// toda a lógica de criação/edição/validação, só mudando qual array de A.S é lido/escrito.
+_escArr(){
+  if(this._escPrograma==='frontex'){
+    if(!this.S.escalaFrontex)this.S.escalaFrontex=[];
+    return this.S.escalaFrontex;
+  }
+  if(!this.S.escala)this.S.escala=[];
+  return this.S.escala;
+},
+_escSetPrograma(prog){
+  this._escPrograma=prog;
+  const btnGc=document.getElementById('escProgBtnGc');
+  const btnFx=document.getElementById('escProgBtnFx');
+  if(btnGc)btnGc.className='btn btn-sm'+(prog==='gc'?'':' btn-s');
+  if(btnFx)btnFx.className='btn btn-sm'+(prog==='frontex'?'':' btn-s');
+  const tit=document.getElementById('escTituloTabela');
+  if(tit)tit.textContent='Escala de Serviço Semanal de Pilotos — '+(prog==='frontex'?'Frontex':'Guarda Costeira');
+  this.renderEscala();
+},
 renderEscala(){
   const ys=document.getElementById('escAno');
   const ms=document.getElementById('escMes');
@@ -8398,7 +8484,7 @@ renderEscala(){
   const vazio=document.getElementById('escVazio');
   if(!grid)return;
   const _pad=n=>String(n).padStart(2,'0');
-  const semanas=(this.S.escala||[]).filter(e=>{
+  const semanas=(this._escArr()||[]).filter(e=>{
     if(!e.dtIni)return false;
     if(!e.dtIni.startsWith(String(selY)))return false;
     if(selM===0)return true;
@@ -8565,7 +8651,7 @@ escNovaSemana(){
 escEditarSemana(idx){
   if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores e gestores','err');return;}
   const s=this._escSemanaByRowIdx(idx);if(!s)return;
-  const realIdx=(this.S.escala||[]).indexOf(s);
+  const realIdx=(this._escArr()||[]).indexOf(s);
   const modal=document.getElementById('modalEscala');if(!modal)return;
   document.getElementById('escModalTit').textContent='Editar Semana de Escala';
   document.getElementById('escEntradaIdx').value=String(realIdx);
@@ -8720,18 +8806,17 @@ escGuardar(){
     alterada:false,
     cancelado:false
   };
-  if(!this.S.escala)this.S.escala=[];
   const idxStr=document.getElementById('escEntradaIdx').value;
   if(idxStr!==''){
-    const old=this.S.escala[parseInt(idxStr)];
+    const old=this._escArr()[parseInt(idxStr)];
     entry.cancelado=old?(old.cancelado||false):false;
     if(!entry.estadoForce){
       if(old&&old.validado){entry.alterada=true;entry.validado=false;}
       else if(old){entry.validado=old.validado||false;entry.alterada=old.alterada||false;}
     }
-    this.S.escala[parseInt(idxStr)]=entry;
+    this._escArr()[parseInt(idxStr)]=entry;
   } else {
-    this.S.escala.push(entry);
+    this._escArr().push(entry);
   }
   this.S.dirty=true;
   this.escFecharModal();
@@ -8745,7 +8830,7 @@ escEliminar(){
   const idxStr=document.getElementById('escEntradaIdx').value;
   if(idxStr==='')return;
   if(!confirm('Eliminar esta semana de escala?'))return;
-  this.S.escala.splice(parseInt(idxStr),1);
+  this._escArr().splice(parseInt(idxStr),1);
   this.S.dirty=true;
   this.escFecharModal();
   this.renderEscala();
@@ -8756,7 +8841,7 @@ escEliminar(){
 escValidar(){
   const ys=document.getElementById('escAno');
   const selY=parseInt(ys?.value||String(new Date().getFullYear()));
-  const semanas=(this.S.escala||[]).filter(e=>e.dtIni&&e.dtIni.startsWith(String(selY)));
+  const semanas=(this._escArr()||[]).filter(e=>e.dtIni&&e.dtIni.startsWith(String(selY)));
   if(!semanas.length){this.showNotif('Sem escala para validar','warn');return;}
   semanas.forEach(s=>{s.validado=true;s.alterada=false;});
   this.S.dirty=true;
@@ -8773,7 +8858,7 @@ _escSemanaByRowIdx(idx){
   const selY=parseInt(ys?.value||String(new Date().getFullYear()));
   const selM=parseInt(ms?.value||'0');
   const _pad=n=>String(n).padStart(2,'0');
-  const semanas=(this.S.escala||[]).filter(e=>{
+  const semanas=(this._escArr()||[]).filter(e=>{
     if(!e.dtIni)return false;
     if(!e.dtIni.startsWith(String(selY)))return false;
     if(selM===0)return true;
@@ -8809,9 +8894,9 @@ escEliminarSemana(idx){
   if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores e gestores','err');return;}
   const s=this._escSemanaByRowIdx(idx);if(!s)return;
   if(!confirm('Eliminar esta semana de escala?'))return;
-  const realIdx=(this.S.escala||[]).indexOf(s);
+  const realIdx=(this._escArr()||[]).indexOf(s);
   if(realIdx<0)return;
-  this.S.escala.splice(realIdx,1);
+  this._escArr().splice(realIdx,1);
   this.S.dirty=true;
   this.renderEscala();
   this.showNotif('Semana eliminada','warn');
@@ -8849,10 +8934,11 @@ async escPDF(){
     const imgData=canvas.toDataURL('image/png');
     const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
     const pageW=297,pageH=210,marginX=8,marginTop=26,marginBottom=8;
+    const progLabel=this._escPrograma==='frontex'?'Frontex':'Guarda Costeira';
     const drawHeader=()=>{
       doc.setFillColor(61,69,84);doc.rect(0,0,pageW,20,'F');
       doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(13);
-      doc.text('CGC-EA \u2014 Escala de Servi\u00e7o Semanal de Pilotos \u2014 '+filtroLabel,pageW/2,10,{align:'center'});
+      doc.text('CGC-EA \u2014 Escala de Servi\u00e7o Semanal de Pilotos \u2014 '+progLabel+' \u2014 '+filtroLabel,pageW/2,10,{align:'center'});
       doc.setFontSize(8);doc.setFont('helvetica','normal');
       doc.text('Gerado em: '+new Date().toLocaleString('pt-PT'),pageW/2,16,{align:'center'});
       doc.setTextColor(0,0,0);
@@ -8884,7 +8970,7 @@ async escPDF(){
         first=false;
       }
     }
-    window.savePDF(doc,'Escala_CGC_EA_'+filtroLabel.replace(/\s/g,'_')+'.pdf');
+    window.savePDF(doc,'Escala_'+(this._escPrograma==='frontex'?'Frontex':'CGC_EA')+'_'+filtroLabel.replace(/\s/g,'_')+'.pdf');
   }catch(e){this.showNotif('Erro ao gerar PDF: '+e.message,'err');}
 },
 
@@ -10842,6 +10928,12 @@ exportBackup(){
     auditLog:this.S.auditLog,
     incidentes:this.S.incidentes,
     contactos:this.S.contactos,
+    escala:this.S.escala,
+    escalaFrontex:this.S.escalaFrontex||[],
+    escalaCabine:this.S.escalaCabine,
+    manuais:this.S.manuais||[],
+    checklists:this.S.checklists||[],
+    checklistDocs:this.S.checklistDocs||[],
     config:{
       funcoes:this.C.funcoes,
       fnRates:this.C.vPF,
@@ -10877,6 +10969,13 @@ importBackup(ev){
       this.S.colocacoes=data.colocacoes||this.S.colocacoes;
       this.S.aeros=data.aeros||[];
       this.S.auditLog=data.auditLog||[];
+      this.S.contactos=data.contactos||this.S.contactos||[];
+      this.S.escala=data.escala||this.S.escala||[];
+      this.S.escalaFrontex=data.escalaFrontex||this.S.escalaFrontex||[];
+      this.S.escalaCabine=data.escalaCabine||this.S.escalaCabine||[];
+      this.S.manuais=data.manuais||this.S.manuais||[];
+      this.S.checklists=data.checklists||this.S.checklists||[];
+      this.S.checklistDocs=data.checklistDocs||this.S.checklistDocs||[];
       // Restaurar config do backup
       const cfg=data.config||{};
       // suporte a backups antigos (v2) que usavam vPF em vez de fnRates
