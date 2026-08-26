@@ -1602,8 +1602,10 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
         </select>
         <select id="escAno" onchange="A.renderEscala()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:0;font-size:.82em;background:var(--white);color:var(--ink);outline:none"></select>
         <button class="btn btn-p btn-sm admin-only" onclick="A.escNovaSemana()">＋ Nova Semana</button>
+        <button class="btn btn-s btn-sm admin-only" onclick="A.escDuplicarUltima()" title="Copia a última semana registada, avançando para a semana seguinte">Duplicar Última</button>
         <button class="btn btn-sm admin-only" onclick="A.escValidar()" style="font-size:.82em">✓ Validar</button>
         <button class="btn btn-sm btn-pdf" onclick="A.escPDF()" style="font-size:.82em">PDF</button>
+        <button class="btn btn-sm" onclick="A.escExcel()" style="font-size:.82em">Excel</button>
         <button class="btn btn-p btn-sm" onclick="A._escalaFullscreen()">↗ Nova Janela</button>
       </div>
     </div>
@@ -3950,6 +3952,7 @@ addMissao(){
   this.buildCharts();
   this.addAudit('Missão criada',m.num+' — '+tipo);
   this.showNotif(''+m.num+' registada!');
+  this._escCheckCrew(data,crew.map(c=>c.nome));
   this.closeNovaVoo();
   this.clearForm();
 },
@@ -4157,6 +4160,7 @@ saveEdit(){
     this.buildCharts();
     this.addAudit('Missão duplicada',(mOrig?mOrig.num:'')+' → '+m.num);
     this.showNotif(''+m.num+' criada (duplicada)');
+    this._escCheckCrew(this._ymd(m.dt),(m.crew||[]).map(c=>c.nome));
     this._pendingDup=null;
     return;
   }
@@ -4169,6 +4173,7 @@ saveEdit(){
   this.buildCharts();
   this.addAudit('Missão editada',m.num);
   this.showNotif(''+m.num+' atualizada!');
+  this._escCheckCrew(this._ymd(m.dt),(m.crew||[]).map(c=>c.nome));
 },
 
 // ─── APAGAR MISSÃO ────────────────────────────────────────────
@@ -4738,12 +4743,36 @@ delContacto(id){
       this.addAudit('PDF de validades exportado',totalExp+' expirado(s), '+totalSoon+' a expirar');
     }catch(e){this.showNotif('Erro ao gerar PDF: '+e.message,'err');}
   },
+  // (3) Aviso de "semanas de escala por preencher" — só avisa para programas que já têm
+  // pelo menos uma semana alguma vez registada (não incomoda quem não usa a Escala).
+  _buildEscalaGapAlerts(){
+    const out=[];
+    const today=this._ymd(new Date());
+    const horizon=this._pd(today);horizon.setDate(horizon.getDate()+14);
+    const horizonEnd=this._ymd(horizon);
+    [['Guarda Costeira',this.S.escala],['Frontex',this.S.escalaFrontex]].forEach(([label,arr])=>{
+      const list=(arr||[]).filter(e=>!e.cancelado&&e.dtIni&&e.dtFim).sort((a,b)=>a.dtIni.localeCompare(b.dtIni));
+      if(!list.length)return;
+      const futuras=list.filter(e=>e.dtFim>=today);
+      if(!futuras.length){
+        out.push({kind:'escala',nome:label,posto:null,tipo:'Escala',date:null,status:'expired',days:-1,label:'Sem escala futura registada',cls:''});
+        return;
+      }
+      const last=futuras[futuras.length-1];
+      if(last.dtFim<=horizonEnd){
+        const dias=Math.round((this._pd(last.dtFim)-this._pd(today))/86400000);
+        out.push({kind:'escala',nome:label,posto:null,tipo:'Escala',date:last.dtFim,status:dias<=3?'expired':'soon',days:dias,label:'Termina em '+dias+'d \u2014 sem semana seguinte',cls:''});
+      }
+    });
+    return out;
+  },
   renderAlerts(){
     const el=document.getElementById('alertsBody');
     if(!el)return;
     const crewAlerts=this.buildAlerts();
     const aeroAlerts=this.buildMaintAlerts();
-    const alerts=[...crewAlerts,...aeroAlerts].sort((a,b)=>(a.days==null?-9999:a.days)-(b.days==null?-9999:b.days));
+    const escAlerts=this._buildEscalaGapAlerts();
+    const alerts=[...crewAlerts,...aeroAlerts,...escAlerts].sort((a,b)=>(a.days==null?-9999:a.days)-(b.days==null?-9999:b.days));
     const cnt=document.getElementById('alertsCount');
     const card=document.getElementById('alertsCard');
     if(cnt)cnt.textContent=alerts.length?'('+alerts.length+')':'';
@@ -4761,7 +4790,14 @@ delContacto(id){
       const bd=a.status==='expired'?'#f87171':'#fbbf24';
       const ic=a.status==='expired'?'':'';
       const isAero=a.posto===undefined;
-      if(isAero){
+      if(a.kind==='escala'){
+        h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:'+bg+';border-left:3px solid '+bd+';border-radius:0;flex-wrap:wrap">'
+          +'<span style="font-size:1.1em">'+ic+'</span>'
+          +'<div style="flex:1;min-width:160px"><b>'+this.esc(a.nome)+'</b> <span style="color:var(--ink3);font-size:.85em">— Escala</span></div>'
+          +'<div style="font-size:.85em;font-weight:700;color:'+bd+'">'+a.label+'</div>'
+          +(a.date?'<div style="font-size:.78em;color:var(--ink3);font-family:var(--mono)">'+this._pd(a.date).toLocaleDateString('pt-PT')+'</div>':'')
+          +'</div>';
+      }else if(isAero){
         h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:'+bg+';border-left:3px solid '+bd+';border-radius:0;flex-wrap:wrap">'
           +'<span style="font-size:1.1em">'+ic+'</span>'
           +'<div style="flex:1;min-width:160px"><b>'+this.esc(a.nome)+'</b> <span style="color:var(--ink3);font-size:.85em">— Aeronave</span></div>'
@@ -8459,6 +8495,17 @@ _escArr(){
   if(!this.S.escala)this.S.escala=[];
   return this.S.escala;
 },
+// (2) Aviso suave: tripulante da missão que não consta de nenhuma escala (nenhum dos
+// dois programas) para a semana desta data. Só avisa se EXISTIR alguma escala definida
+// para essa data — se a unidade não usa a Escala nesse período, não incomoda ninguém.
+_escCheckCrew(dateStr,crewNames){
+  if(!dateStr||!crewNames||!crewNames.length)return;
+  const semanas=[...(this.S.escala||[]),...(this.S.escalaFrontex||[])].filter(e=>!e.cancelado&&e.dtIni&&e.dtFim&&e.dtIni<=dateStr&&dateStr<=e.dtFim);
+  if(!semanas.length)return;
+  const escalados=new Set(semanas.flatMap(e=>[e.piloto1,e.piloto2,e.standby].filter(Boolean)));
+  const fora=[...new Set(crewNames.filter(Boolean))].filter(n=>!escalados.has(n));
+  if(fora.length)this.showNotif('\u26a0\ufe0f Fora da escala desta semana: '+fora.join(', '),'warn');
+},
 _escSetPrograma(prog){
   this._escPrograma=prog;
   const btnGc=document.getElementById('escProgBtnGc');
@@ -8647,6 +8694,33 @@ escNovaSemana(){
   this._escFillEstado('');
   modal.style.display='flex';document.body.style.overflow='hidden';
 },
+// (4) Duplicar última semana — copia a última semana (não cancelada) do programa
+// atual, avançando as datas para a semana seguinte, e abre logo para revisão antes
+// de gravar (nunca grava sozinha sem confirmação).
+escDuplicarUltima(){
+  if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores e gestores','err');return;}
+  const lista=(this._escArr()||[]).filter(e=>!e.cancelado&&e.dtIni&&e.dtFim).sort((a,b)=>b.dtFim.localeCompare(a.dtFim));
+  const last=lista[0];
+  if(!last){this.showNotif('Sem nenhuma semana anterior para duplicar neste programa','warn');return;}
+  const modal=document.getElementById('modalEscala');if(!modal)return;
+  document.getElementById('escModalTit').textContent='Nova Semana de Escala (duplicada)';
+  document.getElementById('escEntradaIdx').value='';
+  document.getElementById('escBtnDel').style.display='none';
+  const novoIni=new Date(last.dtFim+'T00:00:00');novoIni.setDate(novoIni.getDate()+1);
+  const novoFim=new Date(novoIni);novoFim.setDate(novoFim.getDate()+6);
+  document.getElementById('escDtIni').value=this._ymd(novoIni);
+  document.getElementById('escDtFim').value=this._ymd(novoFim);
+  document.getElementById('escPosto1').value=last.posto1||'';
+  document.getElementById('escPosto2').value=last.posto2||'';
+  document.getElementById('escPosto').value=last.posto||'';
+  document.getElementById('escObs').value=last.obs||'';
+  document.getElementById('escMissaoDesc').value=last.missaoDesc||'';
+  this._escFillSelects(last.piloto1||'',last.piloto2||'',last.standby||'',last.funcao1||'',last.funcao2||'',last.funcaoStandby||'');
+  this._escFillMissaoAero(last.missaoTipo||'',last.aeronave||'',last.base||'');
+  this._escFillEstado('');
+  modal.style.display='flex';document.body.style.overflow='hidden';
+  this.showNotif('Semana duplicada — revê os dados e as datas antes de gravar');
+},
 
 escEditarSemana(idx){
   if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores e gestores','err');return;}
@@ -8806,6 +8880,26 @@ escGuardar(){
     alterada:false,
     cancelado:false
   };
+  // (1) Aviso — mesmo tripulante escalado no OUTRO programa, em período sobreposto.
+  // Não bloqueia a gravação (pode ser intencional em casos raros), mas nunca deve passar
+  // despercebido — é exatamente o tipo de coincidência que só se nota tarde de mais.
+  const _pilotsHere=[entry.piloto1,entry.piloto2,entry.standby].filter(Boolean);
+  if(_pilotsHere.length){
+    const _outroArr=(this._escPrograma==='frontex'?this.S.escala:this.S.escalaFrontex)||[];
+    const _conflitos=[];
+    _outroArr.forEach(o=>{
+      if(o.cancelado||!o.dtIni||!o.dtFim)return;
+      if(entry.dtIni<=o.dtFim&&o.dtIni<=entry.dtFim){
+        const _outrosPilotos=[o.piloto1,o.piloto2,o.standby].filter(Boolean);
+        _pilotsHere.forEach(p=>{if(_outrosPilotos.includes(p))_conflitos.push(p+' ('+o.dtIni+' a '+o.dtFim+')');});
+      }
+    });
+    if(_conflitos.length){
+      const _progOutro=this._escPrograma==='frontex'?'Guarda Costeira':'Frontex';
+      if(!confirm('\u26a0\ufe0f Os seguintes tripulantes já estão escalados no programa '+_progOutro+' num período sobreposto:\n\n'+[...new Set(_conflitos)].map(c=>'\u2022 '+c).join('\n')+'\n\nGravar mesmo assim?'))return;
+      this.addAudit('Escala: conflito entre programas ignorado',_progOutro+' — '+[...new Set(_conflitos)].join(', '));
+    }
+  }
   const idxStr=document.getElementById('escEntradaIdx').value;
   if(idxStr!==''){
     const old=this._escArr()[parseInt(idxStr)];
@@ -8972,6 +9066,55 @@ async escPDF(){
     }
     window.savePDF(doc,'Escala_'+(this._escPrograma==='frontex'?'Frontex':'CGC_EA')+'_'+filtroLabel.replace(/\s/g,'_')+'.pdf');
   }catch(e){this.showNotif('Erro ao gerar PDF: '+e.message,'err');}
+},
+// (5) Exportar Excel — mesma lista já filtrada por mês/ano/programa no ecrã.
+escExcel(){
+  try{
+    if(typeof XLSX==='undefined'){this.showNotif('Biblioteca Excel não carregada','err');return;}
+    const ys=document.getElementById('escAno');
+    const ms=document.getElementById('escMes');
+    const curY=new Date().getFullYear();
+    const selY=parseInt(ys?.value||String(curY));
+    const selM=parseInt(ms?.value||'0');
+    const _pad=n=>String(n).padStart(2,'0');
+    const semanas=(this._escArr()||[]).filter(e=>{
+      if(!e.dtIni)return false;
+      if(!e.dtIni.startsWith(String(selY)))return false;
+      if(selM===0)return true;
+      const mm=_pad(selM);
+      return e.dtIni.startsWith(selY+'-'+mm)||(e.dtFim&&e.dtFim.startsWith(selY+'-'+mm));
+    }).sort((a,b)=>a.dtIni.localeCompare(b.dtIni));
+    if(!semanas.length){this.showNotif('Sem escala registada para exportar','warn');return;}
+    const estadoLabel=e=>e.cancelado?'Cancelada':(e.estadoForce||(e.validado?'Validada':(e.alterada?'Alterada':'Por validar')));
+    const rows=semanas.map(e=>({
+      'Início':e.dtIni,'Fim':e.dtFim,
+      'Tipo de Missão':this._escTipoInfo(e.missaoTipo)?.label||e.missaoTipo||'',
+      'Descrição':e.missaoDesc||'',
+      'Aeronave':e.aeronave||'',
+      'Base':e.base||'',
+      'Posto 1':e.posto1||'',
+      'Piloto 1':e.piloto1||'',
+      'Função 1':e.funcao1||'',
+      'Posto 2':e.posto2||'',
+      'Piloto 2':e.piloto2||'',
+      'Função 2':e.funcao2||'',
+      'Posto Standby':e.posto||'',
+      'Standby':e.standby||'',
+      'Função Standby':e.funcaoStandby||'',
+      'Estado':estadoLabel(e),
+      'Observações':e.obs||'',
+    }));
+    const ws=XLSX.utils.json_to_sheet(rows);
+    ws['!cols']=[{wch:11},{wch:11},{wch:14},{wch:22},{wch:12},{wch:20},{wch:10},{wch:20},{wch:12},{wch:10},{wch:20},{wch:12},{wch:12},{wch:20},{wch:14},{wch:12},{wch:26}];
+    const wb=XLSX.utils.book_new();
+    const progLabel=this._escPrograma==='frontex'?'Frontex':'GuardaCosteira';
+    XLSX.utils.book_append_sheet(wb,ws,'Escala '+progLabel);
+    const mnsL=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const filtroLabel=selM===0?String(selY):mnsL[selM-1]+selY;
+    XLSX.writeFile(wb,'Escala_'+progLabel+'_'+filtroLabel+'.xlsx');
+    this.addAudit('Escala exportada em Excel',progLabel+' — '+semanas.length+' semana(s)');
+    this.showNotif('Excel exportado!');
+  }catch(e){this.showNotif('Erro ao gerar Excel: '+e.message,'err');}
 },
 
 // ─── ESCALA DE PESSOAL DE CABINE ──────────────────────────────────────────
