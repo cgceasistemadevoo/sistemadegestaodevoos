@@ -1560,22 +1560,22 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
 ════════════════════════════════════════════ -->
 <div id="page-escala" class="page hide">
   <div style="margin-bottom:16px">
-    <h2 style="font-size:1.2em;font-weight:800;color:var(--ink);margin:0">Escala de Voo Tripulantes King Air 360ER</h2>
+    <h2 id="escTituloPagina" style="font-size:1.2em;font-weight:800;color:var(--ink);margin:0">Escala de Voo Tripulantes de Guarda Costeira</h2>
     <div id="escPeriodoTxt" style="font-size:.78em;color:var(--ink3);margin-top:2px">Período: —</div>
     <div style="display:flex;gap:6px;margin-top:12px">
       <button id="escProgBtnGc" class="btn btn-sm" onclick="A._escSetPrograma('gc')" style="font-weight:700">Guarda Costeira</button>
       <button id="escProgBtnFx" class="btn btn-sm btn-s" onclick="A._escSetPrograma('frontex')" style="font-weight:700">Frontex</button>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-      <div style="padding:10px 16px;background:var(--g0);border-radius:0;border-left:3px solid #6366f1;min-width:110px">
+      <div style="padding:10px 16px;background:var(--g0);border-radius:0;min-width:110px">
         <div style="font-size:.7em;color:var(--ink3);text-transform:uppercase">Semanas</div>
         <div id="escTotSem" style="font-size:1.3em;font-weight:800">0</div>
       </div>
-      <div style="padding:10px 16px;background:var(--g0);border-radius:0;border-left:3px solid #10b981;min-width:110px">
+      <div style="padding:10px 16px;background:var(--g0);border-radius:0;min-width:110px">
         <div style="font-size:.7em;color:var(--ink3);text-transform:uppercase">Validadas</div>
         <div id="escValSem" style="font-size:1.3em;font-weight:800">0</div>
       </div>
-      <div style="padding:10px 16px;background:var(--g0);border-radius:0;border-left:3px solid #f59e0b;min-width:110px">
+      <div style="padding:10px 16px;background:var(--g0);border-radius:0;min-width:110px">
         <div style="font-size:.7em;color:var(--ink3);text-transform:uppercase">Pilotos</div>
         <div id="escPilSem" style="font-size:1.3em;font-weight:800">0</div>
       </div>
@@ -1585,7 +1585,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
     <div class="card-hd" style="flex-wrap:wrap;gap:8px">
       <h3 id="escTituloTabela">Escala de Serviço Semanal de Pilotos</h3>
       <div style="display:flex;gap:8px;align-items:center;margin-left:auto;flex-wrap:wrap">
-        <select id="escMes" onchange="A.renderEscala()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:0;font-size:.82em;background:var(--white);color:var(--ink);outline:none">
+        <select id="escMes" onchange="A.renderEscala();A.renderEscalaCabine()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:0;font-size:.82em;background:var(--white);color:var(--ink);outline:none">
           <option value="0">Todos os meses</option>
           <option value="1">Janeiro</option>
           <option value="2">Fevereiro</option>
@@ -1600,7 +1600,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
           <option value="11">Novembro</option>
           <option value="12">Dezembro</option>
         </select>
-        <select id="escAno" onchange="A.renderEscala()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:0;font-size:.82em;background:var(--white);color:var(--ink);outline:none"></select>
+        <select id="escAno" onchange="A.renderEscala();A.renderEscalaCabine()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:0;font-size:.82em;background:var(--white);color:var(--ink);outline:none"></select>
         <button class="btn btn-p btn-sm admin-only" onclick="A.escNovaSemana()">＋ Nova Semana</button>
         <button class="btn btn-s btn-sm admin-only" onclick="A.escDuplicarUltima()" title="Copia a última semana registada, avançando para a semana seguinte">Duplicar Última</button>
         <button class="btn btn-sm admin-only" onclick="A.escValidar()" style="font-size:.82em">✓ Validar</button>
@@ -1625,8 +1625,6 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
   <div class="card-hd" style="flex-wrap:wrap;gap:8px">
     <h3>‍Escala diária de Operador de Cabine / Maca</h3>
     <div style="display:flex;gap:8px;align-items:center;margin-left:auto;flex-wrap:wrap">
-      <select id="escCabMes" onchange="A.renderEscalaCabine()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:0;font-size:.82em;background:var(--white);color:var(--ink);outline:none"></select>
-      <select id="escCabAno" onchange="A.renderEscalaCabine()" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:0;font-size:.82em;background:var(--white);color:var(--ink);outline:none"></select>
       <button class="btn btn-p btn-sm admin-only" onclick="A.escCabineNova()">＋ Adicionar</button>
       <button class="btn btn-sm btn-pdf" onclick="A.escCabinePDF()" style="font-size:.82em">PDF</button>
     </div>
@@ -2089,7 +2087,7 @@ const A = {
 // ─── ESTADO ───────────────────────────────────────────────────
 S:{
   trips:[], missoes:[], filtered:[], series:[],
-  aeros:[], incidentes:[], contactos:[], escala:[], escalaFrontex:[], escalaCabine:[],
+  aeros:[], incidentes:[], contactos:[], escala:[], escalaFrontex:[], escalaCabine:[], escalaCabineFrontex:[],
   auditLog:[], templates:[], charts:{}, viewMode:'table', hrLimit:80, hrLimitYear:800, dirty:false,
   lastSave:null, role:null, currentUser:null, sessionToken:null, usersCache:null,
 },
@@ -2604,6 +2602,7 @@ async saveToCloud(){
       escala:this.S.escala,
       escalaFrontex:this.S.escalaFrontex||[],
       escalaCabine:this.S.escalaCabine,
+      escalaCabineFrontex:this.S.escalaCabineFrontex||[],
       manuais:this.S.manuais||[],
       checklists:this.S.checklists||[],
       checklistDocs:this.S.checklistDocs||[],
@@ -2680,6 +2679,7 @@ async loadFromCloud(){
       this.S.escala=d.escala||[];
       this.S.escalaFrontex=d.escalaFrontex||[];
       this.S.escalaCabine=d.escalaCabine||[];
+      this.S.escalaCabineFrontex=d.escalaCabineFrontex||[];
       // ── Restaurar configurações guardadas no Drive ──
       if(d.config){
         const cfg=d.config;
@@ -2735,7 +2735,7 @@ async reloadCloud(){
         missoes:this.S.missoes.map(m=>({...m,dt:m.dt instanceof Date?this._ymd(m.dt)+'T'+String(m.dt.getHours()).padStart(2,'0')+':'+String(m.dt.getMinutes()).padStart(2,'0')+':00':m.dt})),
         series:this.S.series,colocacoes:this.S.colocacoes,aeros:this.S.aeros,
         auditLog:this.S.auditLog,incidentes:this.S.incidentes,contactos:this.S.contactos,
-        escala:this.S.escala,escalaFrontex:this.S.escalaFrontex||[],escalaCabine:this.S.escalaCabine,
+        escala:this.S.escala,escalaFrontex:this.S.escalaFrontex||[],escalaCabine:this.S.escalaCabine,escalaCabineFrontex:this.S.escalaCabineFrontex||[],
         manuais:this.S.manuais||[],checklists:this.S.checklists||[],checklistDocs:this.S.checklistDocs||[],
       };
       this._downloadJson(_localBackup,'cgcea_ALTERACOES_LOCAIS_POR_GRAVAR');
@@ -6443,12 +6443,12 @@ calcPag(){
   // Por Série
   const serieKeys=Object.keys(bySerie).sort();
   const fmtBT=m=>{const h=Math.floor(m/60),mn=m%60;return h+'h '+(mn<10?'0':'')+mn+'m';};
-  let hS='<h4 style="margin:20px 0 8px;font-size:.9em;color:var(--g8)">Por Série</h4><table><thead><tr><th>Série</th><th style="'+C+'">Missões</th><th style="'+R+'">Block Time</th><th style="'+R+'">Total CVE</th></tr></thead><tbody>';
+  let hS='<h4 style="margin:20px 14px 8px;font-size:.9em;color:var(--g8)">Por Série</h4><table><thead><tr><th>Série</th><th style="'+C+'">Missões</th><th style="'+R+'">Block Time</th><th style="'+R+'">Total CVE</th></tr></thead><tbody>';
   serieKeys.forEach(s=>{const x=bySerie[s];hS+='<tr><td><span class="bdg bdg-log">'+this.esc(s)+'</span></td><td style="'+C+'"><strong>'+x.mis+'</strong></td><td style="'+R+';color:var(--g8)">'+fmtBT(x.min)+'</td><td style="'+R+'"><strong>'+this.cve(x.cveTot)+'</strong></td></tr>';});
   hS+='</tbody></table>';
   // Por Aeronave
   const aeroKeys=Object.keys(byAero).sort();
-  let hA='<h4 style="margin:20px 0 8px;font-size:.9em;color:var(--g8)">Por Aeronave</h4><table><thead><tr><th>Aeronave</th><th style="'+C+'">Missões</th><th style="'+R+'">Block Time</th></tr></thead><tbody>';
+  let hA='<h4 style="margin:20px 14px 8px;font-size:.9em;color:var(--g8)">Por Aeronave</h4><table><thead><tr><th>Aeronave</th><th style="'+C+'">Missões</th><th style="'+R+'">Block Time</th></tr></thead><tbody>';
   aeroKeys.forEach(a=>{const x=byAero[a];hA+='<tr><td><strong>'+this.esc(a)+'</strong></td><td style="'+C+'">'+x.mis+'</td><td style="'+R+';color:var(--g8)">'+fmtBT(x.min)+'</td></tr>';});
   hA+='</tbody></table>';
   if(e('tPag'))e('tPag').innerHTML=h+hS+hA;
@@ -6943,17 +6943,17 @@ pagPDF(){
       headStyles:{fillColor:[97,106,120],textColor:255,fontStyle:'bold',halign:'center'},
       alternateRowStyles:{fillColor:[223,225,229]},
       columnStyles:{
-        0:{cellWidth:22,halign:'left'},
-        1:{cellWidth:40,halign:'left'},
-        2:{cellWidth:47,halign:'left'},
-        3:{cellWidth:13,halign:'center'},
-        4:{cellWidth:25,halign:'center'},
-        5:{cellWidth:30,halign:'right'},
-        6:{cellWidth:12,halign:'center'},
-        7:{cellWidth:12,halign:'center'},
-        8:{cellWidth:12,halign:'center'},
-        9:{cellWidth:32,halign:'right'},
-        10:{cellWidth:32,halign:'right',fontStyle:'bold'},
+        0:{cellWidth:20,halign:'left'},
+        1:{cellWidth:60,halign:'left'},
+        2:{cellWidth:26,halign:'left'},
+        3:{cellWidth:11,halign:'center'},
+        4:{cellWidth:22,halign:'center'},
+        5:{cellWidth:34,halign:'right'},
+        6:{cellWidth:10,halign:'center'},
+        7:{cellWidth:10,halign:'center'},
+        8:{cellWidth:10,halign:'center'},
+        9:{cellWidth:35,halign:'right'},
+        10:{cellWidth:39,halign:'right',fontStyle:'bold'},
       },
       foot:[['','','','','','','','','','TOTAL',this.cve(totVal)]],
       footStyles:{fillColor:[197,201,209],textColor:[97,106,120],fontStyle:'bold',halign:'right'},
@@ -8512,9 +8512,12 @@ _escSetPrograma(prog){
   const btnFx=document.getElementById('escProgBtnFx');
   if(btnGc)btnGc.className='btn btn-sm'+(prog==='gc'?'':' btn-s');
   if(btnFx)btnFx.className='btn btn-sm'+(prog==='frontex'?'':' btn-s');
+  const titPag=document.getElementById('escTituloPagina');
+  if(titPag)titPag.textContent='Escala de Voo Tripulantes de '+(prog==='frontex'?'Frontex':'Guarda Costeira');
   const tit=document.getElementById('escTituloTabela');
   if(tit)tit.textContent='Escala de Serviço Semanal de Pilotos — '+(prog==='frontex'?'Frontex':'Guarda Costeira');
   this.renderEscala();
+  this.renderEscalaCabine();
 },
 renderEscala(){
   const ys=document.getElementById('escAno');
@@ -8649,9 +8652,6 @@ renderEscala(){
   h+='<div style="margin-top:18px;padding:14px 16px;background:var(--g0);border:1px solid var(--border);border-radius:0;display:flex;flex-wrap:wrap;gap:22px">';
   h+='<div><div style="font-size:.7em;font-weight:800;color:var(--ink3);letter-spacing:.05em;margin-bottom:8px">ESTADOS DA ESCALA</div><div style="display:flex;flex-wrap:wrap;gap:12px">';
   estados.forEach(e=>{h+='<div style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:0;background:'+e.dot+';display:inline-block"></span><span style="font-size:.76em;color:var(--ink2);font-weight:600">'+e.label+'</span></div>';});
-  h+='</div></div>';
-  h+='<div><div style="font-size:.7em;font-weight:800;color:var(--ink3);letter-spacing:.05em;margin-bottom:8px">TIPOS DE MISSÃO</div><div style="display:flex;flex-wrap:wrap;gap:8px">';
-  this._escMissaoTipos().forEach(t=>{h+='<span style="display:inline-flex;align-items:center;gap:4px;background:'+t.bg+';color:#fff;padding:2px 9px;border-radius:0;font-size:.7em;font-weight:800">'+t.icon+' '+t.label+'</span>';});
   h+='</div></div>';
   h+='</div>';
   grid.innerHTML=h;
@@ -9119,24 +9119,28 @@ escExcel(){
 
 // ─── ESCALA DE PESSOAL DE CABINE ──────────────────────────────────────────
 
+// (2) A Escala de Cabine segue a mesma separação Guarda Costeira / Frontex — controlada
+// pelo mesmo interruptor de programa do topo da página, para o utilizador não ter de
+// alternar duas vezes (uma para pilotos, outra para cabine).
+_escCabArr(){
+  if(this._escPrograma==='frontex'){
+    if(!this.S.escalaCabineFrontex)this.S.escalaCabineFrontex=[];
+    return this.S.escalaCabineFrontex;
+  }
+  if(!this.S.escalaCabine)this.S.escalaCabine=[];
+  return this.S.escalaCabine;
+},
 renderEscalaCabine(){
-  const msEl=document.getElementById('escCabMes');
-  const anoEl=document.getElementById('escCabAno');
+  const msEl=document.getElementById('escMes');
+  const anoEl=document.getElementById('escAno');
   const curY=new Date().getFullYear();
-  if(msEl&&!msEl.options.length){
-    const mns=['Janeiro','Fevereiro','Mar\u00e7o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-    mns.forEach((m,i)=>msEl.insertAdjacentHTML('beforeend','<option value="'+(i+1)+'"'+(i+1===new Date().getMonth()+1?' selected':'')+'>'+m+'</option>'));
-  }
-  if(anoEl&&!anoEl.options.length){
-    for(let y=curY+1;y>=curY-2;y--)anoEl.insertAdjacentHTML('beforeend','<option value="'+y+'"'+(y===curY?' selected':'')+'>'+y+'</option>');
-  }
-  const mes=parseInt(msEl?.value||String(new Date().getMonth()+1));
+  const mesVal=parseInt(msEl?.value||'0');
+  const mes=mesVal>0?mesVal:(new Date().getMonth()+1);
   const ano=parseInt(anoEl?.value||String(curY));
   const grid=document.getElementById('escCabGrid');
   const vazio=document.getElementById('escCabVazio');
   if(!grid)return;
-  if(!this.S.escalaCabine)this.S.escalaCabine=[];
-  const entradas=this.S.escalaCabine.filter(e=>e.mes===mes&&e.ano===ano);
+  const entradas=(this._escCabArr()||[]).filter(e=>e.mes===mes&&e.ano===ano);
   if(!entradas.length){grid.innerHTML='';if(vazio)vazio.style.display='';return;}
   if(vazio)vazio.style.display='none';
   const diasNoMes=new Date(ano,mes,0).getDate();
@@ -9203,8 +9207,7 @@ renderEscalaCabine(){
 
 escCabineToggleDia(nome,dia,mes,ano){
   if(!this.isAdmin()){this.showNotif('\u274c Sem permiss\u00e3o','err');return;}
-  if(!this.S.escalaCabine)this.S.escalaCabine=[];
-  const e=this.S.escalaCabine.find(x=>x.nome===nome&&x.mes===mes&&x.ano===ano);
+  const e=this._escCabArr().find(x=>x.nome===nome&&x.mes===mes&&x.ano===ano);
   if(!e)return;
   if(!e.dias)e.dias=[];
   const idx=e.dias.indexOf(dia);
@@ -9228,8 +9231,7 @@ escCabineNova(){
 
 escCabineEditar(nome,mes,ano){
   if(!this.isAdmin()){this.showNotif('\u274c Sem permiss\u00e3o','err');return;}
-  if(!this.S.escalaCabine)this.S.escalaCabine=[];
-  const e=this.S.escalaCabine.find(x=>x.nome===nome&&x.mes===mes&&x.ano===ano);
+  const e=this._escCabArr().find(x=>x.nome===nome&&x.mes===mes&&x.ano===ano);
   if(!e)return;
   const modal=document.getElementById('modalEscCabine');if(!modal)return;
   document.getElementById('escCabModalTit').textContent='\u270f\ufe0f Editar Pessoal de Cabine';
@@ -9271,18 +9273,18 @@ escCabineGuardar(){
   const posto=document.getElementById('escCabPosto').value.trim();
   const funcao=document.getElementById('escCabFuncao').value;
   if(!nome){this.showNotif('\u26a0\ufe0f Selecione um tripulante','warn');return;}
-  const msEl=document.getElementById('escCabMes');
-  const anoEl=document.getElementById('escCabAno');
-  const mes=parseInt(msEl?.value||String(new Date().getMonth()+1));
+  const msEl=document.getElementById('escMes');
+  const anoEl=document.getElementById('escAno');
+  const mesVal=parseInt(msEl?.value||'0');
+  const mes=mesVal>0?mesVal:(new Date().getMonth()+1);
   const ano=parseInt(anoEl?.value||String(new Date().getFullYear()));
-  if(!this.S.escalaCabine)this.S.escalaCabine=[];
   if(key){
     const[kN,kM,kA]=key.split('|');
-    const e=this.S.escalaCabine.find(x=>x.nome===kN&&x.mes===parseInt(kM)&&x.ano===parseInt(kA));
+    const e=this._escCabArr().find(x=>x.nome===kN&&x.mes===parseInt(kM)&&x.ano===parseInt(kA));
     if(e){e.nome=nome;e.posto=posto;e.funcao=funcao;}
   }else{
-    if(this.S.escalaCabine.find(x=>x.nome===nome&&x.mes===mes&&x.ano===ano)){this.showNotif('\u26a0\ufe0f Tripulante j\u00e1 est\u00e1 nesta escala','warn');return;}
-    this.S.escalaCabine.push({nome,posto,funcao,mes,ano,dias:[]});
+    if(this._escCabArr().find(x=>x.nome===nome&&x.mes===mes&&x.ano===ano)){this.showNotif('\u26a0\ufe0f Tripulante j\u00e1 est\u00e1 nesta escala','warn');return;}
+    this._escCabArr().push({nome,posto,funcao,mes,ano,dias:[]});
   }
   this.S.dirty=true;
   this.escCabineFecharModal();
@@ -9297,7 +9299,8 @@ escCabineEliminar(){
   if(!key)return;
   if(!confirm('Eliminar este registo de cabine?'))return;
   const[kN,kM,kA]=key.split('|');
-  this.S.escalaCabine=(this.S.escalaCabine||[]).filter(x=>!(x.nome===kN&&x.mes===parseInt(kM)&&x.ano===parseInt(kA)));
+  const _filtrado=(this._escCabArr()||[]).filter(x=>!(x.nome===kN&&x.mes===parseInt(kM)&&x.ano===parseInt(kA)));
+  if(this._escPrograma==='frontex')this.S.escalaCabineFrontex=_filtrado;else this.S.escalaCabine=_filtrado;
   this.S.dirty=true;
   this.escCabineFecharModal();
   this.renderEscalaCabine();
@@ -9315,9 +9318,10 @@ async escCabinePDF(){
     if(!window.jspdf){this.showNotif('\u274c Biblioteca PDF n\u00e3o carregada','err');return;}
     if(!window.html2canvas){this.showNotif('\u274c Biblioteca de captura n\u00e3o carregada','err');return;}
     const{jsPDF}=window.jspdf;
-    const msEl=document.getElementById('escCabMes');
-    const anoEl=document.getElementById('escCabAno');
-    const mes=parseInt(msEl?.value||String(new Date().getMonth()+1));
+    const msEl=document.getElementById('escMes');
+    const anoEl=document.getElementById('escAno');
+    const mesVal=parseInt(msEl?.value||'0');
+    const mes=mesVal>0?mesVal:(new Date().getMonth()+1);
     const ano=parseInt(anoEl?.value||String(new Date().getFullYear()));
     const mns=['Janeiro','Fevereiro','Mar\u00e7o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
     const mesNome=mns[mes-1];
@@ -9332,7 +9336,7 @@ async escCabinePDF(){
     const drawHeader=()=>{
       doc.setFillColor(61,69,84);doc.rect(0,0,pageW,20,'F');
       doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(13);
-      doc.text('CGC-EA \u2014 Escala di\u00e1ria de Operador de Cabine / Maca \u2014 '+mesNome.toUpperCase()+' '+ano,pageW/2,10,{align:'center'});
+      doc.text('CGC-EA \u2014 Escala di\u00e1ria de Operador de Cabine / Maca \u2014 '+(this._escPrograma==='frontex'?'Frontex':'Guarda Costeira')+' \u2014 '+mesNome.toUpperCase()+' '+ano,pageW/2,10,{align:'center'});
       doc.setFontSize(8);doc.setFont('helvetica','normal');
       doc.text('Gerado em: '+new Date().toLocaleString('pt-PT'),pageW/2,16,{align:'center'});
       doc.setTextColor(0,0,0);
@@ -9364,7 +9368,7 @@ async escCabinePDF(){
         first=false;
       }
     }
-    window.savePDF(doc,'EscalaCabine_CGC_EA_'+mesNome+'_'+ano+'.pdf');
+    window.savePDF(doc,'EscalaCabine_'+(this._escPrograma==='frontex'?'Frontex':'CGC_EA')+'_'+mesNome+'_'+ano+'.pdf');
   }catch(e){this.showNotif('\u274c Erro ao gerar PDF: '+e.message,'err');}
 },
 
@@ -11116,6 +11120,7 @@ importBackup(ev){
       this.S.escala=data.escala||this.S.escala||[];
       this.S.escalaFrontex=data.escalaFrontex||this.S.escalaFrontex||[];
       this.S.escalaCabine=data.escalaCabine||this.S.escalaCabine||[];
+      this.S.escalaCabineFrontex=data.escalaCabineFrontex||this.S.escalaCabineFrontex||[];
       this.S.manuais=data.manuais||this.S.manuais||[];
       this.S.checklists=data.checklists||this.S.checklists||[];
       this.S.checklistDocs=data.checklistDocs||this.S.checklistDocs||[];
