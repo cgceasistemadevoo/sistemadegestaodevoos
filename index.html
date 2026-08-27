@@ -1230,6 +1230,12 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
             <button class="view-btn active" id="vBtn-table" onclick="A.setView('table')">Tabela</button>
             <button class="view-btn" id="vBtn-cards" onclick="A.setView('cards')">Cartões</button>
           </div>
+          <select id="vPageSize" onchange="A._vooSetPageSize(this.value)" title="Missões por página" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:0;font-size:.8em;background:var(--white);color:var(--ink);outline:none">
+            <option value="20" selected>20 por página</option>
+            <option value="50">50 por página</option>
+            <option value="100">100 por página</option>
+            <option value="all">Todas</option>
+          </select>
           <button class="btn btn-ex btn-sm admin-only" onclick="A.toExcel()" title="Exportar dados filtrados para XLSX">XLSX</button>
           <button class="btn btn-pdf btn-sm admin-only" onclick="A.toPDF()" title="Exportar dados filtrados para PDF">PDF</button>
         </div>
@@ -6118,6 +6124,7 @@ filterVoos(){
   if(vfdi){const d=new Date(vfdi+'T00:00:00');list=list.filter(m=>{const md=m.dt instanceof Date?m.dt:new Date(m.dt);return md>=d;});}
   if(vfdf){const d=new Date(vfdf+'T23:59:59');list=list.filter(m=>{const md=m.dt instanceof Date?m.dt:new Date(m.dt);return md<=d;});}
   this._filteredVoos=list;
+  this._vooPage=1;
   const vc=document.getElementById('vooCount');
   if(vc) vc.textContent='('+this._uniqueMissions(list).length+' Missões) e ('+list.length+' Voos)';
   this.renderVoos(list);
@@ -6180,6 +6187,44 @@ setView(mode){
   ['table','cards'].forEach(v=>{const b=document.getElementById('vBtn-'+v);if(b)b.classList.toggle('active',v===mode);});
   this.filterVoos();
 },
+// ─── PAGINAÇÃO DO HISTÓRICO DE MISSÕES ─────────────────────────
+_vooPageSize:20,
+_vooPage:1,
+_vooSetPageSize(val){
+  this._vooPageSize=val==='all'?Infinity:parseInt(val);
+  this._vooPage=1;
+  this.renderVoos(this._filteredVoos||[]);
+},
+_vooGoToPage(n){
+  this._vooPage=n;
+  this.renderVoos(this._filteredVoos||[]);
+  const el=document.getElementById('tVoos');
+  if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+},
+_vooPaginate(sorted){
+  const size=this._vooPageSize||20;
+  const totalPages=Math.max(1,Math.ceil(sorted.length/(size===Infinity?sorted.length||1:size)));
+  if(this._vooPage>totalPages)this._vooPage=totalPages;
+  if(this._vooPage<1)this._vooPage=1;
+  const start=(this._vooPage-1)*size;
+  const pageItems=size===Infinity?sorted:sorted.slice(start,start+size);
+  return{pageItems,page:this._vooPage,totalPages};
+},
+_vooPagerHtml(page,totalPages,total){
+  if(totalPages<=1)return'';
+  const btn=(label,p,disabled,active)=>'<button class="btn btn-sm'+(active?' btn-p':' btn-s')+'" '+(disabled?'disabled':'')+' onclick="A._vooGoToPage('+p+')" style="min-width:32px;padding:5px 9px;font-size:.8em">'+label+'</button>';
+  let h='<div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:14px 10px;flex-wrap:wrap;border-top:1px solid var(--border)">';
+  h+='<span style="font-size:.78em;color:var(--ink3);margin-right:8px">Página '+page+' de '+totalPages+' ('+total+' no total)</span>';
+  h+=btn('«',1,page===1,false);
+  h+=btn('‹',Math.max(1,page-1),page===1,false);
+  const winStart=Math.max(1,page-2);
+  const winEnd=Math.min(totalPages,page+2);
+  for(let p=winStart;p<=winEnd;p++)h+=btn(String(p),p,false,p===page);
+  h+=btn('›',Math.min(totalPages,page+1),page===totalPages,false);
+  h+=btn('»',totalPages,page===totalPages,false);
+  h+='</div>';
+  return h;
+},
 renderVoos(list){
   if(this.S.viewMode==='cards'){this._renderCards(list);return;}
   const el=document.getElementById('tVoos');
@@ -6190,8 +6235,9 @@ renderVoos(list){
     const db=b.dt instanceof Date?b.dt:new Date(b.dt);
     return db-da || String(a.serie||'').localeCompare(String(b.serie||''),'pt') || String(b.num||'').localeCompare(String(a.num||''),'pt',{numeric:true}) || ((a.perna||0)-(b.perna||0));
   });
+  const{pageItems,page,totalPages}=this._vooPaginate(sorted);
   let h='<div class="tscroll"><table style="min-width:1100px"><thead><tr><th>Série</th><th>Nº Missão</th><th>Data</th><th>Estado</th><th>Tipo</th><th>Aeronave</th><th>Origem</th><th>Destino</th><th>FLIGHT TIME</th><th>Block Time</th><th>Tripulação</th><th>Obs.</th><th>Ações</th></tr></thead><tbody>';
-  sorted.forEach((m,mIdx)=>{
+  pageItems.forEach((m,mIdx)=>{
     const bc=this.C.bdgTipo[m.tipo]||'bdg-log';
     const sc=this.C.bdgStatus[m.status||'Concluída']||'bdg-done';
     const crewHtml=(m.crew||[]).slice(0,3).map(c=>'<div><strong>'+(n=>{const p=n.trim().split(/\s+/);return p.length>1?p[0][0].toUpperCase()+'. '+p[p.length-1]:n;})(c.nome)+'</strong> <span style="color:var(--ink3);font-size:.85em">'+c.fn+'</span></div>').join('')+((m.crew||[]).length>3?'<div style="color:var(--ink3);font-size:.8em">+'+((m.crew||[]).length-3)+' mais</div>':'');
@@ -6222,7 +6268,7 @@ renderVoos(list){
         '</div></td>'+
       '</tr>';
   });
-  el.innerHTML=h+'</tbody></table></div>';
+  el.innerHTML=h+'</tbody></table></div>'+this._vooPagerHtml(page,totalPages,sorted.length);
 },
 _renderCards(list){
   const el=document.getElementById('tVoos');
@@ -6233,8 +6279,9 @@ _renderCards(list){
     const db=b.dt instanceof Date?b.dt:new Date(b.dt);
     return db-da || String(a.serie||'').localeCompare(String(b.serie||''),'pt') || String(b.num||'').localeCompare(String(a.num||''),'pt',{numeric:true}) || ((a.perna||0)-(b.perna||0));
   });
+  const{pageItems,page,totalPages}=this._vooPaginate(sorted);
   let h='<div class="voo-cards">';
-  sorted.forEach((m,mIdx)=>{
+  pageItems.forEach((m,mIdx)=>{
     const bc=this.C.bdgTipo[m.tipo]||'bdg-log';
     const sc=this.C.bdgStatus[m.status||'Concluída']||'bdg-done';
     const eid=m.id.replace(/'/g,"\\'");
@@ -6269,7 +6316,7 @@ _renderCards(list){
       '</div>'+
     '</div>';
   });
-  el.innerHTML=h+'</div>';
+  el.innerHTML=h+'</div>'+this._vooPagerHtml(page,totalPages,sorted.length);
 },
 
 // ─── ANÁLISES ─────────────────────────────────────────────────
