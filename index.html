@@ -920,6 +920,7 @@ body.dark .form-error-banner{background:#3e0b18;color:#f48fb1}
      DASHBOARD
 ══════════════════════════════════════════ -->
 <div id="page-dashboard" class="page">
+  <div id="integrityPanel" style="display:none;margin-bottom:14px"></div>
   <div class="fsection">
     <div class="fgrid">
       <div class="fg"><label>Data Início</label><input type="date" id="fInicio"></div>
@@ -2902,6 +2903,13 @@ openSettings(){
       <button class="btn btn-p" onclick="A.corrigirNumeracao()">Analisar e Corrigir</button>
       <div id="numCorrecaoResult" style="margin-top:12px"></div>
     </div>
+    <div style="padding:14px;background:var(--g0);border:1.5px solid var(--g3);border-radius:0">
+      <b style="font-size:.9em">Verificar Integridade dos Dados</b>
+      <p style="font-size:.82em;color:var(--ink3);margin:6px 0 10px">
+        Corre automaticamente sempre que a aplicação carrega os dados. Use este botão para repetir a verificação a qualquer momento — por exemplo, depois de importar missões ou de restaurar um backup.
+      </p>
+      <button class="btn btn-p" onclick="A._checkDataIntegrity();A.showNotif('Verificação concluída — ver aviso no Dashboard, se houver algo a assinalar.')">Verificar Agora</button>
+    </div>
   </div>
   <div style="margin-top:14px;text-align:right">
     <button class="btn btn-s" onclick="A.closeInfoModal()">Fechar</button>
@@ -3304,6 +3312,7 @@ async init(){
     this.renderAll();
     this.buildCharts();
     this._refreshUndoBtn();
+    if(!this.S._demoMode)this._checkDataIntegrity();
     setTimeout(()=>this.showStartupNotifs(),800);
     const n=new Date();
     const sa=document.getElementById('selAno');
@@ -4866,9 +4875,21 @@ delContacto(id){
     if(n!==oldName&&this.S.trips.find(x=>x.nome.toLowerCase()===n.toLowerCase())){
       this.showNotif('Já existe tripulante com esse nome','warn');return;
     }
-    // Se nome mudou, atualizar nas missões
+    // Se nome mudou, atualizar nas missões e nas escalas (pilotos e cabine, nos dois
+    // programas) — sem isto, o nome antigo ficava "órfão" nessas referências, exatamente
+    // o tipo de inconsistência que a Verificação de Integridade existe para detectar.
     if(n!==oldName){
       this.S.missoes.forEach(m=>{(m.crew||[]).forEach(cr=>{if(cr.nome===oldName)cr.nome=n;});});
+      [this.S.escala,this.S.escalaFrontex].forEach(arr=>{
+        (arr||[]).forEach(e=>{
+          if(e.piloto1===oldName)e.piloto1=n;
+          if(e.piloto2===oldName)e.piloto2=n;
+          if(e.standby===oldName)e.standby=n;
+        });
+      });
+      [this.S.escalaCabine,this.S.escalaCabineFrontex].forEach(arr=>{
+        (arr||[]).forEach(e=>{if(e.nome===oldName)e.nome=n;});
+      });
     }
     t.nome=n;t.posto=p;t.col=c;t.nif=nif;
     t.username=(document.getElementById('etUsername')?.value||'').trim().toLowerCase();
@@ -5052,6 +5073,7 @@ delContacto(id){
         let msg=''+ok+' missão(ões) importada(s)';
         if(erros.length)msg+=' • '+erros.length+' erro(s)';
         this.showNotif(msg);
+        if(ok>0)this._checkDataIntegrity();
         if(erros.length){
           let h='<h3 style="margin-bottom:14px">Erros de Importação</h3><div style="max-height:300px;overflow:auto;font-size:.85em;font-family:var(--mono);background:#fef2f2;padding:10px;border-radius:0;border:1px solid #fecaca">'
             +erros.map(e=>'• '+this.esc(e)).join('<br>')
@@ -5715,13 +5737,25 @@ addTrip(){
 },
 delTrip(nome){
   if(!this.isAdmin()){this.showNotif('Sem permissão — apenas administradores podem eliminar','err');return;}
-  if(!confirm('Eliminar '+nome+'?'))return;
+  // À semelhança de delAero(), avisar ANTES de apagar se o nome estiver referenciado
+  // noutro sítio — sem isto, ficam referências "órfãs" que só a verificação de
+  // integridade apanharia depois, já tarde demais para evitar a confusão.
+  const numMissoes=this.S.missoes.filter(m=>(m.crew||[]).some(c=>c.nome===nome)).length;
+  const emEscala=[...(this.S.escala||[]),...(this.S.escalaFrontex||[])].some(e=>!e.cancelado&&[e.piloto1,e.piloto2,e.standby].includes(nome));
+  if(numMissoes||emEscala){
+    const partes=[];
+    if(numMissoes)partes.push(numMissoes+' missão(ões)');
+    if(emEscala)partes.push('semana(s) de escala');
+    if(!confirm('"'+nome+'" está referenciado em '+partes.join(' e ')+'.\n\nSe eliminar mesmo assim, essas referências ficam "órfãs" — o nome continua nas missões/escalas, mas deixa de estar ligado a uma ficha de tripulante (a Verificação de Integridade vai continuar a assinalar isto).\n\nEliminar mesmo assim?'))return;
+  }else{
+    if(!confirm('Eliminar '+nome+'?'))return;
+  }
   this._snapshot('Eliminar tripulante '+nome);
   this.S.trips=this.S.trips.filter(t=>t.nome!==nome);
   this.markDirty();
   this.fillSelects();
   this.renderAll();
-  this.addAudit('Tripulante eliminado',nome);
+  this.addAudit('Tripulante eliminado',nome+(numMissoes||emEscala?' (tinha referências em uso)':''));
   this.showNotif('Tripulante eliminado');
 },
 
@@ -5837,6 +5871,98 @@ autoCancelPast(){
     this.showNotif(''+count+' missão(ões) planeada(s) no passado cancelada(s) automaticamente','warn');
   }
   return count;
+},
+
+// ─── VERIFICAÇÃO DE INTEGRIDADE (corre sozinha ao carregar os dados) ──
+// Não corrige nada automaticamente — só avisa. O objetivo é a pessoa saber
+// que há algo estranho ENQUANTO ainda é fácil de corrigir, em vez de só
+// descobrir semanas depois (foi exactamente isso que faltou da vez em que
+// se perderam dados sem ninguém reparar a tempo).
+_checkDataIntegrity(){
+  const problemas=[];
+
+  // A. Números de missão repetidos na mesma série, que NÃO são pernas
+  //    legítimas da mesma missão (mesma regra de agrupamento de _renumSerie —
+  //    ver Manual de Arquitetura, secção 5.1).
+  const porSerieNum=new Map();
+  this.S.missoes.forEach(m=>{
+    if(!m.num||!m.serie)return;
+    const key=(m.serie||'').trim().toUpperCase()+'|'+m.num;
+    const groupKey=m.perna?('N:'+key):('S:'+m.id);
+    if(!porSerieNum.has(key))porSerieNum.set(key,new Set());
+    porSerieNum.get(key).add(groupKey);
+  });
+  porSerieNum.forEach((grupos,key)=>{
+    if(grupos.size>1){
+      const[serie,num]=key.split('|');
+      problemas.push({tipo:'Numeração',msg:'O número "'+num+'" está atribuído a '+grupos.size+' missões diferentes na série "'+serie+'" — considere correr "Corrigir Numeração" em Definições.'});
+    }
+  });
+
+  // B. Tripulantes usados em missões OU escalas que já não constam da lista de
+  //    Tripulantes (nome alterado ou apagado depois de ter sido escalado).
+  const nomesTrip=new Set(this.S.trips.map(t=>t.nome));
+  const orfaos=new Set();
+  this.S.missoes.forEach(m=>{(m.crew||[]).forEach(c=>{if(c.nome&&!nomesTrip.has(c.nome))orfaos.add(c.nome);});});
+  [this.S.escala,this.S.escalaFrontex].forEach(arr=>{
+    (arr||[]).forEach(e=>{[e.piloto1,e.piloto2,e.standby].forEach(n=>{if(n&&!nomesTrip.has(n))orfaos.add(n);});});
+  });
+  [this.S.escalaCabine,this.S.escalaCabineFrontex].forEach(arr=>{
+    (arr||[]).forEach(e=>{if(e.nome&&!nomesTrip.has(e.nome))orfaos.add(e.nome);});
+  });
+  if(orfaos.size){
+    problemas.push({tipo:'Tripulantes',msg:orfaos.size+' nome(s) usados em missões ou escalas já não constam da lista de Tripulantes: '+[...orfaos].slice(0,5).join(', ')+(orfaos.size>5?'…':'')});
+  }
+
+  // C. Missões com data inválida ou em falta
+  const semData=this.S.missoes.filter(m=>{const d=m.dt instanceof Date?m.dt:new Date(m.dt);return isNaN(d);});
+  if(semData.length){
+    problemas.push({tipo:'Datas',msg:semData.length+' missão(ões) com data inválida ou em falta (ex: '+semData.slice(0,5).map(m=>m.num||m.id).join(', ')+(semData.length>5?'…':'')+')'});
+  }
+
+  // D. Semanas de escala com a data de fim antes da data de início
+  const semanaInvertida=[...(this.S.escala||[]),...(this.S.escalaFrontex||[])].filter(e=>e.dtIni&&e.dtFim&&e.dtFim<e.dtIni);
+  if(semanaInvertida.length){
+    problemas.push({tipo:'Escala',msg:semanaInvertida.length+' semana(s) de escala com a data de fim antes da data de início'});
+  }
+
+  // E. Mesmo piloto em duas semanas sobrepostas do MESMO programa (a verificação
+  //    ao gravar já evita isto para dados novos, mas dados restaurados de um
+  //    backup antigo podem ter escapado a essa verificação).
+  [['Guarda Costeira',this.S.escala],['Frontex',this.S.escalaFrontex]].forEach(([label,arr])=>{
+    const list=(arr||[]).filter(e=>!e.cancelado&&e.dtIni&&e.dtFim);
+    for(let i=0;i<list.length;i++){
+      for(let j=i+1;j<list.length;j++){
+        const a=list[i],b=list[j];
+        if(a.dtIni<=b.dtFim&&b.dtIni<=a.dtFim){
+          const pa=[a.piloto1,a.piloto2,a.standby].filter(Boolean);
+          const pb=[b.piloto1,b.piloto2,b.standby].filter(Boolean);
+          const comuns=[...new Set(pa.filter(p=>pb.includes(p)))];
+          if(comuns.length){
+            problemas.push({tipo:'Escala',msg:comuns.join(', ')+' escalado(s) duas vezes em semanas sobrepostas ('+label+': '+a.dtIni+' e '+b.dtIni+')'});
+          }
+        }
+      }
+    }
+  });
+
+  this._renderIntegrityPanel(problemas);
+  if(problemas.length)this.addAudit('Verificação de integridade',problemas.length+' inconsistência(s) detectada(s) ao carregar');
+  return problemas;
+},
+_renderIntegrityPanel(problemas){
+  const el=document.getElementById('integrityPanel');
+  if(!el)return;
+  if(!problemas||!problemas.length){el.style.display='none';el.innerHTML='';return;}
+  el.style.display='block';
+  let h='<div style="background:#fef2f2;border:1.5px solid #fca5a5;border-radius:0;padding:12px 16px">';
+  h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">';
+  h+='<span style="font-size:1.1em">\u26a0\ufe0f</span><b style="color:#991b1b">Verificação de integridade encontrou '+problemas.length+' possível(is) inconsistência(s)</b>';
+  h+='<button class="btn btn-s btn-sm" style="margin-left:auto" onclick="document.getElementById(\'integrityPanel\').style.display=\'none\'">Dispensar</button>';
+  h+='</div><ul style="margin:0;padding-left:20px;font-size:.85em;color:#991b1b">';
+  problemas.forEach(p=>{h+='<li><b>'+this.esc(p.tipo)+':</b> '+this.esc(p.msg)+'</li>';});
+  h+='</ul></div>';
+  el.innerHTML=h;
 },
 
 // ─── DASHBOARD: Combustível do período ───────────────────────
@@ -11193,6 +11319,7 @@ importBackup(ev){
       this.buildCharts();
       this.addAudit('Backup restaurado',file.name);
       this.showNotif('Backup restaurado com sucesso! '+this.S.missoes.length+' missões carregadas.');
+      this._checkDataIntegrity();
       this.closeInfoModal();
     }catch(err){this.showNotif('Erro ao ler o ficheiro: '+err.message,'err');}
   };
