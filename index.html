@@ -4565,14 +4565,27 @@ delContacto(id){
     return out;
   },
   // ─── BLOCO DE ASSINATURAS (helper partilhado por todos os PDFs) ──────────────
+  // Calcula onde desenhar o bloco de assinaturas (devolve sigY; o divisor fica em sigY-2 e a
+  // última linha, "Data:", em sigY+22 — ou seja, o bloco ocupa ~25mm).
+  // Coloca-o logo abaixo da tabela com uma folga normal de 12mm; se assim não couber, aproxima-o
+  // da tabela (folga mínima de 5mm) para aproveitar o espaço que realmente existe na página, e só
+  // passa para a página seguinte se nem assim couber com 5mm de margem inferior.
+  // (Antes, o limiar era fixo e a folga também, por isso a assinatura saltava para uma página
+  // nova mesmo havendo espaço suficiente na atual.)
+  _pdfSigY(doc,pageH,lastY){
+    const BLOCK=25,MARGIN_BOTTOM=5,GAP=12,MIN_GAP=5;
+    if(!lastY)return pageH<240?170:252;          // sem tabela de referência: posição fixa
+    let top=lastY+GAP;                            // posição do divisor
+    const maxTop=pageH-MARGIN_BOTTOM-BLOCK;       // o mais em baixo que o divisor pode ficar
+    if(top>maxTop)top=maxTop;
+    if(top<lastY+MIN_GAP){doc.addPage();return 22;}
+    return top+2;
+  },
   _pdfSig(doc,lm,rm,pageH,startY){
     const lastPg=doc.internal.getNumberOfPages();
     doc.setPage(lastPg);
     const lastY=startY||(doc.lastAutoTable?doc.lastAutoTable.finalY:0);
-    const sigH=30;
-    let sigY;
-    if(lastY&&pageH-lastY<sigH+14){doc.addPage();sigY=22;}
-    else{sigY=lastY?lastY+14:(pageH<240?170:252);}
+    const sigY=this._pdfSigY(doc,pageH,lastY);
     const s=(rm-lm)/3;
     const c1=lm+s/2;const c2=lm+s+s/2;const c3=lm+2*s+s/2;
     const g=22;
@@ -4600,10 +4613,7 @@ delContacto(id){
     const lastPg=doc.internal.getNumberOfPages();
     doc.setPage(lastPg);
     const lastY=startY||(doc.lastAutoTable?doc.lastAutoTable.finalY:0);
-    const sigH=30;
-    let sigY;
-    if(lastY&&pageH-lastY<sigH+14){doc.addPage();sigY=22;}
-    else{sigY=lastY?lastY+14:(pageH<240?170:252);}
+    const sigY=this._pdfSigY(doc,pageH,lastY);
     doc.setPage(doc.internal.getNumberOfPages());
     const s=(rm-lm)/2;
     const c1=lm+s/2;const c2=lm+s+s/2;
@@ -4618,6 +4628,31 @@ delContacto(id){
     doc.text('Assinatura',c2,sigY+6,{align:'center'});
     doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(30,30,30);
     doc.text('Chefe de Serviço de Logística',c1,sigY+17,{align:'center'});
+    doc.text('Comandante da Esquadrilha Aérea',c2,sigY+17,{align:'center'});
+    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(100,100,100);
+    doc.text('Data: ___/___/________',c1,sigY+22,{align:'center'});
+    doc.text('Data: ___/___/________',c2,sigY+22,{align:'center'});
+  },
+  // ─── BLOCO DE ASSINATURAS DO PDF DE PAGAMENTOS (2 cargos) ────
+  _pdfSigPagamentos(doc,lm,rm,pageH,startY){
+    const lastPg=doc.internal.getNumberOfPages();
+    doc.setPage(lastPg);
+    const lastY=startY||(doc.lastAutoTable?doc.lastAutoTable.finalY:0);
+    const sigY=this._pdfSigY(doc,pageH,lastY);
+    doc.setPage(doc.internal.getNumberOfPages());
+    const s=(rm-lm)/2;
+    const c1=lm+s/2;const c2=lm+s+s/2;
+    const g=6;
+    doc.setDrawColor(180,180,180);doc.setLineWidth(0.25);
+    doc.line(lm,sigY-2,rm,sigY-2);
+    doc.setDrawColor(0,0,0);doc.setLineWidth(0.5);
+    doc.line(lm+g,sigY+12,lm+s-g,sigY+12);
+    doc.line(lm+s+g,sigY+12,rm-g,sigY+12);
+    doc.setFont('helvetica','italic');doc.setFontSize(6.5);doc.setTextColor(140,140,140);
+    doc.text('Assinatura',c1,sigY+6,{align:'center'});
+    doc.text('Assinatura',c2,sigY+6,{align:'center'});
+    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(30,30,30);
+    doc.text('Chefe de Apoio Logístico',c1,sigY+17,{align:'center'});
     doc.text('Comandante da Esquadrilha Aérea',c2,sigY+17,{align:'center'});
     doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(100,100,100);
     doc.text('Data: ___/___/________',c1,sigY+22,{align:'center'});
@@ -4672,7 +4707,7 @@ delContacto(id){
 
       let y=28;
       doc.setFontSize(9);doc.setFont('helvetica','bold');
-      doc.text('Resumo: '+totalExp+' expirado(s) | '+totalSoon+' a expirar (≤30d) | '+totalOk+' em dia',105,y,{align:'center'});
+      doc.text('Resumo: '+totalExp+' expirado(s) | '+totalSoon+' a expirar (até 30d) | '+totalOk+' em dia',105,y,{align:'center'});
       y+=8;
 
       const renderCrewSection=(title,rows,headColor)=>{
@@ -7136,6 +7171,7 @@ pagPDF(){
     const serieKeys2=Object.keys(ppBySerie).sort();
     const aeroKeys2=Object.keys(ppByAero).sort();
     const ySubStart=doc.lastAutoTable.finalY+10;
+    let finalYSerie=0,finalYAero=0;
     // Por Série
     if(serieKeys2.length){
       doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(97,106,120);
@@ -7150,6 +7186,7 @@ pagPDF(){
         tableWidth:124,
         margin:{left:10,right:163},
       });
+      finalYSerie=doc.lastAutoTable.finalY;
     }
     // Por Aeronave (direita)
     if(aeroKeys2.length){
@@ -7166,8 +7203,14 @@ pagPDF(){
         tableWidth:103,
         margin:{left:148,right:46},
       });
+      finalYAero=doc.lastAutoTable.finalY;
     }
-    this._pdfSig(doc,10,287,210);
+    // Usa sempre a mais alta das duas tabelas lado a lado — nunca a que calhou ser
+    // chamada por último no código, que podia subestimar o espaço realmente ocupado
+    // e fazer a assinatura sobrepor-se à tabela mais alta (ou, ao contrário, saltar
+    // para a página seguinte sem necessidade quando essa tabela era a mais curta).
+    const finalYPag=Math.max(finalYSerie,finalYAero,doc.lastAutoTable.finalY);
+    this._pdfSigPagamentos(doc,10,287,210,finalYPag);
     savePDF(doc,'Pagamentos_'+mesNome+'_'+ano+'.pdf');
     this.showNotif('PDF exportado!');
   }catch(e){this.showNotif('Erro: '+e.message,'err');}
@@ -10796,7 +10839,7 @@ dashboardExecutivoPDF(){
   const _durMin=(arr)=>{let t=0;arr.forEach(m=>{t+=this.dur2m(m.dur)||0;});return t;};
   const _effMin=(m)=>{const bt=this.calcBT(m.boff,m.bon);let btMin=0;if(bt&&bt!=='—'){const[bh,bm]=bt.split(':').map(Number);btMin=bh*60+(bm||0);}return btMin||this.dur2m(m.dur);};
   const _cve=(arr)=>{let t=0;arr.forEach(m=>{const eff=_effMin(m);const tMin=this.t2m((m.toff||'00:00').slice(0,5));const mR=(this.overlaps(tMin,eff,0,8)?mv.pa:0)+(this.overlaps(tMin,eff,12,14)?mv.al:0)+(this.overlaps(tMin,eff,19,24)?mv.jn:0);(m.crew||[]).forEach(c=>{t+=(vPF[c.fn]||1500)*(eff/60)+mR;});});return t;};
-  const delta=(a,b)=>{if(!b)return'';const d=Math.round((a-b)/b*100);return(d>=0?'▲':'▼')+Math.abs(d)+'%';};
+  const delta=(a,b)=>{if(!b)return'';const d=Math.round((a-b)/b*100);return(d>=0?'+':'-')+Math.abs(d)+'%';};
   const fmtM=m=>{const h=Math.floor(m/60),mn=m%60;return h+'h '+(mn<10?'0':'')+mn+'m';};
   const btMes=_btMin(msMesConcl),btPrev=_btMin(msPrev),btAno=_btMin(msAnoConcl);
   const cveMes=_cve(msMesConcl),cvePrev=_cve(msPrev),cveAno=_cve(msAnoConcl);
@@ -10921,7 +10964,7 @@ dashboardExecutivoPDF(){
     doc.text(String(val),mx,cy+11,{align:'center'});
     // Delta centralizado
     if(dlt){
-      const dcol=dlt.startsWith('▲')?[22,101,52]:[185,28,28];
+      const dcol=dlt.startsWith('+')?[22,101,52]:[185,28,28];
       doc.setTextColor(...dcol);doc.setFontSize(4.2);doc.setFont('helvetica','normal');
       doc.text(dlt,mx,cy+14.5,{align:'center'});
     }
@@ -11823,7 +11866,7 @@ tripLogbookPDF(nome){
     const valItems=[];
     if(t.valMed){const st=this.validityStatus(t.valMed);valItems.push(['Medico Civil',t.valMed,st]);}
     if(t.valLic){const st=this.validityStatus(t.valLic);valItems.push(['Licenca',t.valLic,st]);}
-    (t.cursos||[]).forEach(c=>{if(c.val){const st=this.validityStatus(c.val);valItems.push(['\u25CF '+(c.nome||'Curso'),c.val,st]);}});
+    (t.cursos||[]).forEach(c=>{if(c.val){const st=this.validityStatus(c.val);valItems.push(['\u2022 '+(c.nome||'Curso'),c.val,st]);}});
     if(valItems.length){
       const nPerRow=Math.min(valItems.length,Math.floor((W-lm-rm-22)/52));
       const usedW=22+nPerRow*52;
